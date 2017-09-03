@@ -1,0 +1,242 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body *:not(ul, li) {
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  width: 90%;
+  padding: 0 5%;
+  text-align: center;
+  display: block;
+  height: 2em;
+  background: #fbfbfb;
+  margin: 10px 0;
+}
+
+header nav {
+  line-height: 2.25em;
+}
+
+header nav a {
+  text-decoration: none;
+  font-size: 16px;
+  color: tomato;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+svg {
+  /*display: block;*/
+  width: 100%;
+  height: calc(100% - 20px);
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/*svg {
+  margin-top: 1rem;
+}*/
+
+svg text {
+  font-size: 12px;
+  color: #666;
+  line-height: 14px;
+  /*fill: #666;*/
+  /*stroke-width: 0.1px;*/
+}
+
+.flexbox {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-flow: row wrap;
+  justify-content: space-around;
+  clear: both;
+}
+
+.flexbox div {
+  border: 1px dotted tomato;
+  padding: 5px;
+  min-width: 600px;
+  min-height: 100px;
+  margin-top: 30px;
+  color: white;
+  /*font-size: 3em;*/
+  text-align: center;
+}
+
+.hidd {
+  display: none;
+  -webkit-transition: width 2s;  Safari 
+  transition: width 2s;
+}
+
+.flexbox nav {
+  position: absolute;
+  left: 0;
+  padding: 10px;
+  background: #f5f5f5;
+}
+
+nav ul {
+  margin: 15px 10px;
+  padding: 0;
+}
+
+nav li {
+  list-style: none;
+  margin: 0.2rem;
+  padding: 0;
+}
+
+nav li.title {
+  text-decoration: underline;
+}
+
+nav a.active {
+  font-weight: bold;
+}
+
+/*
+#navBar {
+  margin: 10px auto;
+  color: #2d6987;
+}
+
+#navBar div {
+  float: left;
+  padding: 5px;
+  color: grey;
+  cursor: pointer;
+}
+#navBar ul {
+  margin: 5px;
+  float: left;
+  background: whitesmoke;
+  border: 1px solid green;
+}
+#navBar ul:first-child {
+  margin-right: 30px;
+  display: block;
+}
+#navBar li {
+  display: inline-block;
+  padding: 10px;
+  cursor: pointer;
+}*/
+
+
+
+
+
+#svgRoot {
+  position: relative;
+  width: 80%;
+  min-height: 450px;
+}
+
+#svgRoot:after {
+  clear: both;
+}
+
+#svgNav {
+  width: 100%;
+  height: 40px;
+  background: whitesmoke;
+}
+
+#svgZoom {
+  position: absolute;
+  bottom: 2%;
+  right: 2%;
+  padding: 10px;
+  display: none;
+  background: whitesmoke;
+}
+
+/* ----------------- CHART SVG CLASSES -------------------*/
+
+.tlabel {
+  fill: #666;
+  stroke-width: 0.1px;
+  font-family: sans-serif;
+}
+
+.llabel {
+  stroke: red;
+  font-family: sans-serif;
+}
+
+.lline {
+  stroke: #9966ff;
+}
+
+.ldot {
+  stroke: green
+}
+
+/*//win candle*/
+.wcandle {
+  stroke: blue;
+  fill: blue;
+  fill-opacity: 0.7;
+}
+
+/*lose candle*/
+.lcandle {
+  stroke: red;
+  fill: red;
+  fill-opacity: 0.7;
+}
+
+.ddot {
+  stroke: red;
+}
+
+.staxis {
+  stroke-dasharray: 5, 10;
+}
+
+/*  "#36a2eb", "#ff9f40", "#ffcd56", "#4bc0c0", "#9966ff", "#5BC0DE"*/
+.stline {
+  stroke: #36a2eb;
+  stroke-width: 2px;
+}
+
+.stsma {
+  stroke: #ff9f40;
+}
+
+.stema {
+  stroke: #9966ff;
+}
+
+
+
+.rootSvg {
+
+}
+
+.stnavdot {
+  fill: #fff;
+  stroke: #2795EE;
+  stroke-width: 4px;
+  cursor: pointer;
+}
+/*#svgRoot:hover #svgZoom {
+  display: block;
+
+  COLORS :::;
+      var a = s.rect(0, 0, 50, 50, 0, 0).attr({'fill':'#E82941'}),
+        b = s.rect(20, 20, 50, 50, 0, 0).attr({'fill':'#FF6E00'}),
+        c = s.rect(40, 40, 50, 50, 0, 0).attr({'fill':'#00C049'});
+}*/

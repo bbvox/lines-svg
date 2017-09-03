@@ -1,0 +1,16 @@
+language: node_js
+
+node_js:
+  - "node"
+  - "8.1.3"
+
+install:
+  - npm install
+  - if [ "$TRAVIS_NODE_VERSION" = "node" ]; then npm install --only=dev; fi;
+
+script:
+  - npm test
+  - if [ "$TRAVIS_NODE_VERSION" = "node" ]; then npm run cover; fi;
+
+after_success:
+  - if [ "$TRAVIS_NODE_VERSION" = "node" ]; then cat ./coverage/lcov.info | ./node_modules/.bin/coveralls; fi

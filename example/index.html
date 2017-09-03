@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+
+https://github.com/gabelerner/canvg
+-->
+<html>
+
+<head>
+  <title>Chart intro</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../dist/lines.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header>
+    <nav>
+      <a href="" id="showNavigation">show</a>
+      <a href="" style="float:right" id="goNext">next >>></a>
+      <a href="" style="float:left" id="goPrev"><<< prev</a>
+    </nav>
+  </header>
+
+  <div class="flexbox">
+    <!-- <nav id="navBar" class="hidd"></nav> -->
+    <nav id="navBar"></nav>
+
+    <div id="svgRoot">
+      <svg id="svgBox"></svg>
+
+      <nav id="svgZoom">
+        <a href onclick="svg.zoom(event)">IN</a>
+        <a href onclick="svg.zoom(event, true)">OUT</a>
+      </nav>
+    </div>
+
+
+    <div>
+      <canvas id="canvasGraph"></canvas>
+    </div>
+    <div>
+      <img>
+    </div>
+  </div>
+
+
+  <script src="./demo.js"></script>
+</body>
+
+</html>

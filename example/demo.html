@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+
+https://github.com/gabelerner/canvg
+-->
+<html>
+
+<head>
+  <title>Lines svg intro</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.5.1/snap.svg.js"></script>
+  <script src="../src/lines.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header>
+    <nav>
+      <a href="" id="showNavigation">show</a>
+      <a href="" style="float:right" id="goNext">next >>></a>
+      <a href="" style="float:left" id="goPrev">
+        <<< prev</a>
+    </nav>
+  </header>
+  <div class="flexbox">
+    <nav id="navBar">
+      <ul>
+        <li class="title"> PERIOD : </li>
+        <li><a data-period="15m" class="opts period active">15m</a></li>
+        <li><a data-period="30m" class="opts period">30m</a></li>
+        <li><a data-period="1h" class="opts period">1h</a></li>
+        <li><a data-period="4h" class="opts period">4h</a></li>
+        <li><a data-period="1d" class="opts period">1d</a></li>
+        <li><a data-period="1w" class="opts period">1w</a></li>
+        <li class="title">DRAW :</li>
+        <li><a data-draw="line" class="opts draw"> line </a></li>
+        <li><a data-draw="arrow" class="opts draw"> arrow </a></li>
+        <li><a data-draw="tube" class="opts draw"> tube </a></li>
+        <li class="title"> TYPE : </li>
+        <!-- <li><a data-val="15m" class="opts chart">average</a></li> -->
+        <li><a data-chart="line" class="opts chart">line</a></li>
+        <li><a data-chart="candle" class="opts chart">candle</a></li>
+        <li><a data-chart="sma" class="opts chart">sma</a></li>
+        <li><a data-chart="ema" class="opts chart">ema</a></li>
+        <li><a data-chart="all" class="opts chart active">all</a></li>
+        <li><hr></li>
+        <!-- <li><a data-timeline="prev" class="opts timeline">prev</a></li> -->
+        <li><a data-timeline="prev" class="opts timeline"><<<</a>&nbsp;/&nbsp;<a data-timeline="next" class="opts timeline">>>></a></li>
+        <!-- <li><a data-timeline="zoomin" class="opts timeline">zoom in</a></li> -->
+        <li><a data-timeline="zoomin" class="opts timeline">IN</a>&nbsp;/&nbsp;<a data-timeline="zoomout" class="opts timeline">OUT</a></li>
+        <li><a class="opts save">Snapshot</a></li>
+      </ul>
+    </nav>
+    <nav id="navBar"></nav>
+    <div id="svgRoot">
+      <!-- <nav id="svgNav"></nav> -->
+      <svg id="svgBox"></svg>
+      <nav id="svgZoom">
+        <a href onclick="svg.zoom(event)">IN</a>
+        <a href onclick="svg.zoom(event, true)">OUT</a>
+      </nav>
+    </div>
+    <div>
+      <canvas id="canvasGraph"></canvas>
+    </div>
+    <div>
+      <img>
+    </div>
+  </div>
+  <script>
+  (function() {
+
+
+
+  function request(urlCnt, cb) {
+    var _cb, oReq, _url;
+    _cb = cb || reqListener;
+    oReq = new XMLHttpRequest();
+    _url = "./rates3.json";
+
+    oReq.addEventListener("load", _cb);
+    oReq.open("GET", _url);
+    oReq.send();
+  }
+
+  request();
+
+  function reqListener() {
+    var ratesJson = JSON.parse(this.responseText);
+
+    window.l = new Lines("svgBox");
+    l.data(ratesJson); // always second after that drawEMPTY
+    l.draw("axis");
+    l.draw("line");
+    l.draw("sma");
+    // l.live();
+    l.drawSMA(20);
+    l.liveLine({tube: 1});
+    l.draw("sma"); //sma50
+
+    // l.navDot([100,200], function () {
+    //   console.log(l.dlive[0].data('origTransform'))
+    // })
+  }
+
+
+
+    var data = [
+      [28.7, 31.05, 28.45, 30.04],
+      [30.04, 26.13, 28.3, 24.63],
+      [30.04, 33.13, 28.3, 20.63],
+      [30.04, 30.13, 28.3, 35.63],
+      [30.04, 30.13, 28.3, 29.63],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.04, 30.13, 28.3, 29.63],
+      [29.89, 29.89, 29.89, 129.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [30.13, 30.13, 30.13, 60.13],
+      [28.7, 31.05, 28.45, 30.04],
+      [30.04, 26.13, 28.3, 24.63],
+      [30.04, 33.13, 28.3, 20.63],
+      [30.04, 30.13, 28.3, 35.63],
+      [30.04, 30.13, 28.3, 29.63],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.04, 30.13, 28.3, 29.63],
+      [29.89, 29.89, 29.89, 129.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [30.13, 30.13, 30.13, 60.13],
+      [28.7, 31.05, 28.45, 30.04],
+      [30.04, 26.13, 28.3, 24.63],
+      [30.04, 33.13, 28.3, 20.63],
+      [30.04, 30.13, 28.3, 35.63],
+      [30.04, 30.13, 28.3, 29.63],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.04, 30.13, 28.3, 29.63],
+      [29.89, 29.89, 29.89, 129.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [30.13, 30.13, 30.13, 60.13],
+      [30.04, 26.13, 28.3, 24.63],
+      [30.04, 33.13, 28.3, 20.63],
+      [30.04, 30.13, 28.3, 35.63],
+      [30.04, 30.13, 28.3, 29.63],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.13, 30.13, 30.13, 30.13],
+      [30.04, 30.13, 28.3, 29.63],
+      [29.89, 29.89, 29.89, 129.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [29.89, 29.89, 29.89, 29.89],
+      [30.13, 30.13, 30.13, 60.13]
+    ];
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+
+    var buttons = document.getElementsByClassName("opts");
+    var key = 0, len = buttons.length;
+
+    for (; key < len; key ++) {
+      buttons[key].addEventListener("click", function (ev) {
+        var dset;
+        delActive(this.classList[1]);
+        this.classList.add("active");
+        dset = this.dataset;
+
+        if (dset.period) {
+          console.log("::: period :::")
+          //redraw ...
+        } else if (dset.chart) {
+          l.toggle(dset.chart);
+        } else if (dset.draw) {
+          if (dset.draw === "line") {
+            l.liveLine()
+          } else if (dset.draw === "arrow") {
+            l.liveLine({arrow: 1});
+          } else if (dset.draw === "tube") {
+            l.liveLine({tube: 1});
+          }
+        } else if (dset.timeline) {
+          if (dset.timeline === "zoomin" || dset.timeline === "zoomout") {
+            dset.timeline === "zoomin" && l.zoom("in");
+            dset.timeline === "zoomout" && l.zoom("out");
+          } else {
+            dset.timeline === "next" && l.move("next");
+            dset.timeline === "prev" && l.move("prev");
+          }
+        }
+      })
+    }
+
+    //remove active class from group with .className
+    function delActive(className) {
+      var elems = document.querySelectorAll("." + className);
+      [].forEach.call(elems, function(el) {
+          el.classList.remove("active");
+      });
+    }
+/*
+
+
+
+
+
+*/
+  })();
+  </script>
+</body>
+
+</html>

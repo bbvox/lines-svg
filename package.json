@@ -1,0 +1,42 @@
+{
+  "name": "lines-svg",
+  "version": "0.1.0",
+  "description": "Svg line charts drawer on top of snapsvg",
+  "main": "index.js",
+  "config": {
+    "svgSrc": "node_modules/snapsvg/dist/snap.svg-min.js",
+    "src": "src/lines.js",
+    "dest": "dist/lines.js"
+  },
+  "scripts": {
+    "test": "mocha test/lines.js test/draws.js test/ma.js",
+    "lint": "eslint .",
+    "step0": "rm -rf dist .tmp",
+    "step1": "mkdir .tmp dist",
+    "step2": "cat $npm_package_config_svgSrc $npm_package_config_src > $npm_package_config_dest",
+    "build": "npm run step0 && npm run step1 && npm run step2",
+    "cover": "istanbul cover _mocha test/lines.js test/draws.js test/ma.js",
+    "lcov": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+  },
+  "keywords": [
+    "svg",
+    "charts",
+    "candles",
+    "averages"
+  ],
+  "author": "bbvox",
+  "license": "MIT",
+  "dependencies": {
+    "snapsvg": "^0.5.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "coveralls": "^2.13.1",
+    "eslint": "^4.6.0",
+    "istanbul": "^0.4.5",
+    "jsdom": "^11.2.0",
+    "jsdom-global": "^3.0.2",
+    "mocha": "^3.5.0",
+    "sinon": "^3.2.1"
+  }
+}
