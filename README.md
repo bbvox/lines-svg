@@ -13,6 +13,10 @@ Currently script/library support these types of charts:
  3. Simple Moving Average(SMA)
  4. Exponential Moving Average(EMA)
 
+## LIBRARY DEMO
+
+[linesSVG charts Demo](https://bbvox.github.io/lines-svg/example/demo.html)
+
 ## Installation
 
 ```bash
