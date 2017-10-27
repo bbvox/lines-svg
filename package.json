@@ -1,7 +1,7 @@
 {
   "name": "lines-svg",
   "version": "0.1.0",
-  "description": "Svg line charts drawer on top of snapsvg",
+  "description": "LinesSvg is a financial chart library based on snapsvg",
   "main": "index.js",
   "config": {
     "svgSrc": "node_modules/snapsvg/dist/snap.svg-min.js",
@@ -21,7 +21,7 @@
   "keywords": [
     "svg",
     "charts",
-    "candles",
+    "candlestick",
     "averages"
   ],
   "author": "bbvox",

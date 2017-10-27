@@ -18,14 +18,6 @@ https://github.com/gabelerner/canvg
 </head>
 
 <body>
-  <header>
-    <nav>
-      <a href="" id="showNavigation">show</a>
-      <a href="" style="float:right" id="goNext">next >>></a>
-      <a href="" style="float:left" id="goPrev">
-        <<< prev</a>
-    </nav>
-  </header>
   <div class="flexbox">
     <nav id="navBar">
       <ul>
@@ -47,15 +39,18 @@ https://github.com/gabelerner/canvg
         <li><a data-chart="sma" class="opts chart">sma</a></li>
         <li><a data-chart="ema" class="opts chart">ema</a></li>
         <li><a data-chart="all" class="opts chart active">all</a></li>
-        <li><hr></li>
+        <li>
+          <hr>
+        </li>
         <!-- <li><a data-timeline="prev" class="opts timeline">prev</a></li> -->
-        <li><a data-timeline="prev" class="opts timeline"><<<</a>&nbsp;/&nbsp;<a data-timeline="next" class="opts timeline">>>></a></li>
+        <li>
+          <a data-timeline="prev" class="opts timeline">
+            <<<</a>&nbsp;/&nbsp;<a data-timeline="next" class="opts timeline">>>></a></li>
         <!-- <li><a data-timeline="zoomin" class="opts timeline">zoom in</a></li> -->
         <li><a data-timeline="zoomin" class="opts timeline">IN</a>&nbsp;/&nbsp;<a data-timeline="zoomout" class="opts timeline">OUT</a></li>
         <li><a class="opts save">Snapshot</a></li>
       </ul>
     </nav>
-    <nav id="navBar"></nav>
     <div id="svgRoot">
       <!-- <nav id="svgNav"></nav> -->
       <svg id="svgBox"></svg>
@@ -74,38 +69,36 @@ https://github.com/gabelerner/canvg
   <script>
   (function() {
 
+    function request(urlCnt, cb) {
+      var _cb, oReq, _url;
+      _cb = cb || reqListener;
+      oReq = new XMLHttpRequest();
+      _url = "./rates3.json";
 
+      oReq.addEventListener("load", _cb);
+      oReq.open("GET", _url);
+      oReq.send();
+    }
 
-  function request(urlCnt, cb) {
-    var _cb, oReq, _url;
-    _cb = cb || reqListener;
-    oReq = new XMLHttpRequest();
-    _url = "./rates3.json";
+    request();
 
-    oReq.addEventListener("load", _cb);
-    oReq.open("GET", _url);
-    oReq.send();
-  }
+    function reqListener() {
+      var ratesJson = JSON.parse(this.responseText);
 
-  request();
+      window.l = new Lines("svgBox");
+      l.data(ratesJson); // always second after that drawEMPTY
+      l.draw("axis");
+      l.draw("line");
+      l.draw("sma");
+      // l.live();
+      l.drawSMA(20);
+      l.liveLine({ tube: 1 });
+      l.draw("sma"); //sma50
 
-  function reqListener() {
-    var ratesJson = JSON.parse(this.responseText);
-
-    window.l = new Lines("svgBox");
-    l.data(ratesJson); // always second after that drawEMPTY
-    l.draw("axis");
-    l.draw("line");
-    l.draw("sma");
-    // l.live();
-    l.drawSMA(20);
-    l.liveLine({tube: 1});
-    l.draw("sma"); //sma50
-
-    // l.navDot([100,200], function () {
-    //   console.log(l.dlive[0].data('origTransform'))
-    // })
-  }
+      // l.navDot([100,200], function () {
+      //   console.log(l.dlive[0].data('origTransform'))
+      // })
+    }
 
 
 
@@ -169,15 +162,16 @@ https://github.com/gabelerner/canvg
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
 
     var buttons = document.getElementsByClassName("opts");
-    var key = 0, len = buttons.length;
+    var key = 0,
+      len = buttons.length;
 
-    for (; key < len; key ++) {
-      buttons[key].addEventListener("click", function (ev) {
+    for (; key < len; key++) {
+      buttons[key].addEventListener("click", function(ev) {
         var dset;
         delActive(this.classList[1]);
         this.classList.add("active");
@@ -192,9 +186,9 @@ https://github.com/gabelerner/canvg
           if (dset.draw === "line") {
             l.liveLine()
           } else if (dset.draw === "arrow") {
-            l.liveLine({arrow: 1});
+            l.liveLine({ arrow: 1 });
           } else if (dset.draw === "tube") {
-            l.liveLine({tube: 1});
+            l.liveLine({ tube: 1 });
           }
         } else if (dset.timeline) {
           if (dset.timeline === "zoomin" || dset.timeline === "zoomout") {
@@ -212,16 +206,9 @@ https://github.com/gabelerner/canvg
     function delActive(className) {
       var elems = document.querySelectorAll("." + className);
       [].forEach.call(elems, function(el) {
-          el.classList.remove("active");
+        el.classList.remove("active");
       });
     }
-/*
-
-
-
-
-
-*/
   })();
   </script>
 </body>

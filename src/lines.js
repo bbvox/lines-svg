@@ -16,9 +16,11 @@ var Lines = Lines || {};
     this.setup();
   };
 
+  // Debug flag. When is set draw additional points and debug messages into console
   Lines.prototype.debug = false;
 
-  Lines.prototype.type = {
+  // Constant TYPE of charts
+  Lines.prototype.TYPE = {
     axis: "axis",
     init: "init",
     line: "line",
@@ -27,10 +29,12 @@ var Lines = Lines || {};
     ema: "ema"
   };
 
+  // SVG elements storage
   Lines.prototype.svgs = {};
 
-  //secure data set
-  // store which did not reset 
+  // secure data set
+  // this storage will not reset 
+  // toDo - transfer it to dset.sec
   Lines.prototype.sdset = {};
 
   // candle.winp store path string for win candle shadow
@@ -43,11 +47,13 @@ var Lines = Lines || {};
     ema: { data: [], points: [], lastX: 0, lastY: 0 }
   };
 
-  //use for delayed execution during animation...
+  // Store draw methods for tail execution during animation
+  // toDo - remove/combine it with cfg.DrawOrder
   Lines.prototype.drawOrder = [];
 
-  //Library configuration
-  // to do export all css properties ...
+  // Configuration section:
+  //  - chart = properties for graphic
+  //  - cssClass = All style properties are external style. 
   Lines.prototype.cfg = {
     animate: false,
     chart: {
@@ -90,10 +96,11 @@ var Lines = Lines || {};
       attr: { stroke: "red" }
     },
     timeUnit: "15m",
-    colors: ["#36a2eb", "#ff9f40", "#ffcd56", "#4bc0c0", "#9966ff", "#5BC0DE"],
     drawOrder: ["drawLine", "drawCandle", "drawSMA", "drawEMA"]
   };
 
+  // Internal method 
+  // - inialize chartArea: width, height, offset & zero Axis
   Lines.prototype.setup = function() {
     var elem, width, height;
 
@@ -111,29 +118,32 @@ var Lines = Lines || {};
         offsetTop: this.el.offsetTop || this.el.parentElement.offsetTop || 0
       };
 
+      // check if snap exist. for testing purposes
       this.snap && this.snap.attr(this.cfg.chart.attr);
     }
   };
 
-  // dataArray [["open", "high", "low", "close"],[]]
+  // Interface method
+  // add Data for charts
   Lines.prototype.data = function(dataArray) {
     if (!(dataArray instanceof Array)) {
       return;
     }
 
-    this.s({ type: this.type.init, prop: "raw" }, dataArray);
+    this.s({ type: this.TYPE.init, prop: "raw" }, dataArray);
 
     // array of close values
     var data = dataArray.map(item => this.f(item[3], 5)); //close value
-    this.s({ type: this.type.line, prop: "data" }, data);
+    this.s({ type: this.TYPE.line, prop: "data" }, data);
 
     if (this.checkLen()) {
       this.dataInit().calculate();
     }
   };
 
-  //calc stepX and change data
-  //to DO create pagging
+  // Internal method
+  // - check data length
+  // toDo create pagging
   Lines.prototype.checkLen = function() {
     var data, stepX, newData, perPage;
 
@@ -145,7 +155,7 @@ var Lines = Lines || {};
     } else if (stepX < this.cfg.step.xMin) {
       stepX = this.cfg.step.xMin;
     }
-    this.s({ type: this.type.init, prop: "stepX" }, stepX); //stepX
+    this.s({ type: this.TYPE.init, prop: "stepX" }, stepX); //stepX
 
     perPage = this.f(this.chartArea.width / stepX, 0);
 
@@ -168,10 +178,8 @@ var Lines = Lines || {};
     return true;
   };
 
-  //addData
-
   // initialize data set
-  // calculate min, max value of input data
+  // calculate min, max value based on input data
   // calculate stepX
   Lines.prototype.dataInit = function() {
     var data, min, max;
@@ -185,8 +193,8 @@ var Lines = Lines || {};
         max = item;
     });
 
-    this.s({ type: this.type.init, prop: "min" }, min);
-    this.s({ type: this.type.init, prop: "max" }, max);
+    this.s({ type: this.TYPE.init, prop: "min" }, min);
+    this.s({ type: this.TYPE.init, prop: "max" }, max);
 
     this.chartInit();
     this.zeroInit();
@@ -202,10 +210,10 @@ var Lines = Lines || {};
     data = this.gg("data");
 
     amplitude = this.f((this.gg("max") - this.gg("min")), 4);
-    this.s({ type: this.type.init, prop: "amplitude" }, amplitude);
+    this.s({ type: this.TYPE.init, prop: "amplitude" }, amplitude);
 
     step.y = this.f((this.chartArea.height / amplitude), 0);
-    this.s({ type: this.type.init, prop: "stepY" }, step.y); //stepY - important !!!
+    this.s({ type: this.TYPE.init, prop: "stepY" }, step.y); //stepY - important !!!
   };
 
   //define zeroX & zeroY
@@ -213,12 +221,12 @@ var Lines = Lines || {};
     var data, zeroY;
     data = this.gg("data");
 
-    this.s({ type: this.type.init, prop: "zeroX" }, this.chartArea.zeroX);
+    this.s({ type: this.TYPE.init, prop: "zeroX" }, this.chartArea.zeroX);
 
     zeroY = this.chartArea.zeroY - ((data[0] - this.gg("min")) * this.gg("stepY")); //???
 
     zeroY = this.f(zeroY, 0);
-    this.s({ type: this.type.init, prop: "zeroY" }, zeroY);
+    this.s({ type: this.TYPE.init, prop: "zeroY" }, zeroY);
   };
 
   //////////////////////////////// CALCULATE CHART POINTS >>>
@@ -233,11 +241,11 @@ var Lines = Lines || {};
     pointOne[1] = this.gg("zeroY");
 
     //clear and add first point for lines [x, y]
-    this.s({ type: this.type.line, prop: "points" }, []);
-    this.add({ type: this.type.line, prop: "points" }, pointOne);
+    this.s({ type: this.TYPE.line, prop: "points" }, []);
+    this.add({ type: this.TYPE.line, prop: "points" }, pointOne);
 
-    this.s({ type: this.type.line, prop: "lastX" }, pointOne[0]);
-    this.s({ type: this.type.line, prop: "lastY" }, pointOne[1]);
+    this.s({ type: this.TYPE.line, prop: "lastX" }, pointOne[0]);
+    this.s({ type: this.TYPE.line, prop: "lastY" }, pointOne[1]);
 
     plen = data.length;
     for (; dataKey < plen; dataKey++) {
@@ -335,19 +343,25 @@ var Lines = Lines || {};
     this.s(dataObj, points);
   };
 
-
+  /*
+                        _                            _   _               _     
+     _ __ ___ _ __   __| | ___ _ __   _ __ ___   ___| |_| |__   ___   __| |___ 
+    | '__/ _ \ '_ \ / _` |/ _ \ '__| | '_ ` _ \ / _ \ __| '_ \ / _ \ / _` / __|
+    | | |  __/ | | | (_| |  __/ |    | | | | | |  __/ |_| | | | (_) | (_| \__ \
+    |_|  \___|_| |_|\__,_|\___|_|    |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
+  */
   Lines.prototype.draw = function(type = "all") {
     switch (type) {
-      case this.type.axis:
+      case this.TYPE.axis:
         this.drawAxis();
         break;
-      case this.type.line:
+      case this.TYPE.line:
         this.drawLine();
         break;
-      case this.type.candle:
+      case this.TYPE.candle:
         this.drawCandle();
         break;
-      case this.type.sma:
+      case this.TYPE.sma:
         this.drawSMA();
         break;
       case "ema":
@@ -380,7 +394,7 @@ var Lines = Lines || {};
     }
 
     gridStep = this.chartArea.height / this.cfg.chart.grids;
-    this.s({ type: this.type.init, prop: "gridstep" }, this.f(gridStep, 0));
+    this.s({ type: this.TYPE.init, prop: "gridstep" }, this.f(gridStep, 0));
 
     lineAxis[0] = [this.chartArea.zeroX, this.chartArea.zeroY];
     lineAxis[1] = [this.chartArea.width, this.chartArea.zeroY];
@@ -391,7 +405,7 @@ var Lines = Lines || {};
       yAxis -= gridStep;
     }
 
-    this.printPath({ type: this.type.axis, path: _linePath });
+    this.printPath({ type: this.TYPE.axis, path: _linePath });
 
     this.drawLabelsX();
     this.drawLabelsY();
@@ -418,12 +432,12 @@ var Lines = Lines || {};
         svg = this.snap.text(xAxis - 5, lineAxis[0][1] + 15, this.labelX(lk));
         svg.attr({ class: this.cfg.cssClass.textLabel });
 
-        this.store(this.type.axis, svg);
+        this.store(this.TYPE.axis, svg);
       }
       xAxis += this.gg("stepX");
     }
 
-    this.printPath({ type: this.type.axis, path: _linePath });
+    this.printPath({ type: this.TYPE.axis, path: _linePath });
   };
 
   Lines.prototype.drawLabelsY = function() {
@@ -438,7 +452,7 @@ var Lines = Lines || {};
     for (var tK = 0; tK <= this.cfg.chart.grids; tK++) {
       svg = this.snap.text(point[0], point[1], this.f(label, 4));
       svg.attr({ class: this.cfg.cssClass.textLabel });
-      this.store(this.type.axis, svg);
+      this.store(this.TYPE.axis, svg);
       this.debugDot(point);
 
       point[1] -= step;
@@ -507,7 +521,7 @@ var Lines = Lines || {};
     }
 
     this.debugDot(points[plen]); //last dot
-    this.printPath({ type: this.type.line, path: _linePath });
+    this.printPath({ type: this.TYPE.line, path: _linePath });
   };
 
   // animate or not
@@ -527,7 +541,7 @@ var Lines = Lines || {};
 
       svg.attr(svgAttr);
       // for label and candle need path to be combine with other svgs
-      if ([this.type.axis, this.type.candle].indexOf(lineProp.type) !== -1) {
+      if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
         this.store(lineProp.type, svg);
       } else {
         this.store(lineProp.type, svg, true);
@@ -542,7 +556,7 @@ var Lines = Lines || {};
     svgAttr.class = lineProp.class || this.cfg.cssClass[lineProp.type];
     svg = this.snap.path(svgAttr);
 
-    if ([this.type.axis, this.type.candle].indexOf(lineProp.type) !== -1) {
+    if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
       this.store(lineProp.type, svg);
     } else {
       this.store(lineProp.type, svg, true);
@@ -577,7 +591,7 @@ var Lines = Lines || {};
     var width, raw, rkey;
 
     width = this.gg("stepX") * this.cfg.chart.candleFill;
-    this.s({ type: this.type.candle, prop: "width" }, this.f(width, 0));
+    this.s({ type: this.TYPE.candle, prop: "width" }, this.f(width, 0));
 
     raw = this.gg("raw");
     for (rkey in raw) {
@@ -605,7 +619,7 @@ var Lines = Lines || {};
     candle.height = point1[1] - point2[1];
     candle.height = this.f(candle.height, 0);
 
-    candle.width = this.g({ type: this.type.candle, prop: "width" });
+    candle.width = this.g({ type: this.TYPE.candle, prop: "width" });
 
     candle.x = point1[0] + ((1 - this.cfg.chart.candleFill) / 2 * this.gg("stepX"));
     candle.x = this.f(candle.x, 0);
@@ -618,7 +632,7 @@ var Lines = Lines || {};
     }
     svg = this.snap.rect(candle.x, candle.y, candle.width, candle.height);
     svg.attr({ class: candle.class });
-    this.store(this.type.candle, svg);
+    this.store(this.TYPE.candle, svg);
     this.candleShadow(candle, key);
   };
 
@@ -649,21 +663,21 @@ var Lines = Lines || {};
 
     _linePath += this.getPath(lineBot);
 
-    // this.printPath({ type: this.type.candle, path: _linePath, class: candle.class });
+    // this.printPath({ type: this.TYPE.candle, path: _linePath, class: candle.class });
     // return;
 
     //store linePath into array make ALL candle shadows with only TWO DOM elements
     if (candle.class === this.cfg.cssClass.winCandle) {
-      this.add({ type: this.type.candle, prop: "winp" }, _linePath);
+      this.add({ type: this.TYPE.candle, prop: "winp" }, _linePath);
     } else {
-      this.add({ type: this.type.candle, prop: "losep" }, _linePath);
+      this.add({ type: this.TYPE.candle, prop: "losep" }, _linePath);
     }
     if (parseInt(period) + 1 === this.gg("data").length) {
       let shadowPath;
-      shadowPath = this.g({ type: this.type.candle, prop: "winp" });
-      this.printPath({ type: this.type.candle, path: shadowPath.join(" "), class: this.cfg.cssClass.winCandle });
-      shadowPath = this.g({ type: this.type.candle, prop: "losep" });
-      this.printPath({ type: this.type.candle, path: shadowPath.join(" "), class: this.cfg.cssClass.loseCandle });
+      shadowPath = this.g({ type: this.TYPE.candle, prop: "winp" });
+      this.printPath({ type: this.TYPE.candle, path: shadowPath.join(" "), class: this.cfg.cssClass.winCandle });
+      shadowPath = this.g({ type: this.TYPE.candle, prop: "losep" });
+      this.printPath({ type: this.TYPE.candle, path: shadowPath.join(" "), class: this.cfg.cssClass.loseCandle });
     }
 
   };
@@ -695,7 +709,7 @@ var Lines = Lines || {};
         if (dKey > len) {
           total -= data[(dKey - (len + 1))];
         }
-        this.add({ type: this.type.sma, prop: "data" + len }, this.f(total / (len + 1)));
+        this.add({ type: this.TYPE.sma, prop: "data" + len }, this.f(total / (len + 1)));
       }
     }
 
@@ -708,24 +722,24 @@ var Lines = Lines || {};
     var data, key = 1,
       len, lastAxis = [];
 
-    data = this.g({ type: this.type.sma, prop: "data" + smaLength });
+    data = this.g({ type: this.TYPE.sma, prop: "data" + smaLength });
     if (this.sdset && this.sdset.allraw) {
       lastAxis[0] = this.gg("zeroX");
     } else {
       lastAxis[0] = this.gg("zeroX") + (smaLength * this.gg("stepX"));
       lastAxis[0] = this.f(lastAxis[0], 0);
     }
-    this.s({ type: this.type.sma, prop: "lastX" + smaLength }, lastAxis[0]);
+    this.s({ type: this.TYPE.sma, prop: "lastX" + smaLength }, lastAxis[0]);
 
     lastAxis[1] = this.chartArea.zeroY - ((data[0] - this.gg("min")) * this.gg("stepY")); //???
     lastAxis[1] = this.f(lastAxis[1], 0);
-    this.s({ type: this.type.sma, prop: "lastY" + smaLength }, lastAxis[1]);
+    this.s({ type: this.TYPE.sma, prop: "lastY" + smaLength }, lastAxis[1]);
 
-    this.s({ type: this.type.sma, prop: "points" + smaLength }, []); // clear
-    this.add({ type: this.type.sma, prop: "points" + smaLength }, lastAxis); // point 0
+    this.s({ type: this.TYPE.sma, prop: "points" + smaLength }, []); // clear
+    this.add({ type: this.TYPE.sma, prop: "points" + smaLength }, lastAxis); // point 0
     len = data.length;
     for (; key < len; key++) {
-      (this.calcPoint)(key, this.type.sma, smaLength);
+      (this.calcPoint)(key, this.TYPE.sma, smaLength);
     }
   };
 
@@ -735,7 +749,7 @@ var Lines = Lines || {};
       _linePath = "";
 
     smaLength || (smaLength = this.cfg.smaLength);
-    points = this.g({ type: this.type.sma, prop: "points" + smaLength });
+    points = this.g({ type: this.TYPE.sma, prop: "points" + smaLength });
 
     points && (plen = points.length);
     if (!plen) {
@@ -759,7 +773,7 @@ var Lines = Lines || {};
     }
 
     this.debugDot(lineAxis[plen]);
-    this.printPath({ type: this.type.sma, path: _linePath });
+    this.printPath({ type: this.TYPE.sma, path: _linePath });
   };
 
   // EMA(today) = Price(today) * K + EMA(yesterday) * (1-K)
@@ -771,29 +785,29 @@ var Lines = Lines || {};
       len;
 
     emaK = 2 / (this.cfg.emaLength + 1);
-    this.s({ type: this.type.ema, prop: "k" }, this.f(emaK, 5));
+    this.s({ type: this.TYPE.ema, prop: "k" }, this.f(emaK, 5));
     emaK2 = 1 - emaK;
 
-    this.s({ type: this.type.ema, prop: "lastX" }, this.gg("zeroX"));
-    this.s({ type: this.type.ema, prop: "lastY" }, this.gg("zeroY"));
+    this.s({ type: this.TYPE.ema, prop: "lastX" }, this.gg("zeroX"));
+    this.s({ type: this.TYPE.ema, prop: "lastY" }, this.gg("zeroY"));
 
-    this.s({ type: this.type.ema, prop: "data" }, []);
-    this.add({ type: this.type.ema, prop: "data" }, this.gg("data")[0]);
+    this.s({ type: this.TYPE.ema, prop: "data" }, []);
+    this.add({ type: this.TYPE.ema, prop: "data" }, this.gg("data")[0]);
 
     data = this.gg("data");
     len = data.length;
     for (; key < len; key++) {
       ema.price = data[key];
-      ema.yest = this.g({ type: this.type.ema, prop: "data" })[key - 1];
+      ema.yest = this.g({ type: this.TYPE.ema, prop: "data" })[key - 1];
       ema.today = ema.price * emaK + ema.yest * emaK2;
 
-      this.add({ type: this.type.ema, prop: "data" }, this.f(ema.today, 4));
+      this.add({ type: this.TYPE.ema, prop: "data" }, this.f(ema.today, 4));
     }
 
     len = key;
     key = 1;
     for (; key < len; key++) {
-      (this.calcPoint)(key, this.type.ema);
+      (this.calcPoint)(key, this.TYPE.ema);
     }
   };
 
@@ -803,7 +817,7 @@ var Lines = Lines || {};
       lineAxis = [],
       _linePath = "";
 
-    points = this.g({ type: this.type.ema, prop: "points" });
+    points = this.g({ type: this.TYPE.ema, prop: "points" });
     plen = points.length;
     if (!plen) {
       this.calcEMA();
@@ -824,7 +838,7 @@ var Lines = Lines || {};
       lineAxis = [];
     }
 
-    this.printPath({ type: this.type.ema, path: _linePath });
+    this.printPath({ type: this.TYPE.ema, path: _linePath });
   };
 
 
@@ -1148,7 +1162,7 @@ var Lines = Lines || {};
     if (this.debug && this.snap && pointAxis && pointAxis.length > 1) {
       svg = this.snap.circle(pointAxis[0], pointAxis[1], this.cfg.debug.radius);
       svg.attr({ class: this.cfg.cssClass.debugDot });
-      this.store(this.type.point, svg);
+      this.store(this.TYPE.point, svg);
     }
   };
 
@@ -1167,7 +1181,7 @@ var Lines = Lines || {};
 
   // getByProp for init & line type
   Lines.prototype.gg = function(simpleType) {
-    return this.g({ type: this.type.init, prop: simpleType }) || this.g({ type: this.type.line, prop: simpleType }) || false;
+    return this.g({ type: this.TYPE.init, prop: simpleType }) || this.g({ type: this.TYPE.line, prop: simpleType }) || false;
   };
 
   //getter from dset =
@@ -1199,7 +1213,7 @@ var Lines = Lines || {};
     //add WAY to manipulate externally 
     // ONLY init properties to start ...
     //IF type init && prop EXIST in sdset
-    if (dataObj.type === this.type.init && this.sdset[dataObj.prop]) {
+    if (dataObj.type === this.TYPE.init && this.sdset[dataObj.prop]) {
       data = this.sdset[dataObj.prop];
     }
 
@@ -1269,22 +1283,22 @@ var Lines = Lines || {};
   ////////////////////////////////////////
   Lines.prototype.remove = function(chart = "all") {
     switch (chart) {
-      case this.type.axis:
+      case this.TYPE.axis:
         this.svgs.axis.remove();
         break;
-      case this.type.line:
+      case this.TYPE.line:
         this.svgs.line.remove();
         break;
-      case this.type.candle:
+      case this.TYPE.candle:
         this.svgs.candle.remove();
         break;
-      case this.type.point:
+      case this.TYPE.point:
         this.svgs.point.remove();
         break;
-      case this.type.sma:
+      case this.TYPE.sma:
         this.svgs.sma.remove();
         break;
-      case this.type.ema:
+      case this.TYPE.ema:
         this.svgs.ema.remove();
         break;
       case "all":
@@ -1308,7 +1322,7 @@ var Lines = Lines || {};
   //if savePointsFlag is set save points
   // dublicate with remove ....
   Lines.prototype.reset = function(savePoints = false) {
-    !savePoints && this.s({ type: this.type.line, prop: "points" }, []);
+    !savePoints && this.s({ type: this.TYPE.line, prop: "points" }, []);
 
     for (var k in this.type) {
       this.svgs[this.type[k]] && this.svgs[this.type[k]].remove();
