@@ -22,7 +22,8 @@
     "svg",
     "charts",
     "candlestick",
-    "averages"
+    "averages",
+    "responsive"
   ],
   "author": "bbvox",
   "license": "MIT",

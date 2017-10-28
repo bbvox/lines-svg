@@ -33,7 +33,6 @@ https://github.com/gabelerner/canvg
         <li><a data-draw="arrow" class="opts draw"> arrow </a></li>
         <li><a data-draw="tube" class="opts draw"> tube </a></li>
         <li class="title"> TYPE : </li>
-        <!-- <li><a data-val="15m" class="opts chart">average</a></li> -->
         <li><a data-chart="line" class="opts chart">line</a></li>
         <li><a data-chart="candle" class="opts chart">candle</a></li>
         <li><a data-chart="sma" class="opts chart">sma</a></li>
@@ -42,30 +41,24 @@ https://github.com/gabelerner/canvg
         <li>
           <hr>
         </li>
-        <!-- <li><a data-timeline="prev" class="opts timeline">prev</a></li> -->
         <li>
           <a data-timeline="prev" class="opts timeline">
-            <<<</a>&nbsp;/&nbsp;<a data-timeline="next" class="opts timeline">>>></a></li>
-        <!-- <li><a data-timeline="zoomin" class="opts timeline">zoom in</a></li> -->
+            <<<</a>
+              &nbsp;/&nbsp;
+              <a data-timeline="next" class="opts timeline">>>></a></li>
         <li><a data-timeline="zoomin" class="opts timeline">IN</a>&nbsp;/&nbsp;<a data-timeline="zoomout" class="opts timeline">OUT</a></li>
-        <li><a class="opts save">Snapshot</a></li>
+        <li><a data-snapshot="save" class="opts save">Snapshot</a></li>
       </ul>
     </nav>
     <div id="svgRoot">
-      <!-- <nav id="svgNav"></nav> -->
       <svg id="svgBox"></svg>
       <nav id="svgZoom">
         <a href onclick="svg.zoom(event)">IN</a>
         <a href onclick="svg.zoom(event, true)">OUT</a>
       </nav>
     </div>
-    <div>
-      <canvas id="canvasGraph"></canvas>
-    </div>
-    <div>
-      <img>
-    </div>
   </div>
+
   <script>
   (function() {
 
@@ -73,7 +66,7 @@ https://github.com/gabelerner/canvg
       var _cb, oReq, _url;
       _cb = cb || reqListener;
       oReq = new XMLHttpRequest();
-      _url = "./rates3.json";
+      _url = "./rates1500.json";
 
       oReq.addEventListener("load", _cb);
       oReq.open("GET", _url);
@@ -89,7 +82,9 @@ https://github.com/gabelerner/canvg
       l.data(ratesJson); // always second after that drawEMPTY
       l.draw("axis");
       l.draw("line");
+      l.draw("candle");
       l.draw("sma");
+      l.draw("ema");
       // l.live();
       l.drawSMA(20);
       l.liveLine({ tube: 1 });
@@ -178,7 +173,7 @@ https://github.com/gabelerner/canvg
         dset = this.dataset;
 
         if (dset.period) {
-          console.log("::: period :::")
+          console.log("::: period work in progress:::");
           //redraw ...
         } else if (dset.chart) {
           l.toggle(dset.chart);
@@ -198,6 +193,9 @@ https://github.com/gabelerner/canvg
             dset.timeline === "next" && l.move("next");
             dset.timeline === "prev" && l.move("prev");
           }
+        } else if (dset.snapshot) {
+          canElem = l.getCanvas();
+          document.body.appendChild(canElem);
         }
       })
     }

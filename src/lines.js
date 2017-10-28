@@ -22,6 +22,7 @@ var Lines = Lines || {};
   // Constant TYPE of charts
   Lines.prototype.TYPE = {
     axis: "axis",
+    sinit: "sinit",
     init: "init",
     line: "line",
     candle: "candle",
@@ -31,15 +32,17 @@ var Lines = Lines || {};
 
   // SVG elements storage
   Lines.prototype.svgs = {};
-
-  // secure data set
-  // this storage will not reset 
-  // toDo - transfer it to dset.sec
-  Lines.prototype.sdset = {};
+  Lines.prototype.elems = {
+    id: {},
+    svg: {},
+    count: 0
+  };
 
   // candle.winp store path string for win candle shadow
   // candle.losep store path string for lose candle shadow
+  // sinit > secure init did not reset after 
   Lines.prototype.dset = {
+    sinit: {},
     init: { raw: [], min: 0, max: 0, stepX: 0, stepY: 0, zeroY: 0 },
     line: { points: [], lastX: 0, lastY: 0 },
     candle: { width: 0, winp: [], losep: [] },
@@ -60,6 +63,7 @@ var Lines = Lines || {};
       type: ["line", "candle", "sma", "ema"],
       padding: 40,
       attr: { stroke: "#ddd", fill: "none", strokeWidth: 1 },
+      textAttr: { "stroke-width": "0.1px", "font-family": "Verdana", "font-size": "12px", fill: "#000"},
       enableGrid: true,
       candleFill: 0.4,
       grids: 5,
@@ -106,10 +110,12 @@ var Lines = Lines || {};
 
     if (window.getComputedStyle) {
       elem = window.getComputedStyle(this.el);
-      width = parseInt(elem.width) + 2; // why + 2
-      height = parseInt(elem.height) + 2;
+      width = parseInt(elem.width);
+      height = parseInt(elem.height);
 
       this.chartArea = {
+        w: width,
+        h: height,
         width: (width - (this.cfg.chart.padding * 2)),
         height: (height - (this.cfg.chart.padding * 2)),
         zeroX: this.cfg.chart.padding,
@@ -162,14 +168,14 @@ var Lines = Lines || {};
     if (data.length > perPage) {
       var offset, cuttedRaw, slice = {},
         raw = this.gg("raw");
-      this.ss("allraw", raw);
-      offset = this.sdset.offset || 0;
+      this.s({type: this.TYPE.sinit, prop: "allraw"}, raw);
+      offset = this.g({type: this.TYPE.sinit, prop: "offset"}) || 0;
       var slice = {
         begin: (data.length - offset - perPage),
         end: (data.length - offset)
       };
       cuttedRaw = raw.slice(slice.begin, slice.end);
-      this.ss("slice", slice);
+      this.s({type: this.TYPE.sinit, prop: "slice"}, slice);
       this.reset();
       this.data(cuttedRaw);
       return false;
@@ -381,6 +387,11 @@ var Lines = Lines || {};
     }
   };
 
+  // toDo - get from elems color and draw line with type chart ....
+  Lines.prototype.drawLegend = function () {
+
+  };
+
   //
   Lines.prototype.drawAxis = function() {
     var lineAxis = [],
@@ -431,6 +442,7 @@ var Lines = Lines || {};
         _linePath += "M" + xAxis + " " + lineAxis[0][1] + "L" + xAxis + " " + lineAxis[1][1];
         svg = this.snap.text(xAxis - 5, lineAxis[0][1] + 15, this.labelX(lk));
         svg.attr({ class: this.cfg.cssClass.textLabel });
+        svg.attr(this.cfg.chart.textAttr);
 
         this.store(this.TYPE.axis, svg);
       }
@@ -452,6 +464,7 @@ var Lines = Lines || {};
     for (var tK = 0; tK <= this.cfg.chart.grids; tK++) {
       svg = this.snap.text(point[0], point[1], this.f(label, 4));
       svg.attr({ class: this.cfg.cssClass.textLabel });
+      svg.attr(this.cfg.chart.textAttr);
       this.store(this.TYPE.axis, svg);
       this.debugDot(point);
 
@@ -691,10 +704,12 @@ var Lines = Lines || {};
     data = this.gg("data");
 
     //calc missing part of SMA
-    if (this.sdset && this.sdset.allraw) {
-      var bdata = this.sdset.allraw.slice(this.sdset.slice.begin - smaLength, this.sdset.slice.begin);
+    if (this.g({type: this.TYPE.sinit, prop: "allraw"})) {
+      var bdata = this.g({type: this.TYPE.sinit, prop: "allraw"});
+      var slice = this.g({type: this.TYPE.sinit, prop: "slice"});
+      bdata = bdata.slice(slice.begin - smaLength, slice.begin);
       bdata = bdata.map(v => v[3]);
-      data = bdata.concat(data);
+      data = bdata.concat(data); //merge bdata & data
     }
 
     dLen = data.length;
@@ -717,13 +732,12 @@ var Lines = Lines || {};
   };
 
   //define lastX & lastY for SMA
-  // if sdset allraw exist need to calc it.
   Lines.prototype.initSMA = function(smaLength) {
     var data, key = 1,
       len, lastAxis = [];
 
     data = this.g({ type: this.TYPE.sma, prop: "data" + smaLength });
-    if (this.sdset && this.sdset.allraw) {
+    if (this.g({type: this.TYPE.sinit, prop: "allraw"})) {
       lastAxis[0] = this.gg("zeroX");
     } else {
       lastAxis[0] = this.gg("zeroX") + (smaLength * this.gg("stepX"));
@@ -1169,17 +1183,25 @@ var Lines = Lines || {};
   //svg = {lines:{}, candles:{}, labes:{}, points:{}, smas:{}}
   // singleFlag mean to not create group and set directly id to the element
   Lines.prototype.store = function(type, svgObject, singleFlag = false) {
+    var elemID = "svg-" + type;
+
+    if (this.elems.id[elemID]) {
+      this.elems.count ++;
+      elemID += this.elems.count;
+    }
+
     if (singleFlag) {
       this.svgs[type] = svgObject;
-      this.svgs[type].node.id = "svg-" + type;
+      this.svgs[type].node.id = elemID;
+      this.elems.id[elemID] = true;
     } else {
       this.svgs[type] || (this.svgs[type] = this.snap.g());
-      this.svgs[type].node.id = "svg-" + type;
+      this.svgs[type].node.id = elemID;
       this.svgs[type].add(svgObject);
     }
   };
 
-  // getByProp for init & line type
+  // getByProp valid only for init and line TYPE
   Lines.prototype.gg = function(simpleType) {
     return this.g({ type: this.TYPE.init, prop: simpleType }) || this.g({ type: this.TYPE.line, prop: simpleType }) || false;
   };
@@ -1210,26 +1232,13 @@ var Lines = Lines || {};
       return 2;
     }
 
-    //add WAY to manipulate externally 
-    // ONLY init properties to start ...
-    //IF type init && prop EXIST in sdset
-    if (dataObj.type === this.TYPE.init && this.sdset[dataObj.prop]) {
-      data = this.sdset[dataObj.prop];
+    //inject secure data into init property
+    if (dataObj.type === this.TYPE.init && this.g({type: this.TYPE.sinit, prop: dataObj.prop})) {
+      data = this.g({type: this.TYPE.sinit, prop: dataObj.prop});
     }
 
     //store into dset
     this.dset[dataObj.type][dataObj.prop] = data;
-  };
-
-  //  secure SET ---  same property as init ...
-  //  resist of reset
-  //  only dset INIT properties
-  Lines.prototype.ss = function(initProp, propValue) {
-    if (!initProp || propValue === undefined) {
-      return 0;
-    }
-
-    this.sdset[initProp] = propValue;
   };
 
   //change value of property and return new value
@@ -1270,7 +1279,7 @@ var Lines = Lines || {};
       }
       return;
     }
-    elemID = "svg-" + this.type[chartType];
+    elemID = "svg-" + this.TYPE[chartType];
     elem = this.getId(elemID);
 
     if (elem && (!elem.style.display || elem.style.display === "block")) {
@@ -1302,20 +1311,15 @@ var Lines = Lines || {};
         this.svgs.ema.remove();
         break;
       case "all":
-        for (var k in this.type) {
-          this.svgs[this.type[k]] && this.svgs[this.type[k]].remove();
+        for (var k in this.TYPE) {
+          this.svgs[this.TYPE[k]] && this.svgs[this.TYPE[k]].remove();
         }
+        this.svgs = {};
         break;
     }
   };
 
   Lines.prototype.random = function() {
-    // var _random = [];
-
-    // for (var i = 0; i < 20; i++) {
-    //   _random.push(Math.floor(Math.random() * 50));
-    // }
-    // return _random;
     return Math.floor(Math.random() * 50);
   };
 
@@ -1324,15 +1328,13 @@ var Lines = Lines || {};
   Lines.prototype.reset = function(savePoints = false) {
     !savePoints && this.s({ type: this.TYPE.line, prop: "points" }, []);
 
-    for (var k in this.type) {
-      this.svgs[this.type[k]] && this.svgs[this.type[k]].remove();
-    }
-    this.svgs = {};
+    this.remove("all");
 
     //store only rawAll if exist
-    var rawAll = this.dset.init.rawAll;
+    var rawAll = this.dset.init.rawAll; //???
 
     this.dset = {
+      sinit: this.dset.sinit,
       init: {},
       line: { data: [], points: [] },
       candle: { winp: [], losep: [] },
@@ -1359,51 +1361,80 @@ var Lines = Lines || {};
     this.draw("all");
   };
 
-  // TODO
-  // remember drawed charts 
-  // remember showed/hide charts 
-
+  // toDo - store drawed charts 
+  // toDo - store showed/hide elems
   Lines.prototype.move = function(type = "prev") {
     var offset, allRaw, limit = {};
 
-    allRaw = this.sdset.allraw || this.gg("raw");
-    offset = this.sdset.offset || 0;
+    allRaw = this.g({type: this.TYPE.sinit, prop: "allraw"}) || this.gg("raw");
+    offset = this.g({type: this.TYPE.sinit, prop: "offset"}) || 0;
 
     if (type === "prev") {
       offset += this.cfg.step.offset;
     } else {
       offset -= this.cfg.step.offset;
     }
-    this.ss("offset", offset);
-
+    this.s({type: this.TYPE.sinit, prop: "offset"}, offset);
     this.reset();
     this.data(allRaw);
     this.draw();
   };
 
-
-  Lines.prototype.move2 = function(type = "prev") {
-    var oldData, newData;
-
-    oldData = this.gg("raw");
-    if (type === "prev") {
-      newData = oldData[oldData.length - 1];
-      newData = newData.map(val => val * 1.2);
-      oldData.shift(); //rm first
-      oldData.push(newData); //add new
-    } else {
-      newData = oldData[0];
-      newData = newData.map(val => val / 1.2);
-      oldData.pop(); //rm first
-      oldData.unshift(newData); //add new
+  //set elements attributes...
+  //toDo - should know existing elements ID...
+  Lines.prototype.colorize = function () {
+    for (var elemID in this.elems.id) {
+      this.setAttr(elemID);
     }
+  };
 
-    this.reset();
-    this.data(oldData);
-    // this.draw("all");
-    this.draw("all");
+  Lines.prototype.setAttr = function(elemID) {
+    var elem, elemProp;
+    elem = this.getId(elemID);
+    elemProp = this.getStyle(elemID);
 
-  }
+    elemProp.fill && elem.setAttribute("fill", elemProp.fill);
+    elemProp.stroke && elem.setAttribute("stroke", elemProp.stroke);
+  };
+
+  Lines.prototype.toBase64 = function () {
+    var _xml;
+
+    _xml = new XMLSerializer().serializeToString(this.el);
+    _xml = btoa(_xml);
+
+    return 'data:image/svg+xml;base64,' + _xml;
+  };
+
+  // return fill & stroke computet styles
+  Lines.prototype.getStyle = function (elemId) {
+    var elem, style;
+    elem = this.getId(elemId);
+    style = getComputedStyle(elem);
+
+    return {fill: (style.fill != "none" ? style.fill : false), stroke: (style.stroke != "none" ? style.stroke : false) };
+  };
+
+
+  Lines.prototype.getCanvas = function (canvasID = false) {
+    var canElem, canCtx, img;
+
+    this.colorize();
+
+    canElem = document.createElement("canvas");
+    canElem.id = canvasID || "linesCanvas";
+    canCtx = canElem.getContext('2d');
+    canElem.width = this.chartArea.w;
+    canElem.height = this.chartArea.h;
+
+    img = new Image();
+    img.onload = function() {
+      canCtx.drawImage(img, 0, 0);
+    };
+    img.src = l.toBase64();
+
+    return canElem;
+  };
 
   //zoom in or out change stepX value...
   // did not need to recalculate everething from begining
@@ -1421,7 +1452,7 @@ var Lines = Lines || {};
     } else if (type === "out") {
       stepX -= this.cfg.step.zoom;
     }
-    this.ss("stepX", stepX);
+    this.s({type: this.TYPE.sinit, prop: "stepX"}, stepX);
 
     this.remove("all");
     this.reset();
