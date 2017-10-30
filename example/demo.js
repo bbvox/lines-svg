@@ -1,7 +1,7 @@
-(function () {
+(function() {
   var counter = 1000;
 
-  
+
   window.svgToCanvas = function() {
     var _imgElem;
     _imgElem = document.querySelector('img');
@@ -12,13 +12,13 @@
     }, 10);
   };
 
- window.changePeriod = function (elem) {
+  window.changePeriod = function(elem) {
     var liElems, liArray, boldElem = elem.style.fontWeight;
 
     // convert NodeElements into Array and loop through with forEach 
     liElems = document.getElementsByClassName("navHrefPeriod");
     liArray = [].slice.call(liElems); // convert to Array
-    liArray.forEach(function (el) {
+    liArray.forEach(function(el) {
       el.style.fontWeight = "";
     });
 
@@ -33,13 +33,13 @@
   };
 
 
-  window.toggleChart = function (elem, type) {
+  window.toggleChart = function(elem, type) {
     var liElems, liArray, boldElem = elem.style.fontWeight;
 
     // convert NodeElements into Array and loop through with forEach 
     liElems = document.getElementsByClassName("navHrefType");
     liArray = [].slice.call(liElems); // convert to Array
-    liArray.forEach(function (el) {
+    liArray.forEach(function(el) {
       el.style.fontWeight = "";
     });
 
@@ -54,7 +54,9 @@
 
 
   function fxjson(jsonList) {
-    var json = [], arrOrder = ["open", "high", "low", "close"], one = [];
+    var json = [],
+      arrOrder = ["open", "high", "low", "close"],
+      one = [];
     for (var i in jsonList) {
       if (jsonList[i][arrOrder[0]] && jsonList[i][arrOrder[1]] && jsonList[i][arrOrder[2]] && jsonList[i][arrOrder[3]]) {
         json.push([jsonList[i][arrOrder[0]], jsonList[i][arrOrder[1]], jsonList[i][arrOrder[2]], jsonList[i][arrOrder[3]]]);
@@ -87,13 +89,14 @@
       [29.89, 29.89, 29.89, 29.89],
       [29.89, 29.89, 29.89, 29.89],
       [29.89, 29.89, 29.89, 29.89],
-      [29.62, 31.79, 29.62, 31.02]];
+      [29.62, 31.79, 29.62, 31.02]
+    ];
 
     window.svg = new Lines("svgBox");
     svg.data(_data);
     svg.draw();
   }
-reqListener();
+  reqListener();
 
   function request(urlCnt, cb) {
     var _cb, oReq, _url;
@@ -107,14 +110,14 @@ reqListener();
     oReq.send();
   }
 
-////////start
+  ////////start
   // request();
 
   function getid(elementId) {
     return document.getElementById(elementId);
   }
 
-  getid("goNext").addEventListener("click", function (ev) {
+  getid("goNext").addEventListener("click", function(ev) {
     counter -= 50;
     console.log(counter);
     svg.clear();
@@ -122,7 +125,7 @@ reqListener();
     ev.preventDefault();
   });
 
-  getid("goPrev").addEventListener("click", function (ev) {
+  getid("goPrev").addEventListener("click", function(ev) {
     counter += 50;
     console.log(counter);
     svg.clear();
@@ -130,7 +133,7 @@ reqListener();
     ev.preventDefault();
   });
 
-  getid("showNavigation").addEventListener("click", function (ev) {
+  getid("showNavigation").addEventListener("click", function(ev) {
     var navElem = getid("navBar");
     ev.preventDefault()
     if (navElem.className === "hidd") {

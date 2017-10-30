@@ -63,7 +63,7 @@ var Lines = Lines || {};
   //  - chart = properties for graphic
   //  - cssClass = All style properties are external style. 
   Lines.prototype.cfg = {
-    animate: false,
+    animate: true,
     chart: {
       type: ["line", "candle", "sma", "ema"],
       padding: 40,
@@ -157,7 +157,7 @@ var Lines = Lines || {};
   // - check data length
   // toDo create pagging
   Lines.prototype.checkLen = function() {
-    var data, stepX, newData, perPage;
+    var data, stepX, perPage;
 
     data = this.gg("data");
     stepX = this.f((this.chartArea.width / data.length), 0);
@@ -176,7 +176,7 @@ var Lines = Lines || {};
         raw = this.gg("raw");
       this.s({ type: this.TYPE.sinit, prop: "allraw" }, raw);
       offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
-      var slice = {
+      slice = {
         begin: (data.length - offset - perPage),
         end: (data.length - offset)
       };
@@ -216,10 +216,8 @@ var Lines = Lines || {};
 
   // store stepX & stepY into chartArea
   Lines.prototype.chartInit = function() {
-    var data, step = {},
+    var step = {},
       amplitude;
-
-    data = this.gg("data");
 
     amplitude = this.f((this.gg("max") - this.gg("min")), 4);
     this.s({ type: this.TYPE.init, prop: "amplitude" }, amplitude);
@@ -389,20 +387,19 @@ var Lines = Lines || {};
           this.drawCandle();
           this.drawSMA();
           this.drawEMA();
+          this.drawLegend();
         }
     }
   };
 
   Lines.prototype.getLabel = function(elemID) {
-    var label;
+    var label = elemID.split("-");
 
-    label = elemID.split("-");
     label.shift(); //remove "svg"
     return label.join(" ");
   };
 
 
-  // toDo - get from elems color and draw line with type chart ....
   // only for SMA & EMA with period
 
   //dset.sma.length
@@ -436,7 +433,7 @@ var Lines = Lines || {};
   Lines.prototype.prLegend = function(rowObj) {
     var svg = {},
       cube = {};
-    cube.x = this.chartArea.width - 100;
+    cube.x = this.chartArea.w - 100;
     cube.y = this.chartArea.zeroY - 100;
     cube.y = rowObj.y;
     cube.width = cube.height = 20;
@@ -656,15 +653,14 @@ var Lines = Lines || {};
 
     lineLen = Snap.path.getTotalLength(lineProp.path);
     Snap.animate(0, lineLen, step => {
-        svg.attr({
-          path: Snap.path.getSubpath(lineProp.path, 0, step),
-          strokeWidth: lineProp.width || 1
-        });
-      },
-      800, //duration
-      mina.backOut,
-      () => { cbNext && cbNext() }
-    );
+      svg.attr({
+        path: Snap.path.getSubpath(lineProp.path, 0, step),
+        strokeWidth: lineProp.width || 1
+      });
+    },
+    800, //duration
+    mina.backOut,
+    () => { cbNext && cbNext(); });
     // mina.elastic, mina.easeInOut, mina.easeIn, mina.backOut
   };
 
@@ -702,7 +698,7 @@ var Lines = Lines || {};
 
   Lines.prototype.candle = function(cdata, key) {
     var point1, point2, candle = {},
-      svg, cssClass;
+      svg;
 
     point1 = this.gg("points")[key - 1];
     point2 = this.gg("points")[key];
@@ -837,7 +833,7 @@ var Lines = Lines || {};
   };
 
   Lines.prototype.drawSMA = function(smaLength) {
-    var points, plen, smaLength, key = 0,
+    var points, plen, key = 0,
       lineAxis = [],
       _linePath = "";
 
@@ -873,7 +869,7 @@ var Lines = Lines || {};
   // K = 2 / (length + 1)
   Lines.prototype.calcEMA = function(emaLength) {
     var emaK, emaK2, ema = { price: 0, today: 0, yest: 0 };
-    var emaLen, data, key = 1,
+    var data, key = 1,
       len;
 
     emaK = 2 / (emaLength + 1);
@@ -1147,7 +1143,7 @@ var Lines = Lines || {};
       // todo ADD PROMISES ... navDot1 then navDot2 ...
       this.navDot(pts[2], function(dx, dy, posx, posy, begint) {
         var _angle = Snap.angle(pts[0][0], pts[0][1], posx, posy) - self.lline.tube.navsAngle;
-        this.transform(begint + (begint ? 'R' : 'r') + [_angle, pts[0][0], pts[0][1]]);
+        this.transform(begint + (begint ? "R" : "r") + [_angle, pts[0][0], pts[0][1]]);
 
         var _trans = self.lline.tube.grtr + (self.lline.tube.grtr ? "R" : "r") + [_angle, pts[0][0], pts[0][1]];
         self.lgs("group").transform(_trans);
@@ -1206,7 +1202,7 @@ var Lines = Lines || {};
         cbDrag.call(this, dx, dy, (posx - elem.left), (posy - elem.top), this.data("beginTransform"));
       }
     }, function Start() {
-      this.data('beginTransform', this.transform().local);
+      this.data("beginTransform", this.transform().local);
       cbStart && cbStart();
     }, function Finish() {
       cbEnd && cbEnd();
@@ -1375,7 +1371,7 @@ var Lines = Lines || {};
     }
 
     return this.f(this.dset[dataObj.type][dataObj.prop], 5);
-  }
+  };
 
   //format
   Lines.prototype.f = function(_number, fixDigit) {
@@ -1408,8 +1404,21 @@ var Lines = Lines || {};
     }
   };
 
+  Lines.prototype.removeType = function() {
+
+  };
+
   ////////////////////////////////////////
   Lines.prototype.remove = function(chart = "all") {
+    for (var tk in this.elms) {
+      for (var ek in this.elms[tk]) {
+        if (tk !== this.TYPE.axis && (tk === chart || chart === "all")) {
+          this.elms[tk][ek].elem.remove();
+        }
+      }
+    }
+
+    return;
     switch (chart) {
       case this.TYPE.axis:
         this.elems.svg[this.TYPE.axis].remove();
@@ -1522,7 +1531,7 @@ var Lines = Lines || {};
     _xml = new XMLSerializer().serializeToString(this.el);
     _xml = btoa(_xml);
 
-    return 'data:image/svg+xml;base64,' + _xml;
+    return "data:image/svg+xml;base64," + _xml;
   };
 
   // return fill & stroke computet styles
@@ -1542,7 +1551,7 @@ var Lines = Lines || {};
 
     canElem = document.createElement("canvas");
     canElem.id = canvasID || "linesCanvas";
-    canCtx = canElem.getContext('2d');
+    canCtx = canElem.getContext("2d");
     canElem.width = this.chartArea.w;
     canElem.height = this.chartArea.h;
 
@@ -1550,7 +1559,7 @@ var Lines = Lines || {};
     img.onload = function() {
       canCtx.drawImage(img, 0, 0);
     };
-    img.src = l.toBase64();
+    img.src = this.toBase64();
 
     return canElem;
   };

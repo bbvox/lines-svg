@@ -110,7 +110,7 @@ describe("Lines check some of draw methods", function() {
   });
 });
 
-describe("Lines drawCandle", function() { 
+describe("Lines drawCandle", function() {
   var lines, spyDraw = {};
 
   before(function() {
