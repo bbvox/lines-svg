@@ -32,10 +32,15 @@ var Lines = Lines || {};
 
   // SVG elements storage
   Lines.prototype.svgs = {};
+
   Lines.prototype.elems = {
     id: {},
     svg: {},
     count: 0
+  };
+
+  Lines.prototype.elms = {
+    total: 0
   };
 
   // candle.winp store path string for win candle shadow
@@ -63,7 +68,7 @@ var Lines = Lines || {};
       type: ["line", "candle", "sma", "ema"],
       padding: 40,
       attr: { stroke: "#ddd", fill: "none", strokeWidth: 1 },
-      textAttr: { "stroke-width": "0.1px", "font-family": "Verdana", "font-size": "12px", fill: "#000"},
+      textAttr: { "stroke-width": "0.1px", "font-family": "Verdana", "font-size": "12px", fill: "#000" },
       enableGrid: true,
       candleFill: 0.4,
       grids: 5,
@@ -93,7 +98,8 @@ var Lines = Lines || {};
       yMax: 20,
       arrow: 50,
       zoom: 10,
-      offset: 10
+      offset: 10,
+      xLegend: 20
     },
     debug: {
       radius: 3,
@@ -168,14 +174,14 @@ var Lines = Lines || {};
     if (data.length > perPage) {
       var offset, cuttedRaw, slice = {},
         raw = this.gg("raw");
-      this.s({type: this.TYPE.sinit, prop: "allraw"}, raw);
-      offset = this.g({type: this.TYPE.sinit, prop: "offset"}) || 0;
+      this.s({ type: this.TYPE.sinit, prop: "allraw" }, raw);
+      offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
       var slice = {
         begin: (data.length - offset - perPage),
         end: (data.length - offset)
       };
       cuttedRaw = raw.slice(slice.begin, slice.end);
-      this.s({type: this.TYPE.sinit, prop: "slice"}, slice);
+      this.s({ type: this.TYPE.sinit, prop: "slice" }, slice);
       this.reset();
       this.data(cuttedRaw);
       return false;
@@ -387,12 +393,66 @@ var Lines = Lines || {};
     }
   };
 
-  // toDo - get from elems color and draw line with type chart ....
-  Lines.prototype.drawLegend = function () {
+  Lines.prototype.getLabel = function(elemID) {
+    var label;
 
+    label = elemID.split("-");
+    label.shift(); //remove "svg"
+    return label.join(" ");
   };
 
-  //
+
+  // toDo - get from elems color and draw line with type chart ....
+  // only for SMA & EMA with period
+
+  //dset.sma.length
+  //dset.ema
+  //toDo review this...
+  Lines.prototype.drawLegend = function() {
+    var yAxis, smaID, emaID;
+    yAxis = this.chartArea.zeroY - 20;
+    for (smaID in this.elms.sma) {
+      this.prLegend({
+        id: smaID,
+        y: yAxis,
+        label: this.getLabel(smaID),
+        color: this.getStyle(smaID).stroke
+      });
+      yAxis -= 30;
+    }
+
+    for (emaID in this.elms.ema) {
+      this.prLegend({
+        id: emaID,
+        y: yAxis,
+        label: this.getLabel(emaID),
+        color: this.getStyle(emaID).stroke
+      });
+      yAxis -= 30;
+    }
+  };
+
+  // rowObj {y, label, color}
+  Lines.prototype.prLegend = function(rowObj) {
+    var svg = {},
+      cube = {};
+    cube.x = this.chartArea.width - 100;
+    cube.y = this.chartArea.zeroY - 100;
+    cube.y = rowObj.y;
+    cube.width = cube.height = 20;
+    svg.cube = this.snap.rect(cube.x, cube.y, cube.width, cube.height);
+    svg.cube.attr({ fill: rowObj.color });
+    svg.text = this.snap.text(cube.x + 30, cube.y + 15, rowObj.label);
+    svg.textAttr = this.cfg.chart.textAttr;
+    svg.textAttr.fill = rowObj.color;
+    svg.text.attr(svg.textAttr);
+
+    svg.text.click(() => {
+      alert("click Legend" + rowObj.id);
+      console.log("QUICK ANIMATION OF THE CHART WITH SOME BLANK COLOR >>>>", this);
+    });
+  };
+
   Lines.prototype.drawAxis = function() {
     var lineAxis = [],
       yAxis, _linePath = "",
@@ -413,9 +473,8 @@ var Lines = Lines || {};
 
     for (; lk <= this.cfg.chart.grids; lk++) {
       _linePath += "M" + lineAxis[0][0] + " " + yAxis + "L" + lineAxis[1][0] + " " + yAxis;
-      yAxis -= gridStep;
+      yAxis = Math.floor(yAxis - gridStep);
     }
-
     this.printPath({ type: this.TYPE.axis, path: _linePath });
 
     this.drawLabelsX();
@@ -432,11 +491,10 @@ var Lines = Lines || {};
 
     plen = this.gg("points").length;
     lineAxis[0][0] = this.chartArea.zeroX + this.gg("stepX");
-    lineAxis[0][1] = this.chartArea.zeroY + this.cfg.chart.padding / 2;
+    lineAxis[0][1] = Math.floor(this.chartArea.zeroY + this.cfg.chart.padding / 2);
 
     lineAxis[1] = [lineAxis[0][0], lineAxis[0][1] + 4];
     xAxis = lineAxis[0][0] = lineAxis[1][0];
-
     for (; lk <= plen; lk++) {
       if (!(lk % 3)) {
         _linePath += "M" + xAxis + " " + lineAxis[0][1] + "L" + xAxis + " " + lineAxis[1][1];
@@ -444,7 +502,7 @@ var Lines = Lines || {};
         svg.attr({ class: this.cfg.cssClass.textLabel });
         svg.attr(this.cfg.chart.textAttr);
 
-        this.store(this.TYPE.axis, svg);
+        this.store({ type: this.TYPE.axis }, svg);
       }
       xAxis += this.gg("stepX");
     }
@@ -465,7 +523,7 @@ var Lines = Lines || {};
       svg = this.snap.text(point[0], point[1], this.f(label, 4));
       svg.attr({ class: this.cfg.cssClass.textLabel });
       svg.attr(this.cfg.chart.textAttr);
-      this.store(this.TYPE.axis, svg);
+      this.store({ type: this.TYPE.axis }, svg);
       this.debugDot(point);
 
       point[1] -= step;
@@ -537,6 +595,14 @@ var Lines = Lines || {};
     this.printPath({ type: this.TYPE.line, path: _linePath });
   };
 
+  //Material 400 
+  Lines.prototype.getHex = function() {
+    var colors = ["#ef5350", "#ec407a", "#ab47bc", "#7e57c2", "#5c6bc0", "#42a5f5", "#26a69a", "#66bb6a", "#9ccc65"];
+    colors = colors.concat(["#c62828", "#ad1457", "#6a1b9a", "#4527a0", "#1565c0", "#2e7d32", "#558b2f"]);
+
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+
   // animate or not
   // https://codepen.io/JRGould/pen/dkHhw
   Lines.prototype.printPath = function(lineProp) {
@@ -551,14 +617,27 @@ var Lines = Lines || {};
       var svg = this.snap.path(lineProp.path);
       var svgAttr = {};
       svgAttr.class = lineProp.class || this.cfg.cssClass[lineProp.type];
-
       svg.attr(svgAttr);
-      // for label and candle need path to be combine with other svgs
-      if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
-        this.store(lineProp.type, svg);
-      } else {
-        this.store(lineProp.type, svg, true);
+
+      // change COLOR for repeating sma OR ema charts
+      // toDo refactor this ...1. export whole else case into other function like animatePath...
+      var col = this.getHex();
+      if (lineProp.type === this.TYPE.sma && this.elms[this.TYPE.sma]) {
+        svg.attr({ style: "stroke: " + this.getHex() });
+        this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, col);
+      } else if (lineProp.type === this.TYPE.ema && this.elms[this.TYPE.ema]) {
+        svg.attr({ style: "stroke: " + this.getHex() });
+        this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, col);
       }
+
+      // axis & candle NEED group
+      // if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
+      if (lineProp.type !== this.TYPE.axis && lineProp.type !== this.TYPE.candle) {
+        lineProp.single = true;
+      }
+
+      //check if repeat sma or ema
+      this.store(lineProp, svg);
     }
   };
 
@@ -570,9 +649,9 @@ var Lines = Lines || {};
     svg = this.snap.path(svgAttr);
 
     if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
-      this.store(lineProp.type, svg);
+      this.store({ type: lineProp.type }, svg);
     } else {
-      this.store(lineProp.type, svg, true);
+      this.store({ type: lineProp.type, single: true }, svg);
     }
 
     lineLen = Snap.path.getTotalLength(lineProp.path);
@@ -645,7 +724,7 @@ var Lines = Lines || {};
     }
     svg = this.snap.rect(candle.x, candle.y, candle.width, candle.height);
     svg.attr({ class: candle.class });
-    this.store(this.TYPE.candle, svg);
+    this.store({ type: this.TYPE.candle }, svg);
     this.candleShadow(candle, key);
   };
 
@@ -692,7 +771,6 @@ var Lines = Lines || {};
       shadowPath = this.g({ type: this.TYPE.candle, prop: "losep" });
       this.printPath({ type: this.TYPE.candle, path: shadowPath.join(" "), class: this.cfg.cssClass.loseCandle });
     }
-
   };
 
   // a0+a1+ ....a9 / 10 = sma9
@@ -704,9 +782,9 @@ var Lines = Lines || {};
     data = this.gg("data");
 
     //calc missing part of SMA
-    if (this.g({type: this.TYPE.sinit, prop: "allraw"})) {
-      var bdata = this.g({type: this.TYPE.sinit, prop: "allraw"});
-      var slice = this.g({type: this.TYPE.sinit, prop: "slice"});
+    if (this.g({ type: this.TYPE.sinit, prop: "allraw" })) {
+      var bdata = this.g({ type: this.TYPE.sinit, prop: "allraw" });
+      var slice = this.g({ type: this.TYPE.sinit, prop: "slice" });
       bdata = bdata.slice(slice.begin - smaLength, slice.begin);
       bdata = bdata.map(v => v[3]);
       data = bdata.concat(data); //merge bdata & data
@@ -737,12 +815,13 @@ var Lines = Lines || {};
       len, lastAxis = [];
 
     data = this.g({ type: this.TYPE.sma, prop: "data" + smaLength });
-    if (this.g({type: this.TYPE.sinit, prop: "allraw"})) {
+    if (this.g({ type: this.TYPE.sinit, prop: "allraw" })) {
       lastAxis[0] = this.gg("zeroX");
     } else {
       lastAxis[0] = this.gg("zeroX") + (smaLength * this.gg("stepX"));
       lastAxis[0] = this.f(lastAxis[0], 0);
     }
+
     this.s({ type: this.TYPE.sma, prop: "lastX" + smaLength }, lastAxis[0]);
 
     lastAxis[1] = this.chartArea.zeroY - ((data[0] - this.gg("min")) * this.gg("stepY")); //???
@@ -768,7 +847,6 @@ var Lines = Lines || {};
     points && (plen = points.length);
     if (!plen) {
       this.calcSMA(smaLength);
-      // this.draw("sma");
       this.drawSMA(smaLength);
       return;
     } else if (plen < smaLength && 1 === 2) {
@@ -787,55 +865,58 @@ var Lines = Lines || {};
     }
 
     this.debugDot(lineAxis[plen]);
-    this.printPath({ type: this.TYPE.sma, path: _linePath });
+    this.printPath({ type: this.TYPE.sma, path: _linePath, length: smaLength });
   };
 
   // EMA(today) = Price(today) * K + EMA(yesterday) * (1-K)
   // EMAtoday = Ptoday * k + EMAyest * k2
   // K = 2 / (length + 1)
-  Lines.prototype.calcEMA = function() {
+  Lines.prototype.calcEMA = function(emaLength) {
     var emaK, emaK2, ema = { price: 0, today: 0, yest: 0 };
-    var data, key = 1,
+    var emaLen, data, key = 1,
       len;
 
-    emaK = 2 / (this.cfg.emaLength + 1);
-    this.s({ type: this.TYPE.ema, prop: "k" }, this.f(emaK, 5));
+    emaK = 2 / (emaLength + 1);
+    this.s({ type: this.TYPE.ema, prop: "k" + emaLength }, this.f(emaK, 5));
     emaK2 = 1 - emaK;
 
-    this.s({ type: this.TYPE.ema, prop: "lastX" }, this.gg("zeroX"));
-    this.s({ type: this.TYPE.ema, prop: "lastY" }, this.gg("zeroY"));
+    this.s({ type: this.TYPE.ema, prop: "lastX" + emaLength }, this.gg("zeroX"));
+    this.s({ type: this.TYPE.ema, prop: "lastY" + emaLength }, this.gg("zeroY"));
 
-    this.s({ type: this.TYPE.ema, prop: "data" }, []);
-    this.add({ type: this.TYPE.ema, prop: "data" }, this.gg("data")[0]);
+    this.s({ type: this.TYPE.ema, prop: "data" + emaLength }, []);
+    this.add({ type: this.TYPE.ema, prop: "data" + emaLength }, this.gg("data")[0]);
 
     data = this.gg("data");
     len = data.length;
     for (; key < len; key++) {
       ema.price = data[key];
-      ema.yest = this.g({ type: this.TYPE.ema, prop: "data" })[key - 1];
+      ema.yest = this.g({ type: this.TYPE.ema, prop: "data" + emaLength })[key - 1];
       ema.today = ema.price * emaK + ema.yest * emaK2;
 
-      this.add({ type: this.TYPE.ema, prop: "data" }, this.f(ema.today, 4));
+      this.add({ type: this.TYPE.ema, prop: "data" + emaLength }, this.f(ema.today, 4));
     }
 
     len = key;
     key = 1;
     for (; key < len; key++) {
-      (this.calcPoint)(key, this.TYPE.ema);
+      (this.calcPoint)(key, this.TYPE.ema, emaLength);
     }
   };
 
   //Exponential Mobing Average
-  Lines.prototype.drawEMA = function() {
+  //toDo add emaLength like smaLength
+  Lines.prototype.drawEMA = function(emaLength) {
     var points, plen, key = 0,
       lineAxis = [],
       _linePath = "";
 
-    points = this.g({ type: this.TYPE.ema, prop: "points" });
-    plen = points.length;
+    emaLength = emaLength || this.cfg.emaLength;
+    points = this.g({ type: this.TYPE.ema, prop: "points" + emaLength });
+
+    points && (plen = points.length);
     if (!plen) {
-      this.calcEMA();
-      this.draw("ema");
+      this.calcEMA(emaLength);
+      this.drawEMA(emaLength);
       return;
     } else if (plen < this.cfg.emaLength) {
       this.pr("EMA can NOT exist insufficient points");
@@ -852,7 +933,7 @@ var Lines = Lines || {};
       lineAxis = [];
     }
 
-    this.printPath({ type: this.TYPE.ema, path: _linePath });
+    this.printPath({ type: this.TYPE.ema, path: _linePath, length: emaLength });
   };
 
 
@@ -1182,23 +1263,61 @@ var Lines = Lines || {};
 
   //svg = {lines:{}, candles:{}, labes:{}, points:{}, smas:{}}
   // singleFlag mean to not create group and set directly id to the element
-  Lines.prototype.store = function(type, svgObject, singleFlag = false) {
+  // typeObj = {type:, length:, color: }
+  Lines.prototype.store2 = function(type, svgObject, singleFlag = false) {
     var elemID = "svg-" + type;
 
-    if (this.elems.id[elemID]) {
-      this.elems.count ++;
+    //when have several sma append counter > sma1 sma2 ...
+    if (this.elems.id[elemID] && singleFlag) {
+      this.elems.count++;
       elemID += this.elems.count;
     }
 
     if (singleFlag) {
-      this.svgs[type] = svgObject;
-      this.svgs[type].node.id = elemID;
-      this.elems.id[elemID] = true;
+      this.elems.svg[type] = svgObject;
+      this.elems.svg[type].node.id = elemID;
     } else {
-      this.svgs[type] || (this.svgs[type] = this.snap.g());
-      this.svgs[type].node.id = elemID;
-      this.svgs[type].add(svgObject);
+      this.elems.svg[type] || (this.elems.svg[type] = this.snap.g());
+      this.elems.svg[type].node.id = elemID;
+      this.elems.svg[type].add(svgObject);
     }
+
+    this.elems.id[elemID] = true;
+  };
+
+  //dataObj = {type: type, sigle: true, length: length}
+  Lines.prototype.store = function(dataObj, storeData) {
+    var elemID, prop;
+    elemID = dataObj.id || "svg-" + dataObj.type + (dataObj.length ? "-" + dataObj.length : "");
+    prop = dataObj.prop || "elem";
+
+    this.elms[dataObj.type] || (this.elms[dataObj.type] = {});
+    this.elms[dataObj.type][elemID] || (this.elms[dataObj.type][elemID] = {});
+
+    if (dataObj.single) {
+      this.elms[dataObj.type][elemID][prop] = storeData;
+    } else if (prop === "elem") {
+      if (!this.elms[dataObj.type][elemID]["elem"]) {
+        this.elms[dataObj.type][elemID]["elem"] = this.snap.g();
+      }
+      this.elms[dataObj.type][elemID]["elem"].add(storeData);
+    } else {
+      this.elms[dataObj.type][elemID][prop] = storeData;
+    }
+
+    (prop === "elem") && (this.elms[dataObj.type][elemID]["elem"].node.id = elemID);
+  };
+
+  // element GET
+  // elemObj = {type: TYPE, id: ID}
+  Lines.prototype.eg = function(elemObj = {}) {
+    var prop;
+    if (!this.elms[elemObj.type]) {
+      return 0;
+    }
+    prop = elemObj.prop || "svg";
+
+    return this.elms[elemObj.type][elemObj.id][prop];
   };
 
   // getByProp valid only for init and line TYPE
@@ -1233,8 +1352,8 @@ var Lines = Lines || {};
     }
 
     //inject secure data into init property
-    if (dataObj.type === this.TYPE.init && this.g({type: this.TYPE.sinit, prop: dataObj.prop})) {
-      data = this.g({type: this.TYPE.sinit, prop: dataObj.prop});
+    if (dataObj.type === this.TYPE.init && this.g({ type: this.TYPE.sinit, prop: dataObj.prop })) {
+      data = this.g({ type: this.TYPE.sinit, prop: dataObj.prop });
     }
 
     //store into dset
@@ -1265,9 +1384,9 @@ var Lines = Lines || {};
     return Math.abs(_num.toFixed(_fix));
   };
 
-  Lines.prototype.getId = function(elemId, snap = false) {
+  Lines.prototype.getId = function(elemID, snap = false) {
     var elem;
-    elem = snap ? this.snap.select("#" + elemId) : document.getElementById(elemId);
+    elem = snap ? this.snap.select("#" + elemID) : document.getElementById(elemID);
     return elem || 0;
   };
 
@@ -1293,28 +1412,28 @@ var Lines = Lines || {};
   Lines.prototype.remove = function(chart = "all") {
     switch (chart) {
       case this.TYPE.axis:
-        this.svgs.axis.remove();
+        this.elems.svg[this.TYPE.axis].remove();
         break;
       case this.TYPE.line:
-        this.svgs.line.remove();
+        this.elems.svg[this.TYPE.line].remove();
         break;
       case this.TYPE.candle:
-        this.svgs.candle.remove();
+        this.elems.svg[this.TYPE.candle].remove();
         break;
       case this.TYPE.point:
-        this.svgs.point.remove();
+        this.elems.svg[this.TYPE.point].remove();
         break;
       case this.TYPE.sma:
-        this.svgs.sma.remove();
+        this.elems.svg[this.TYPE.sma].remove();
         break;
       case this.TYPE.ema:
-        this.svgs.ema.remove();
+        this.elems.svg[this.TYPE.ema].remove();
         break;
       case "all":
         for (var k in this.TYPE) {
-          this.svgs[this.TYPE[k]] && this.svgs[this.TYPE[k]].remove();
+          this.elems.svg[this.TYPE[k]] && this.elems.svg[this.TYPE[k]].remove();
         }
-        this.svgs = {};
+        this.elems.svg = {};
         break;
     }
   };
@@ -1338,7 +1457,7 @@ var Lines = Lines || {};
       init: {},
       line: { data: [], points: [] },
       candle: { winp: [], losep: [] },
-      sma: { data: [], points: [] },
+      sma: { data: [], points: [], length: [] },
       ema: { data: [], points: [] }
     };
 
@@ -1366,15 +1485,15 @@ var Lines = Lines || {};
   Lines.prototype.move = function(type = "prev") {
     var offset, allRaw, limit = {};
 
-    allRaw = this.g({type: this.TYPE.sinit, prop: "allraw"}) || this.gg("raw");
-    offset = this.g({type: this.TYPE.sinit, prop: "offset"}) || 0;
+    allRaw = this.g({ type: this.TYPE.sinit, prop: "allraw" }) || this.gg("raw");
+    offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
 
     if (type === "prev") {
       offset += this.cfg.step.offset;
     } else {
       offset -= this.cfg.step.offset;
     }
-    this.s({type: this.TYPE.sinit, prop: "offset"}, offset);
+    this.s({ type: this.TYPE.sinit, prop: "offset" }, offset);
     this.reset();
     this.data(allRaw);
     this.draw();
@@ -1382,7 +1501,7 @@ var Lines = Lines || {};
 
   //set elements attributes...
   //toDo - should know existing elements ID...
-  Lines.prototype.colorize = function () {
+  Lines.prototype.colorize = function() {
     for (var elemID in this.elems.id) {
       this.setAttr(elemID);
     }
@@ -1397,7 +1516,7 @@ var Lines = Lines || {};
     elemProp.stroke && elem.setAttribute("stroke", elemProp.stroke);
   };
 
-  Lines.prototype.toBase64 = function () {
+  Lines.prototype.toBase64 = function() {
     var _xml;
 
     _xml = new XMLSerializer().serializeToString(this.el);
@@ -1407,16 +1526,16 @@ var Lines = Lines || {};
   };
 
   // return fill & stroke computet styles
-  Lines.prototype.getStyle = function (elemId) {
+  Lines.prototype.getStyle = function(elemId) {
     var elem, style;
     elem = this.getId(elemId);
     style = getComputedStyle(elem);
 
-    return {fill: (style.fill != "none" ? style.fill : false), stroke: (style.stroke != "none" ? style.stroke : false) };
+    return { fill: (style.fill != "none" ? style.fill : false), stroke: (style.stroke != "none" ? style.stroke : false) };
   };
 
 
-  Lines.prototype.getCanvas = function (canvasID = false) {
+  Lines.prototype.getCanvas = function(canvasID = false) {
     var canElem, canCtx, img;
 
     this.colorize();
@@ -1452,7 +1571,7 @@ var Lines = Lines || {};
     } else if (type === "out") {
       stepX -= this.cfg.step.zoom;
     }
-    this.s({type: this.TYPE.sinit, prop: "stepX"}, stepX);
+    this.s({ type: this.TYPE.sinit, prop: "stepX" }, stepX);
 
     this.remove("all");
     this.reset();
