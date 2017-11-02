@@ -16,12 +16,14 @@ var Lines = Lines || {};
     this.setup();
   };
 
-  // Debug flag. When is set draw additional points and debug messages into console
+  // Debug flag. When is set draw additional dots and debug messages
   Lines.prototype.debug = false;
 
   // Constant TYPE of charts
   Lines.prototype.TYPE = {
     axis: "axis",
+    legend: "legend",
+    debug: "debug",
     sinit: "sinit",
     init: "init",
     line: "line",
@@ -30,17 +32,15 @@ var Lines = Lines || {};
     ema: "ema"
   };
 
-  // SVG elements storage
-  Lines.prototype.svgs = {};
-
   Lines.prototype.elems = {
     id: {},
     svg: {},
     count: 0
   };
 
+  //
   Lines.prototype.elms = {
-    total: 0
+    id: []
   };
 
   // candle.winp store path string for win candle shadow
@@ -63,7 +63,7 @@ var Lines = Lines || {};
   //  - chart = properties for graphic
   //  - cssClass = All style properties are external style. 
   Lines.prototype.cfg = {
-    animate: true,
+    animate: false,
     chart: {
       type: ["line", "candle", "sma", "ema"],
       padding: 40,
@@ -99,7 +99,7 @@ var Lines = Lines || {};
       arrow: 50,
       zoom: 10,
       offset: 10,
-      xLegend: 20
+      xLegend: 100
     },
     debug: {
       radius: 3,
@@ -172,10 +172,12 @@ var Lines = Lines || {};
     perPage = this.f(this.chartArea.width / stepX, 0);
 
     if (data.length > perPage) {
-      var offset, cuttedRaw, slice = {},
-        raw = this.gg("raw");
+      var offset, cuttedRaw, slice = {}, raw;
+      
+      raw = this.gg("raw");
       this.s({ type: this.TYPE.sinit, prop: "allraw" }, raw);
       offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
+      console.log(">>>", offset);
       slice = {
         begin: (data.length - offset - perPage),
         end: (data.length - offset)
@@ -183,6 +185,7 @@ var Lines = Lines || {};
       cuttedRaw = raw.slice(slice.begin, slice.end);
       this.s({ type: this.TYPE.sinit, prop: "slice" }, slice);
       this.reset();
+      console.log(">>>", cuttedRaw);
       this.data(cuttedRaw);
       return false;
     }
@@ -360,7 +363,7 @@ var Lines = Lines || {};
     | | |  __/ | | | (_| |  __/ |    | | | | | |  __/ |_| | | | (_) | (_| \__ \
     |_|  \___|_| |_|\__,_|\___|_|    |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
   */
-  Lines.prototype.draw = function(type = "all") {
+  Lines.prototype.draw = function(type = "all", chartLength) {
     switch (type) {
       case this.TYPE.axis:
         this.drawAxis();
@@ -372,10 +375,11 @@ var Lines = Lines || {};
         this.drawCandle();
         break;
       case this.TYPE.sma:
-        this.drawSMA();
+        // this.drawOrder = ["drawLegend"];
+        this.drawSMA(chartLength);
         break;
       case "ema":
-        this.drawEMA();
+        this.drawEMA(chartLength);
         break;
       case "all":
         if (this.cfg.animate) {
@@ -389,6 +393,40 @@ var Lines = Lines || {};
           this.drawEMA();
           this.drawLegend();
         }
+    }
+  };
+
+  //check if id Exist
+  Lines.prototype.checkID = function (dataObj) {
+    var elemID;
+    elemID = dataObj.id || "svg-" + dataObj.type + (dataObj.length ? "-" + dataObj.length : "");
+    return (this.elms.id.indexOf(elemID) !== -1);
+  };
+
+  // 
+  Lines.prototype.splitId = function (elemID) {
+    var idArray, idData = {};
+
+    idArray = elemID.split("-");
+    idData.type = idArray[1];
+    //if SMA or EMA
+    if ([this.TYPE.sma, this.TYPE.ema].indexOf(idData.type) !== -1) {
+      idData.type = idData.type.toUpperCase();
+    } else {
+      idData.type = idData.type[0].toUpperCase() + idData.type.slice(1);
+    }
+    idArray[2] && (idData.length = parseInt(idArray[2]));
+
+    return idData;
+  }
+
+  Lines.prototype.redraw = function (idArray) {
+    var chart, key, fnName;
+    idArray || (idArray = this.elms.id);
+    for (key in idArray) {
+      chart = this.splitId(idArray[key]);
+      fnName = "draw" + chart.type;
+      this[fnName](chart.length || 0);
     }
   };
 
@@ -413,7 +451,7 @@ var Lines = Lines || {};
         id: smaID,
         y: yAxis,
         label: this.getLabel(smaID),
-        color: this.getStyle(smaID).stroke
+        color: this.elms.sma[smaID].color || this.getStyle(smaID).stroke
       });
       yAxis -= 30;
     }
@@ -423,7 +461,7 @@ var Lines = Lines || {};
         id: emaID,
         y: yAxis,
         label: this.getLabel(emaID),
-        color: this.getStyle(emaID).stroke
+        color: this.elms.ema[emaID].color || this.getStyle(emaID).stroke
       });
       yAxis -= 30;
     }
@@ -431,18 +469,20 @@ var Lines = Lines || {};
 
   // rowObj {y, label, color}
   Lines.prototype.prLegend = function(rowObj) {
-    var svg = {},
-      cube = {};
-    cube.x = this.chartArea.w - 100;
-    cube.y = this.chartArea.zeroY - 100;
+    var svg = {}, cube = {};
+    cube.x = this.chartArea.w - this.cfg.step.xLegend;
     cube.y = rowObj.y;
     cube.width = cube.height = 20;
+
     svg.cube = this.snap.rect(cube.x, cube.y, cube.width, cube.height);
     svg.cube.attr({ fill: rowObj.color });
     svg.text = this.snap.text(cube.x + 30, cube.y + 15, rowObj.label);
     svg.textAttr = this.cfg.chart.textAttr;
     svg.textAttr.fill = rowObj.color;
     svg.text.attr(svg.textAttr);
+
+    this.store({ type: this.TYPE.legend }, svg.cube);
+    this.store({ type: this.TYPE.legend }, svg.text);
 
     svg.text.click(() => {
       alert("click Legend" + rowObj.id);
@@ -454,6 +494,11 @@ var Lines = Lines || {};
     var lineAxis = [],
       yAxis, _linePath = "",
       gridStep, lk = 0;
+
+    if (this.checkID({type: this.TYPE.axis})) {
+      this.pr("Axis chart already exist");
+      return;
+    }
 
     if (!this.cfg.chart.enableGrid) {
       this.drawLabelsX();
@@ -489,7 +534,6 @@ var Lines = Lines || {};
     plen = this.gg("points").length;
     lineAxis[0][0] = this.chartArea.zeroX + this.gg("stepX");
     lineAxis[0][1] = Math.floor(this.chartArea.zeroY + this.cfg.chart.padding / 2);
-
     lineAxis[1] = [lineAxis[0][0], lineAxis[0][1] + 4];
     xAxis = lineAxis[0][0] = lineAxis[1][0];
     for (; lk <= plen; lk++) {
@@ -503,7 +547,6 @@ var Lines = Lines || {};
       }
       xAxis += this.gg("stepX");
     }
-
     this.printPath({ type: this.TYPE.axis, path: _linePath });
   };
 
@@ -576,6 +619,11 @@ var Lines = Lines || {};
       _linePath = "",
       lineAxis = [];
 
+    if (this.checkID({type: this.TYPE.line})) {
+      this.pr("Line chart already exist");
+      return;
+    }
+
     points = this.gg("points");
     plen = points.length - 1;
 
@@ -615,16 +663,12 @@ var Lines = Lines || {};
       var svgAttr = {};
       svgAttr.class = lineProp.class || this.cfg.cssClass[lineProp.type];
       svg.attr(svgAttr);
-
-      // change COLOR for repeating sma OR ema charts
-      // toDo refactor this ...1. export whole else case into other function like animatePath...
-      var col = this.getHex();
-      if (lineProp.type === this.TYPE.sma && this.elms[this.TYPE.sma]) {
-        svg.attr({ style: "stroke: " + this.getHex() });
-        this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, col);
-      } else if (lineProp.type === this.TYPE.ema && this.elms[this.TYPE.ema]) {
-        svg.attr({ style: "stroke: " + this.getHex() });
-        this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, col);
+      // handle repeating sma & ema charts
+      if (this.exist(lineProp.type)) {
+        var color = this.getHex();
+        svg.attr({ style: "stroke: " + color });
+        this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
+        this.drawLegend();
       }
 
       // axis & candle NEED group
@@ -633,9 +677,17 @@ var Lines = Lines || {};
         lineProp.single = true;
       }
 
-      //check if repeat sma or ema
       this.store(lineProp, svg);
     }
+  };
+
+  // only sma & ema charts can be more than once
+  Lines.prototype.exist = function (chartType) {
+    if ([this.TYPE.sma, this.TYPE.ema].indexOf(chartType) === -1) {
+      return false;
+    }
+
+    return !!this.elms[chartType];
   };
 
   //lineProp = {type; path; color; width; strokeDasharray}
@@ -645,11 +697,7 @@ var Lines = Lines || {};
     svgAttr.class = lineProp.class || this.cfg.cssClass[lineProp.type];
     svg = this.snap.path(svgAttr);
 
-    if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
-      this.store({ type: lineProp.type }, svg);
-    } else {
-      this.store({ type: lineProp.type, single: true }, svg);
-    }
+
 
     lineLen = Snap.path.getTotalLength(lineProp.path);
     Snap.animate(0, lineLen, step => {
@@ -660,8 +708,25 @@ var Lines = Lines || {};
     },
     800, //duration
     mina.backOut,
-    () => { cbNext && cbNext(); });
+    () => {
+      if (this.exist(lineProp.type)) {
+        var color = this.getHex();
+        svg.attr({ style: "stroke: " + color });
+        this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
+        this.drawLegend();
+      }
+
+      //store single or group
+      if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
+        this.store({ type: lineProp.type, length: lineProp.length }, svg);
+      } else {
+        this.store({ type: lineProp.type, length: lineProp.length, single: true }, svg);
+      }
+      cbNext && cbNext(); 
+    });
+    // finish callback 
     // mina.elastic, mina.easeInOut, mina.easeIn, mina.backOut
+
   };
 
   Lines.prototype.getPath = function(lineAxis) {
@@ -677,6 +742,11 @@ var Lines = Lines || {};
   //
   Lines.prototype.drawCandle = function() {
     var width, raw, rkey;
+
+    if (this.checkID({type: this.TYPE.candle})) {
+      this.pr("Candle chart already exist");
+      return;
+    }
 
     width = this.gg("stepX") * this.cfg.chart.candleFill;
     this.s({ type: this.TYPE.candle, prop: "width" }, this.f(width, 0));
@@ -739,18 +809,16 @@ var Lines = Lines || {};
 
     lineTop[0] = [lineX, candle.y];
     lineTop[1][0] = lineX;
-    lineTop[1][1] = this.f((candle.data.close - candle.data.high), 0) * this.gg("stepY");
+    lineTop[1][1] = (candle.data.high - candle.data.close) * this.gg("stepY");
     lineTop[1][1] = lineTop[0][1] - lineTop[1][1];
-
     _linePath += this.getPath(lineTop);
 
     lineBot[0][0] = lineX;
     lineBot[0][1] = lineTop[0][1] + candle.height;
     lineBot[1][0] = lineX;
     lineBot[1][1] = lineBot[0][1] + this.f(((candle.data.close - candle.data.low) * this.gg("stepY")), 0);
-
     _linePath += this.getPath(lineBot);
-
+    // printed one BY one
     // this.printPath({ type: this.TYPE.candle, path: _linePath, class: candle.class });
     // return;
 
@@ -837,8 +905,15 @@ var Lines = Lines || {};
       lineAxis = [],
       _linePath = "";
 
-    smaLength || (smaLength = this.cfg.smaLength);
+    smaLength = smaLength || this.cfg.smaLength;
     points = this.g({ type: this.TYPE.sma, prop: "points" + smaLength });
+
+    if (this.gg("data").length < smaLength) {
+      return;
+    } else if (this.checkID({type: this.TYPE.sma, length: smaLength})) {
+      this.pr("SMA chart already exist");
+      return;
+    }
 
     points && (plen = points.length);
     if (!plen) {
@@ -900,7 +975,6 @@ var Lines = Lines || {};
   };
 
   //Exponential Mobing Average
-  //toDo add emaLength like smaLength
   Lines.prototype.drawEMA = function(emaLength) {
     var points, plen, key = 0,
       lineAxis = [],
@@ -933,13 +1007,19 @@ var Lines = Lines || {};
   };
 
 
-
+  Lines.prototype.liveFlag = false;
   Lines.prototype.dragX = 0;
 
   //revision ...
   Lines.prototype.live = function() {
     var foundY, self = this,
       dot, label, left, dragX;
+
+    if (this.cfg.animate && !this.liveFlag) {
+      this.liveFlag = true;
+      this.drawOrder.push("live");
+      return;
+    }
 
     label = this.snap.text(this.chartArea.zeroX, this.chartArea.zeroY, "");
     label.attr({ class: this.cfg.cssClass.liveLabel });
@@ -964,10 +1044,10 @@ var Lines = Lines || {};
           label.attr({ y: foundY.pixel });
         }
       }
-    });
+    });      
 
     if (!this.lcGroup) {
-      this.lcGroup = this.snap.g(this.svgs.line);
+      this.lcGroup = this.snap.g(this.elms.line["svg-line"].elem);
     }
 
     this.snap.drag((moveX, moveY) => {
@@ -1253,7 +1333,7 @@ var Lines = Lines || {};
     if (this.debug && this.snap && pointAxis && pointAxis.length > 1) {
       svg = this.snap.circle(pointAxis[0], pointAxis[1], this.cfg.debug.radius);
       svg.attr({ class: this.cfg.cssClass.debugDot });
-      this.store(this.TYPE.point, svg);
+      this.store({ type: this.TYPE.debug }, svg);
     }
   };
 
@@ -1281,6 +1361,11 @@ var Lines = Lines || {};
     this.elems.id[elemID] = true;
   };
 
+  // chartObj = {type, prop}
+  // return array or element of value of property....
+  Lines.prototype.get = function (chartObj) {
+  };
+
   //dataObj = {type: type, sigle: true, length: length}
   Lines.prototype.store = function(dataObj, storeData) {
     var elemID, prop;
@@ -1289,7 +1374,6 @@ var Lines = Lines || {};
 
     this.elms[dataObj.type] || (this.elms[dataObj.type] = {});
     this.elms[dataObj.type][elemID] || (this.elms[dataObj.type][elemID] = {});
-
     if (dataObj.single) {
       this.elms[dataObj.type][elemID][prop] = storeData;
     } else if (prop === "elem") {
@@ -1301,7 +1385,9 @@ var Lines = Lines || {};
       this.elms[dataObj.type][elemID][prop] = storeData;
     }
 
+    // if property is element set ID
     (prop === "elem") && (this.elms[dataObj.type][elemID]["elem"].node.id = elemID);
+    (this.elms.id.indexOf(elemID) === -1) && this.elms.id.push(elemID);
   };
 
   // element GET
@@ -1341,13 +1427,14 @@ var Lines = Lines || {};
   //dataObj.prop = 
   //data = data for store
   Lines.prototype.s = function(dataObj = {}, data) {
-    if (!dataObj.type || !dataObj.prop || !data) {
+    if (!dataObj.type || !dataObj.prop) {
+      console.error("exit 1")
       return 1;
     } else if (!this.dset[dataObj.type]) {
       return 2;
     }
 
-    //inject secure data into init property
+    //inject secureINIT data into INIT property
     if (dataObj.type === this.TYPE.init && this.g({ type: this.TYPE.sinit, prop: dataObj.prop })) {
       data = this.g({ type: this.TYPE.sinit, prop: dataObj.prop });
     }
@@ -1378,6 +1465,7 @@ var Lines = Lines || {};
     var _fix = (fixDigit || fixDigit === 0) ? fixDigit : 5;
     var _num = parseFloat(_number);
     return Math.abs(_num.toFixed(_fix));
+    // return _num.toFixed(_fix);
   };
 
   Lines.prototype.getId = function(elemID, snap = false) {
@@ -1386,33 +1474,37 @@ var Lines = Lines || {};
     return elem || 0;
   };
 
+  //this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
   Lines.prototype.toggle = function(chartType) {
     var elemID, elem;
+    
     if (chartType === "all") {
-      for (var k in this.cfg.chart.type) {
-        this.toggle(this.cfg.chart.type[k]);
+      for (var k in this.elms) {
+        k !== "id" && this.toggle(k);
       }
-      return;
+    } else if (this.cfg.chart.type.indexOf(chartType) !== -1) {
+      for (var elemID in this.elms[chartType]) {
+        elem = this.getId(elemID);
+        if (!elem.style.display || elem.style.display === "block") {
+          elem.style.display = "none";
+          this.store({type: chartType, id: elemID, prop: "hide"}, true);
+          // remove elemID from elms.id
+          var rmKey = this.elms.id.indexOf(elemID);
+          this.elms.id = this.elms.id.filter((i, k) => k !== rmKey);
+        } else {
+          elem.style.display = "block";
+          this.store({type: chartType, id: elemID, prop: "hide"}, false);
+          this.elms.id.push(elemID);
+        }
+      }
     }
-    elemID = "svg-" + this.TYPE[chartType];
-    elem = this.getId(elemID);
-
-    if (elem && (!elem.style.display || elem.style.display === "block")) {
-      elem.style.display = "none";
-    } else {
-      elem && (elem.style.display = "block");
-    }
-  };
-
-  Lines.prototype.removeType = function() {
-
   };
 
   ////////////////////////////////////////
   Lines.prototype.remove = function(chart = "all") {
     for (var tk in this.elms) {
       for (var ek in this.elms[tk]) {
-        if (tk !== this.TYPE.axis && (tk === chart || chart === "all")) {
+        if (tk !== "id" && (tk === chart || chart === "all")) {
           this.elms[tk][ek].elem.remove();
         }
       }
@@ -1458,7 +1550,7 @@ var Lines = Lines || {};
 
     this.remove("all");
 
-    //store only rawAll if exist
+    //store rawAll if exist
     var rawAll = this.dset.init.rawAll; //???
 
     this.dset = {
@@ -1470,49 +1562,36 @@ var Lines = Lines || {};
       ema: { data: [], points: [] }
     };
 
+    this.elms = {
+      id: []
+    };
+
     rawAll && (this.dset.init.rawAll = rawAll);
   };
 
-  //test redraw ... with hardcoded values
-  Lines.prototype.redraw = function() {
-    this.reset();
 
-    this.data([
-      [1, 2, 3, 4],
-      [1, 2, 3, 2],
-      [1, 2, 3, 3],
-      [1, 2, 3, 4],
-      [1, 2, 3, 5],
-      [1, 2, 3, 8]
-    ]);
-    this.draw("empty");
-    this.draw("all");
-  };
-
-  // toDo - store drawed charts 
-  // toDo - store showed/hide elems
-  Lines.prototype.move = function(type = "prev") {
-    var offset, allRaw, limit = {};
-
-    allRaw = this.g({ type: this.TYPE.sinit, prop: "allraw" }) || this.gg("raw");
-    offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
-
-    if (type === "prev") {
-      offset += this.cfg.step.offset;
-    } else {
-      offset -= this.cfg.step.offset;
-    }
-    this.s({ type: this.TYPE.sinit, prop: "offset" }, offset);
-    this.reset();
-    this.data(allRaw);
-    this.draw();
-  };
 
   //set elements attributes...
-  //toDo - should know existing elements ID...
   Lines.prototype.colorize = function() {
-    for (var elemID in this.elems.id) {
-      this.setAttr(elemID);
+    for (var eKey in this.elms.id) {
+      this.setAttr(this.elms.id[eKey]);
+    }
+
+    this.colorCandle(0);
+    this.colorCandle(1);
+  };
+
+  Lines.prototype.colorCandle = function (candleType = 0) {
+    var celems, cclass = ["lcandle", "wcandle"], cstyle;
+
+
+    celems = document.getElementsByClassName(cclass[candleType]);
+    for (var ek in celems) {
+      if (celems[ek] instanceof Element) {
+        cstyle = getComputedStyle(celems[ek]);
+        celems[ek].setAttribute("fill", cstyle.fill);
+        celems[ek].setAttribute("stroke", cstyle.stroke);
+      }
     }
   };
 
@@ -1538,12 +1617,14 @@ var Lines = Lines || {};
   Lines.prototype.getStyle = function(elemId) {
     var elem, style;
     elem = this.getId(elemId);
-    style = getComputedStyle(elem);
+    if (elem) {
+      style = getComputedStyle(elem);
+    }
 
     return { fill: (style.fill != "none" ? style.fill : false), stroke: (style.stroke != "none" ? style.stroke : false) };
   };
 
-
+  // return dom Element with ID canvasID
   Lines.prototype.getCanvas = function(canvasID = false) {
     var canElem, canCtx, img;
 
@@ -1564,14 +1645,34 @@ var Lines = Lines || {};
     return canElem;
   };
 
+  // toDo - store drawed charts 
+  // toDo - store showed/hide elems
+  Lines.prototype.move = function(type = "prev") {
+    var offset, allRaw, limit = {}, ids;
+
+    allRaw = this.g({ type: this.TYPE.sinit, prop: "allraw" }) || this.gg("raw");
+    offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
+
+    if (type === "prev") {
+      offset += this.cfg.step.offset;
+    } else {
+      offset -= this.cfg.step.offset;
+    }
+    this.s({ type: this.TYPE.sinit, prop: "offset" }, offset);
+    ids = this.elms.id;
+    this.reset();
+
+    this.data(allRaw);
+    this.redraw(ids);
+  };
+
   //zoom in or out change stepX value...
   // did not need to recalculate everething from begining
   // only change stepX and redraw ...
   Lines.prototype.zoom = function(type = "in") {
-    var oldData, stepX;
+    var oldData, stepX, ids;
 
     oldData = this.gg("raw");
-
 
     stepX = this.gg("stepX");
 
@@ -1581,16 +1682,12 @@ var Lines = Lines || {};
       stepX -= this.cfg.step.zoom;
     }
     this.s({ type: this.TYPE.sinit, prop: "stepX" }, stepX);
-
-    this.remove("all");
+    ids = this.elms.id;
     this.reset();
 
     this.data(oldData);
-    this.draw("all");
+    this.redraw(ids);
   };
-
-
-
 })();
 
 if (typeof module !== "undefined" && typeof module.exports !== "undefined") {

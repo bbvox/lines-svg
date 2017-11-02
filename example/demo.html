@@ -13,6 +13,7 @@ https://github.com/gabelerner/canvg
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.5.1/snap.svg.js"></script>
+  <!-- <script src="../node_modules/snapsvg/dist/snap.svg.js"></script> -->
   <script src="../src/lines.js"></script>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -66,7 +67,8 @@ https://github.com/gabelerner/canvg
       var _cb, oReq, _url;
       _cb = cb || reqListener;
       oReq = new XMLHttpRequest();
-      _url = "./rates1500.json";
+      // _url = "./rates1500.json";
+      _url = "./rates3.json";
 
       oReq.addEventListener("load", _cb);
       oReq.open("GET", _url);
@@ -80,30 +82,29 @@ https://github.com/gabelerner/canvg
 
       window.l = new Lines("svgBox");
       l.data(ratesJson); // always second after that drawEMPTY
+
       l.draw("axis");
       l.draw("line");
+      // l.draw("line");
       l.draw("candle");
+
+      l.draw("line");
       l.draw("sma");
+      // // l.live();
       l.drawSMA(20); //sma 20
-      l.drawSMA(50); //sma 20
-      l.drawSMA(100); //sma 19
+      // l.drawSMA(50); //sma 20
+      // l.drawSMA(100); //sma 19
       
-      l.draw("ema");
-      l.drawEMA(20); //ema 20
-      l.drawLegend(); //ema 20
+      // l.draw("ema");
+      // l.drawEMA(20); //ema 20
+      // l.drawLegend(); //ema 20
       return;
       l.draw("sma"); // sma 5
       // l.draw("ema");
-      // l.live();
       l.liveLine({ tube: 1 });
-      // l.draw("sma"); //sma50
       l.drawSMA(50); // sma 50
-
-      // l.navDot([100,200], function () {
-      //   console.log(l.dlive[0].data('origTransform'))
-      // })
     }
-
+  
 
 
     var data = [
