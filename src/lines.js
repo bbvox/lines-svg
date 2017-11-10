@@ -172,8 +172,9 @@ var Lines = Lines || {};
     perPage = this.f(this.chartArea.width / stepX, 0);
 
     if (data.length > perPage) {
-      var offset, cuttedRaw, slice = {}, raw;
-      
+      var offset, cuttedRaw, slice = {},
+        raw;
+
       raw = this.gg("raw");
       this.s({ type: this.TYPE.sinit, prop: "allraw" }, raw);
       offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
@@ -185,7 +186,6 @@ var Lines = Lines || {};
       cuttedRaw = raw.slice(slice.begin, slice.end);
       this.s({ type: this.TYPE.sinit, prop: "slice" }, slice);
       this.reset();
-      console.log(">>>", cuttedRaw);
       this.data(cuttedRaw);
       return false;
     }
@@ -397,14 +397,14 @@ var Lines = Lines || {};
   };
 
   //check if id Exist
-  Lines.prototype.checkID = function (dataObj) {
+  Lines.prototype.checkID = function(dataObj) {
     var elemID;
-    elemID = dataObj.id || "svg-" + dataObj.type + (dataObj.length ? "-" + dataObj.length : "");
+    elemID = this.makeId(dataObj);
     return (this.elms.id.indexOf(elemID) !== -1);
   };
 
   // 
-  Lines.prototype.splitId = function (elemID) {
+  Lines.prototype.splitId = function(elemID) {
     var idArray, idData = {};
 
     idArray = elemID.split("-");
@@ -418,9 +418,9 @@ var Lines = Lines || {};
     idArray[2] && (idData.length = parseInt(idArray[2]));
 
     return idData;
-  }
+  };
 
-  Lines.prototype.redraw = function (idArray) {
+  Lines.prototype.redraw = function(idArray) {
     var chart, key, fnName;
     idArray || (idArray = this.elms.id);
     for (key in idArray) {
@@ -469,7 +469,8 @@ var Lines = Lines || {};
 
   // rowObj {y, label, color}
   Lines.prototype.prLegend = function(rowObj) {
-    var svg = {}, cube = {};
+    var svg = {},
+      cube = {};
     cube.x = this.chartArea.w - this.cfg.step.xLegend;
     cube.y = rowObj.y;
     cube.width = cube.height = 20;
@@ -495,7 +496,7 @@ var Lines = Lines || {};
       yAxis, _linePath = "",
       gridStep, lk = 0;
 
-    if (this.checkID({type: this.TYPE.axis})) {
+    if (this.checkID({ type: this.TYPE.axis })) {
       this.pr("Axis chart already exist");
       return;
     }
@@ -619,7 +620,7 @@ var Lines = Lines || {};
       _linePath = "",
       lineAxis = [];
 
-    if (this.checkID({type: this.TYPE.line})) {
+    if (this.checkID({ type: this.TYPE.line })) {
       this.pr("Line chart already exist");
       return;
     }
@@ -659,30 +660,12 @@ var Lines = Lines || {};
         }
       });
     } else {
-      var svg = this.snap.path(lineProp.path);
-      var svgAttr = {};
-      svgAttr.class = lineProp.class || this.cfg.cssClass[lineProp.type];
-      svg.attr(svgAttr);
-      // handle repeating sma & ema charts
-      if (this.exist(lineProp.type)) {
-        var color = this.getHex();
-        svg.attr({ style: "stroke: " + color });
-        this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
-        this.drawLegend();
-      }
-
-      // axis & candle NEED group
-      // if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
-      if (lineProp.type !== this.TYPE.axis && lineProp.type !== this.TYPE.candle) {
-        lineProp.single = true;
-      }
-
-      this.store(lineProp, svg);
+      this.directPath(lineProp);
     }
   };
 
-  // only sma & ema charts can be more than once
-  Lines.prototype.exist = function (chartType) {
+  // only sma & ema charts can be draw more than once
+  Lines.prototype.exist = function(chartType) {
     if ([this.TYPE.sma, this.TYPE.ema].indexOf(chartType) === -1) {
       return false;
     }
@@ -690,14 +673,48 @@ var Lines = Lines || {};
     return !!this.elms[chartType];
   };
 
+  Lines.prototype.directPath = function(lineProp) {
+    var svg, svgAttr = {},
+      elemID, color, storedColor = {};
+
+    svg = this.snap.path(lineProp.path);
+    svgAttr.class = lineProp.class || this.cfg.cssClass[lineProp.type];
+    svg.attr(svgAttr);
+
+    // handle repeating sma & ema charts 5 -- 20 -- 50
+    if (this.exist(lineProp.type)) {
+      elemID = this.makeId(lineProp);
+      if (this.g({ type: this.TYPE.sinit, prop: "color" })) {
+        color = this.g({ type: this.TYPE.sinit, prop: "color" })[elemID];
+      } else {
+        color = this.getHex();
+      }
+
+      svg.attr({ style: "stroke: " + color });
+      this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
+      storedColor[elemID] = color;
+      this.s({ type: this.TYPE.sinit, prop: "color" }, storedColor);
+      this.drawLegend();
+    }
+
+    // axis & candle NEED group
+    // if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
+    if (lineProp.type !== this.TYPE.axis && lineProp.type !== this.TYPE.candle) {
+      lineProp.single = true;
+    }
+
+    this.store(lineProp, svg);
+  };
+
   //lineProp = {type; path; color; width; strokeDasharray}
+  // toDo - remove animation as it is now
+  // replace it with draw White chart and animate after that
+  // imidiatly set all chart properties
   Lines.prototype.animatePath = function(lineProp, cbNext) {
     var svg, lineLen, svgAttr = {};
 
     svgAttr.class = lineProp.class || this.cfg.cssClass[lineProp.type];
     svg = this.snap.path(svgAttr);
-
-
 
     lineLen = Snap.path.getTotalLength(lineProp.path);
     Snap.animate(0, lineLen, step => {
@@ -715,14 +732,13 @@ var Lines = Lines || {};
         this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
         this.drawLegend();
       }
-
       //store single or group
       if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
         this.store({ type: lineProp.type, length: lineProp.length }, svg);
       } else {
         this.store({ type: lineProp.type, length: lineProp.length, single: true }, svg);
       }
-      cbNext && cbNext(); 
+      cbNext && cbNext();
     });
     // finish callback 
     // mina.elastic, mina.easeInOut, mina.easeIn, mina.backOut
@@ -743,7 +759,7 @@ var Lines = Lines || {};
   Lines.prototype.drawCandle = function() {
     var width, raw, rkey;
 
-    if (this.checkID({type: this.TYPE.candle})) {
+    if (this.checkID({ type: this.TYPE.candle })) {
       this.pr("Candle chart already exist");
       return;
     }
@@ -910,7 +926,7 @@ var Lines = Lines || {};
 
     if (this.gg("data").length < smaLength) {
       return;
-    } else if (this.checkID({type: this.TYPE.sma, length: smaLength})) {
+    } else if (this.checkID({ type: this.TYPE.sma, length: smaLength })) {
       this.pr("SMA chart already exist");
       return;
     }
@@ -1044,7 +1060,7 @@ var Lines = Lines || {};
           label.attr({ y: foundY.pixel });
         }
       }
-    });      
+    });
 
     if (!this.lcGroup) {
       this.lcGroup = this.snap.g(this.elms.line["svg-line"].elem);
@@ -1062,7 +1078,14 @@ var Lines = Lines || {};
   Lines.prototype.llive = {};
   // http://jsfiddle.net/tM4L9/7/
   // mobile support
-  // store multiple lines
+  // store multiple lines ---
+
+
+  // lineAxis - [0] on first click, [1] on second 
+  // lineAxis[1] dynamically change 
+  // toDo - refactor funtion
+  // toDo - add navDot to all lines (like tube)
+  // extra = {arrow, tube, static}
   Lines.prototype.liveLine = function(extra = {}) {
     var self = this,
       elem = {},
@@ -1086,21 +1109,46 @@ var Lines = Lines || {};
         if (self.cfg.magnetMode && Math.abs(lineAxis[1][1] - y.pixel) < self.cfg.magnetMode) {
           lineAxis[1][1] = y.pixel;
         }
-        self.llive.last.attr({ x2: lineAxis[1][0], y2: lineAxis[1][1] });
+
+        // this.navDot(lineAxis[1], function(dx, dy, posx, posy, begint) {
+        //   this.transform(begint + (begint ? "T" : "t") + [dx, dy]); //navDot0 transform
+        // });
+
+        if (extra.constx) {
+          lineAxis[1][0] = this.chartArea.width; // axisX
+          lineAxis[0][1] = lineAxis[1][1]; // axisY
+        } else if (extra.consty) {
+          lineAxis[1][1] = this.chartArea.height + this.cfg.chart.padding; // axisY
+          lineAxis[0][0] = lineAxis[1][0]; // axisX
+        }
+        // update LINE
+        self.llive.last.attr({ 
+          x1: lineAxis[0][0], 
+          y1: lineAxis[0][1], 
+          x2: lineAxis[1][0], 
+          y2: lineAxis[1][1] 
+        });
 
         extra.arrow && self.liveArrow([lineAxis[1], lineAxis[0]]);
         extra.tube && self.liveTube([lineAxis[1], lineAxis[0]]);
       }
 
-      if (!cnt) {
+      if (cnt === 0) {
         cnt = 1;
-        // this.click((e, clickX, clickY) => {
         this.snap.click((e, clickX, clickY) => {
           cnt++;
           lineAxis[0] = [(clickX - elem.left), (clickY - elem.top)];
           lineAxis[1] = [(lineAxis[0][0] + this.cfg.chart.padding), (lineAxis[0][1] + this.cfg.chart.padding)];
 
           self.debugDot(lineAxis[0]);
+          //horizontal || vertical line
+          if (extra.constx) {
+            lineAxis[0][0] = this.cfg.chart.padding;
+            lineAxis[1][0] = this.chartArea.width;
+          } else if (extra.consty) {
+            lineAxis[0][1] = this.cfg.chart.padding;
+            lineAxis[1][1] = this.chartArea.height + this.cfg.chart.padding;
+          }
 
           if (!self.llive.last) {
             self.llive.last = self.snap.line(lineAxis[0][0], lineAxis[0][1], lineAxis[1][0], lineAxis[1][1]);
@@ -1110,6 +1158,7 @@ var Lines = Lines || {};
             extra.tube && self.liveTube([lineAxis[1]]);
           }
 
+          //finish drawing
           if (cnt === 3) {
             this.snap.unclick();
             self.snap.unmousemove();
@@ -1153,7 +1202,7 @@ var Lines = Lines || {};
     }
   };
 
-  //live getter & setter
+  // live getter & setter
   // same as g & gg & s
   // if liveData exist setter else getter
   Lines.prototype.lgs = function(liveProp = "", liveData = false) {
@@ -1172,6 +1221,7 @@ var Lines = Lines || {};
     return this.lline[liveObj.type][liveObj.prop] || false;
   };
 
+  // toDo - refactor 
   Lines.prototype.liveTube = function(lineAxis = []) {
     var pts = [],
       tlines = {},
@@ -1220,7 +1270,7 @@ var Lines = Lines || {};
         pts[0][1] = this.f(navsProp.y + 6, 0);
       });
 
-      // todo ADD PROMISES ... navDot1 then navDot2 ...
+      // toDo ADD PROMISES ... navDot1 then navDot2 ...
       this.navDot(pts[2], function(dx, dy, posx, posy, begint) {
         var _angle = Snap.angle(pts[0][0], pts[0][1], posx, posy) - self.lline.tube.navsAngle;
         this.transform(begint + (begint ? "R" : "r") + [_angle, pts[0][0], pts[0][1]]);
@@ -1242,7 +1292,7 @@ var Lines = Lines || {};
     }
   };
 
-  //remove Element from group and move to parent
+  //move Element from group into its parent
   Lines.prototype.mvElem = function(elemID) {
     var parElem, elem = document.getElementById(elemID);
     parElem = elem.parentNode.parentNode;
@@ -1261,8 +1311,6 @@ var Lines = Lines || {};
   };
 
   // navigation DOT - heavy function 
-  // todo - drag on mobile ... may be useless 
-  // ON MOBILE CAN NOT MAKE ANY DRAW
   // http://jsfiddle.net/tM4L9/7/
   Lines.prototype.navDot = function(point, cbDrag, cbStart, cbEnd) {
     var navDot, elem = {},
@@ -1272,7 +1320,7 @@ var Lines = Lines || {};
     navDot.attr({ class: this.cfg.cssClass.navDot });
     navDot.node.id = "navdot" + this.lgs("navs").length;
 
-    this.lline.tube.navs.push(navDot);
+    this.lline.tube.navs.push(navDot); // ???
 
     elem.left = this.chartArea.offsetLeft;
     elem.top = this.chartArea.offsetTop;
@@ -1363,13 +1411,12 @@ var Lines = Lines || {};
 
   // chartObj = {type, prop}
   // return array or element of value of property....
-  Lines.prototype.get = function (chartObj) {
-  };
+  Lines.prototype.get = function(chartObj) {};
 
   //dataObj = {type: type, sigle: true, length: length}
   Lines.prototype.store = function(dataObj, storeData) {
     var elemID, prop;
-    elemID = dataObj.id || "svg-" + dataObj.type + (dataObj.length ? "-" + dataObj.length : "");
+    elemID = this.makeId(dataObj);
     prop = dataObj.prop || "elem";
 
     this.elms[dataObj.type] || (this.elms[dataObj.type] = {});
@@ -1428,7 +1475,6 @@ var Lines = Lines || {};
   //data = data for store
   Lines.prototype.s = function(dataObj = {}, data) {
     if (!dataObj.type || !dataObj.prop) {
-      console.error("exit 1")
       return 1;
     } else if (!this.dset[dataObj.type]) {
       return 2;
@@ -1468,6 +1514,13 @@ var Lines = Lines || {};
     // return _num.toFixed(_fix);
   };
 
+  Lines.prototype.makeId = function(dataObj) {
+    var elemID;
+    elemID = dataObj.id || "svg-" + dataObj.type + (dataObj.length ? "-" + dataObj.length : "");
+
+    return elemID;
+  };
+
   Lines.prototype.getId = function(elemID, snap = false) {
     var elem;
     elem = snap ? this.snap.select("#" + elemID) : document.getElementById(elemID);
@@ -1477,23 +1530,23 @@ var Lines = Lines || {};
   //this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
   Lines.prototype.toggle = function(chartType) {
     var elemID, elem;
-    
+
     if (chartType === "all") {
       for (var k in this.elms) {
         k !== "id" && this.toggle(k);
       }
     } else if (this.cfg.chart.type.indexOf(chartType) !== -1) {
-      for (var elemID in this.elms[chartType]) {
+      for (elemID in this.elms[chartType]) {
         elem = this.getId(elemID);
         if (!elem.style.display || elem.style.display === "block") {
           elem.style.display = "none";
-          this.store({type: chartType, id: elemID, prop: "hide"}, true);
+          this.store({ type: chartType, id: elemID, prop: "hide" }, true);
           // remove elemID from elms.id
           var rmKey = this.elms.id.indexOf(elemID);
           this.elms.id = this.elms.id.filter((i, k) => k !== rmKey);
         } else {
           elem.style.display = "block";
-          this.store({type: chartType, id: elemID, prop: "hide"}, false);
+          this.store({ type: chartType, id: elemID, prop: "hide" }, false);
           this.elms.id.push(elemID);
         }
       }
@@ -1581,8 +1634,9 @@ var Lines = Lines || {};
     this.colorCandle(1);
   };
 
-  Lines.prototype.colorCandle = function (candleType = 0) {
-    var celems, cclass = ["lcandle", "wcandle"], cstyle;
+  Lines.prototype.colorCandle = function(candleType = 0) {
+    var celems, cclass = ["lcandle", "wcandle"],
+      cstyle;
 
 
     celems = document.getElementsByClassName(cclass[candleType]);
@@ -1648,7 +1702,8 @@ var Lines = Lines || {};
   // toDo - store drawed charts 
   // toDo - store showed/hide elems
   Lines.prototype.move = function(type = "prev") {
-    var offset, allRaw, limit = {}, ids;
+    var offset, allRaw, limit = {},
+      ids;
 
     allRaw = this.g({ type: this.TYPE.sinit, prop: "allraw" }) || this.gg("raw");
     offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
@@ -1658,10 +1713,10 @@ var Lines = Lines || {};
     } else {
       offset -= this.cfg.step.offset;
     }
+
     this.s({ type: this.TYPE.sinit, prop: "offset" }, offset);
     ids = this.elms.id;
     this.reset();
-
     this.data(allRaw);
     this.redraw(ids);
   };
@@ -1682,6 +1737,7 @@ var Lines = Lines || {};
       stepX -= this.cfg.step.zoom;
     }
     this.s({ type: this.TYPE.sinit, prop: "stepX" }, stepX);
+
     ids = this.elms.id;
     this.reset();
 

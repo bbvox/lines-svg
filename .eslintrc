@@ -8,6 +8,7 @@
         "expect": true,
         "sinon": true,
         "Snap": true,
+        "mina": true,
         "describe": true,
         "it": true,
         "before": true,
