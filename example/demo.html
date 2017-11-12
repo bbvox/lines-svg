@@ -54,6 +54,7 @@ https://github.com/gabelerner/canvg
       </ul>
     </nav>
     <div id="svgRoot">
+      <div class="nav-dialog"><a href="">DEL</a></div>
       <svg id="svgBox"></svg>
       <nav id="svgZoom">
         <a href onclick="svg.zoom(event)">IN</a>
@@ -95,7 +96,7 @@ https://github.com/gabelerner/canvg
       l.drawSMA(20); //sma 20
       // l.drawSMA(50); //sma 20
       // l.drawSMA(100); //sma 19
-      
+      l.liveLine({tube: true});
       // l.draw("ema");
       // l.drawEMA(20); //ema 20
       // l.drawLegend(); //ema 20

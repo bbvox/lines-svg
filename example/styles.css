@@ -25,7 +25,7 @@ body *:not(ul, li) {
   background: #f5f5f5;
 }
 
-.flexbox div {
+.flexbox > div {
   border: 1px dotted tomato;
   padding: 5px;
   min-width: 600px;
@@ -109,6 +109,7 @@ nav a.active {
 
 .lline {
   stroke: #9966ff;
+  stroke-width: 2px;
 }
 
 .ldot {
@@ -162,7 +163,25 @@ nav a.active {
   stroke: #2795EE;
   stroke-width: 4px;
   cursor: pointer;
+  /*display: none;*/
 }
+
+.livet:hover + .stnavdot {
+  display: block;
+}
+
+.nav-dialog {
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  width: 200px;
+  height: 40px;
+  padding: 5px;
+  background: rgba(0,0,0,0.04);
+  /*display: none;*/
+}
+
+
 /*#svgRoot:hover #svgZoom {
   display: block;
 

@@ -717,31 +717,32 @@ var Lines = Lines || {};
     svg = this.snap.path(svgAttr);
 
     lineLen = Snap.path.getTotalLength(lineProp.path);
-    /* beautify preserve:start */
     Snap.animate(0, lineLen, step => {
-      svg.attr({
-        path: Snap.path.getSubpath(lineProp.path, 0, step),
-        strokeWidth: lineProp.width || 1
+        svg.attr({
+          path: Snap.path.getSubpath(lineProp.path, 0, step),
+          strokeWidth: lineProp.width || 1
+        });
+      },
+      800, //duration
+      mina.backOut,
+      () => {
+        if (this.exist(lineProp.type)) {
+          var color = this.getHex();
+          svg.attr({ style: "stroke: " + color });
+          this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
+          this.drawLegend();
+        }
+        //store single or group
+        if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
+          this.store({ type: lineProp.type, length: lineProp.length }, svg);
+        } else {
+          this.store({ type: lineProp.type, length: lineProp.length, single: true }, svg);
+        }
+        cbNext && cbNext();
       });
-    },
-    800, //duration
-    mina.backOut,
-    () => {
-      if (this.exist(lineProp.type)) {
-        var color = this.getHex();
-        svg.attr({ style: "stroke: " + color });
-        this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
-        this.drawLegend();
-      }
-      //store single or group
-      if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
-        this.store({ type: lineProp.type, length: lineProp.length }, svg);
-      } else {
-        this.store({ type: lineProp.type, length: lineProp.length, single: true }, svg);
-      }
-      cbNext && cbNext();
-    });
-    /* beautify preserve:end */
+    // finish callback 
+    // mina.elastic, mina.easeInOut, mina.easeIn, mina.backOut
+
   };
 
   Lines.prototype.getPath = function(lineAxis) {
@@ -754,6 +755,7 @@ var Lines = Lines || {};
     return path;
   };
 
+  //
   Lines.prototype.drawCandle = function() {
     var width, raw, rkey;
 
@@ -1077,10 +1079,7 @@ var Lines = Lines || {};
   // http://jsfiddle.net/tM4L9/7/
   // mobile support
   // store multiple lines ---
-  // option {constx, consty, arrow, tube}
-  Lines.prototype.drawLive = function(option) {
 
-  };
 
   // lineAxis - [0] on first click, [1] on second 
   // lineAxis[1] dynamically change 
@@ -1233,8 +1232,8 @@ var Lines = Lines || {};
     pts[3] = [lineAxis[0][0] + (this.chartArea.width - lineAxis[0][0]), lineAxis[0][1]];
 
     tlines.angle = Snap.angle(lineAxis[0][0], lineAxis[0][1], lineAxis[1][0], lineAxis[1][1]);
-
-    //if top & bott element did not exist
+    this.lgs("angle", tlines.angle);
+    //live Tube
     if (!this.lgs("top") || !this.lgs("bott")) {
       tlines.top = this.snap.line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
       tlines.top.attr({ class: this.cfg.cssClass.liveLine });
@@ -1245,11 +1244,10 @@ var Lines = Lines || {};
 
       //create group with top, bott and line
       tlines.group = this.snap.g(tlines.top, tlines.bott, this.llive.last);
-      tlines.group.attr({ class: "livet" });
       this.lgs("group", tlines.group);
 
-      // moving navDot
-      this.navDot({ x: pts[0][0], y: pts[0][1], action: "move" }, dragData => {
+      // move navigation dot
+      this.navDot2({ x: pts[0][0], y: pts[0][1], action: "move" }, dragData => {
         if (dragData.state === "start") {
           this.lgs("navs")[1].transform("");
           this.lline.tube.grTransform = this.lgs("group").transform().local;
@@ -1268,8 +1266,8 @@ var Lines = Lines || {};
         }
       });
 
-      // rotation navDot
-      this.navDot({ x: pts[2][0], y: pts[2][1], action: "rotate" }, dragData => {
+      // // //rotate navigation dot
+      this.navDot2({ x: pts[2][0], y: pts[2][1], action: "rotate" }, dragData => {
         if (dragData.state === "start") {
           this.lline.tube.grTransform = this.lgs("group").transform().local;
         } else if (dragData.state === "drag") {
@@ -1277,6 +1275,42 @@ var Lines = Lines || {};
           tlines.group.transform(_trans);
         }
       });
+
+      //navDot 0 - move Dot
+      /*
+      this.navDot(pts[0], function(dx, dy, posx, posy, begint) {
+        this.transform(begint + (begint ? "T" : "t") + [dx, dy]); //navDot0 transform
+
+        var _trans = self.lline.tube.grtr + (self.lline.tube.grtr ? "T" : "t") + [dx, dy];
+        tlines.group.transform(_trans);
+      }, () => {
+        this.lline.tube.grtr = this.lgs("group").transform().local;
+        //clear element transform because group have such
+        this.lgs("navs")[1].transform("");
+        this.lgs("group").add(this.lline.tube.navs[1]);
+      }, () => {
+        this.mvElem(this.lgs("navs")[1].node.id);
+        // transfer group transform to navDot1
+        this.lgs("navs")[1].transform(this.lgs("group").transform().local);
+        var navsProp = this.lgs("navs")[0].getBBox();
+        pts[0][0] = this.f(navsProp.x + 6, 0);
+        pts[0][1] = this.f(navsProp.y + 6, 0);
+      });
+
+      */
+      // this.navDot(pts[2], function(dx, dy, posx, posy, begint) {
+      //   var ang = Snap.angle(pts[0][0], pts[0][1], posx, posy);
+      //   var _angle = ang - self.lline.tube.navsAngle;
+      //   console.log("-2-->",posx, posy, ang, self.lline.tube.navsAngle, _angle);
+      //   this.transform(begint + (begint ? "R" : "r") + [_angle, pts[0][0], pts[0][1]]);
+
+      //   var _trans = self.lline.tube.grtr + (self.lline.tube.grtr ? "R" : "r") + [_angle, pts[0][0], pts[0][1]];
+      //   self.lgs("group").transform(_trans);
+      // }, () => {
+      //   this.lline.tube.navsAngle = this.navsAngle();
+      //   console.log("-1-->",this.lline.tube.navsAngle);
+      //   this.lline.tube.grtr = this.lgs("group").transform().local;
+      // });
     } else {
       tlines.angle -= 90;
 
@@ -1292,12 +1326,8 @@ var Lines = Lines || {};
   // navigation DOTS >>>
   // encapsulate dot inside function - try to achieve whole navigation inside
   // simplify the drag
-  // export params via callback mainly with drag state !
-
-  // !!! for rotation navDot need TWO navDots and the second one depend on the first.
-  // for rotation we need to know the ordinate of navDot1 to determine exact angle between them.
-
-  Lines.prototype.navDot = function(navData = {}, cb) {
+  // export params via callback
+  Lines.prototype.navDot2 = function(navData = {}, cb) {
     var navDot, nav1, initAngle, elem = {},
       self = this;
 
@@ -1328,17 +1358,18 @@ var Lines = Lines || {};
 
         cb && cb(dragData);
       }
-    }, function startDrag() {
+    }, function start() {
       if (navData.action === "rotate") {
         initAngle = self.navsAngle();
         nav1 = self.getAxis("nav1");
       }
       this.data("startTransform", this.transform().local);
       cb && cb({ state: "start" });
-    }, function finishDrag() {
+    }, function finish() {
       cb && cb({ state: "finish" });
     }); //drag
   };
+
 
   //move Element from group into its parent
   Lines.prototype.mvElem = function(elemID) {
@@ -1366,10 +1397,37 @@ var Lines = Lines || {};
     return this.f(angle, 3);
   };
 
+  // navigation DOT - heavy function 
+  // http://jsfiddle.net/tM4L9/7/
+  Lines.prototype.navDot = function(point, cbDrag, cbStart, cbEnd) {
+    var navDot, elem = {},
+      self = this;
+    navDot = this.snap.circle(point[0] - 3, point[1] - 3, 6);
+    navDot.attr({ class: this.cfg.cssClass.navDot });
+    navDot.node.id = "navdot" + this.lgs("navs").length;
+
+    this.lline.tube.navs.push(navDot); // ???
+
+    elem.left = this.chartArea.offsetLeft;
+    elem.top = this.chartArea.offsetTop;
+
+    navDot.drag(function Drag(dx, dy, posx, posy) {
+      if (!(dx % 5) || !(dy % 5)) {
+        cbDrag.call(this, dx, dy, (posx - elem.left), (posy - elem.top), this.data("beginTransform"));
+      }
+    }, function Start() {
+      this.data("beginTransform", this.transform().local);
+      cbStart && cbStart();
+    }, function Finish() {
+      cbEnd && cbEnd();
+    });
+  };
+
   // findY with X
   // find line slope between two points
   // slope = (y2 - y1) / (x2 - x1);
   // b = y1 - (slope * x1);
+  // 
   // return {pixel, value}
   // 1-----period0--------2----------period1---------3
   //toDO : optimize function remove all this from here ...
