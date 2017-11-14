@@ -32,12 +32,6 @@ var Lines = Lines || {};
     ema: "ema"
   };
 
-  Lines.prototype.elems = {
-    id: {},
-    svg: {},
-    count: 0
-  };
-
   //
   Lines.prototype.elms = {
     id: []
@@ -60,8 +54,11 @@ var Lines = Lines || {};
   Lines.prototype.drawOrder = [];
 
   // Configuration section:
-  //  - chart = properties for graphic
-  //  - cssClass = All style properties are external style. 
+  //  - chart = properties for the chart. 
+  //  - - padding: use to calculate drawable area for chart. 
+  //      usable width = totalWidth - 2 * padding
+  //  - - candleFill is ratio candle width is 0.4 part from x step
+  //  - cssClass = classes for each chart type. 
   Lines.prototype.cfg = {
     animate: false,
     chart: {
@@ -110,7 +107,7 @@ var Lines = Lines || {};
   };
 
   // Internal method 
-  // - inialize chartArea: width, height, offset & zero Axis
+  // - define chartArea which hold main chart dimensions
   Lines.prototype.setup = function() {
     var elem, width, height;
 
@@ -136,12 +133,13 @@ var Lines = Lines || {};
   };
 
   // Interface method
-  // add Data for charts
+  // check dataArray, handle dataArray
   Lines.prototype.data = function(dataArray) {
     if (!(dataArray instanceof Array)) {
       return;
     }
 
+    //store whole 
     this.s({ type: this.TYPE.init, prop: "raw" }, dataArray);
 
     // array of close values
@@ -178,7 +176,6 @@ var Lines = Lines || {};
       raw = this.gg("raw");
       this.s({ type: this.TYPE.sinit, prop: "allraw" }, raw);
       offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
-      console.log(">>>", offset);
       slice = {
         begin: (data.length - offset - perPage),
         end: (data.length - offset)
@@ -195,7 +192,6 @@ var Lines = Lines || {};
 
   // initialize data set
   // calculate min, max value based on input data
-  // calculate stepX
   Lines.prototype.dataInit = function() {
     var data, min, max;
 
@@ -211,14 +207,15 @@ var Lines = Lines || {};
     this.s({ type: this.TYPE.init, prop: "min" }, min);
     this.s({ type: this.TYPE.init, prop: "max" }, max);
 
-    this.chartInit();
+    this.periodInit();
     this.zeroInit();
 
     return this;
   };
 
-  // store stepX & stepY into chartArea
-  Lines.prototype.chartInit = function() {
+  // 
+  // calc stepY & store into chartArea
+  Lines.prototype.periodInit = function() {
     var step = {},
       amplitude;
 
@@ -242,10 +239,13 @@ var Lines = Lines || {};
     this.s({ type: this.TYPE.init, prop: "zeroY" }, zeroY);
   };
 
-  //////////////////////////////// CALCULATE CHART POINTS >>>
-  //calculate axis points and store it into lines.points
+  // CALCULATE LINE CHART POINTS //////////
+  // calculate axis points and store it into lines.points
+  // this.TYPE.points property is Array with elements Array
+  // each element hold axis values for this point
+  // pointOne = [axisX, axisY];
   Lines.prototype.calculate = function() {
-    var data, dataKey = 1,
+    var data, pKey = 1,
       plen, pointOne = [];
 
     data = this.gg("data");
@@ -253,7 +253,7 @@ var Lines = Lines || {};
     pointOne[0] = this.gg("zeroX");
     pointOne[1] = this.gg("zeroY");
 
-    //clear and add first point for lines [x, y]
+    // clear points and assign pointOne [axisX, axisY]
     this.s({ type: this.TYPE.line, prop: "points" }, []);
     this.add({ type: this.TYPE.line, prop: "points" }, pointOne);
 
@@ -261,28 +261,28 @@ var Lines = Lines || {};
     this.s({ type: this.TYPE.line, prop: "lastY" }, pointOne[1]);
 
     plen = data.length;
-    for (; dataKey < plen; dataKey++) {
-      (this.calcPoint)(dataKey);
+    for (; pKey < plen; pKey++) {
+      (this.calcPoint)(pKey);
     }
   };
 
-  // params = {type: CHART_TYPE, prop: "data"}
-  Lines.prototype.calcPoint = function(dataKey, type = "line", propPostfix = "") {
+  // Calculate point[dataKey] for chartType
+  Lines.prototype.calcPoint = function(dataKey, chartType = "line", propPostfix = "") {
     var prevPoint, point, params = { prop: "data" + propPostfix },
       diff;
 
-    params.type = type;
+    params.type = chartType;
     prevPoint = this.g(params)[dataKey - 1];
     point = this.g(params)[dataKey];
 
     if (point < prevPoint) {
       diff = prevPoint - point;
-      this.plus(diff, type, propPostfix);
+      this.plus(diff, chartType, propPostfix);
     } else if (point > prevPoint) {
       diff = point - prevPoint;
-      this.minus(diff, type, propPostfix);
+      this.minus(diff, chartType, propPostfix);
     } else {
-      this.equal(point, type, propPostfix);
+      this.equal(point, chartType, propPostfix);
     }
   };
 
@@ -324,7 +324,12 @@ var Lines = Lines || {};
     this.add({ type: type, prop: "points" + propPostfix }, point);
   };
 
-  //add lastX += stepX
+  /*
+    increase lastX with stepX
+    did not change lastY
+
+    add new point[axisX, axisY] to chart type points
+  */
   Lines.prototype.equal = function(value, type, propPostfix) {
     var point = {},
       change = {};
@@ -339,21 +344,22 @@ var Lines = Lines || {};
     this.add({ type: type, prop: "points" + propPostfix }, point);
   };
 
-  //add Point to chart.points
-  //pointAxis = [axisX, axisY]
-  Lines.prototype.add = function(dataObj, pointAxis) {
-    var points = this.g(dataObj);
+  // add Point to chart.points
+  //  addData = [axisX, axisY]
+  // - toDo export all init data into model more intuitive 
+  Lines.prototype.add = function(addInfo, addData) {
+    var points = this.g(addInfo);
 
     if (points instanceof Array) {
-      points.push(pointAxis);
+      points.push(addData);
     } else if (typeof points === "number" || typeof points === "string") { // unused
-      points += pointAxis;
+      points += addData;
     } else {
       points = [];
-      points.push(pointAxis);
+      points.push(addData);
     }
 
-    this.s(dataObj, points);
+    this.s(addInfo, points);
   };
 
   /*
@@ -1024,7 +1030,7 @@ var Lines = Lines || {};
   Lines.prototype.liveFlag = false;
   Lines.prototype.dragX = 0;
 
-  //revision ...
+  //turn on live dot which follow user mouse 
   Lines.prototype.live = function() {
     var foundY, self = this,
       dot, label, left, dragX;
@@ -1101,6 +1107,7 @@ var Lines = Lines || {};
     this.snap.undrag();
     this.snap.unmousemove();
     this.snap.mousemove((e, dx, dy) => {
+      // update live Line position
       if ((!(dx % 5) || !(dy % 5)) && self.llive.last) {
         lineAxis[1] = [(dx - elem.left), (dy - elem.top)];
         if (lineAxis[1][0] < 0 || lineAxis[1][0] > this.chartArea.width) {
@@ -1128,8 +1135,11 @@ var Lines = Lines || {};
         // activate ARROW or TUBE
         extra.arrow && self.liveArrow([lineAxis[1], lineAxis[0]]);
         extra.tube && self.liveTube([lineAxis[1], lineAxis[0]]);
+        //update navDot
+        this.lgs("navs")[0].attr({ cx: lineAxis[0][0], cy: lineAxis[0][1] });
       }
 
+      //create Live Line
       if (cnt === 0) {
         cnt = 1;
         this.snap.click((e, clickX, clickY) => {
@@ -1140,6 +1150,27 @@ var Lines = Lines || {};
           self.debugDot(lineAxis[0]);
           //horizontal || vertical line
           if (extra.constx) {
+            //create navDot
+            this.navDot({ axis: lineAxis[0], action: "move" }, dragData => this.navDotDrag.call(this, dragData));
+
+            // this.navDot({axis: lineAxis[0], action: "move"}, navData => {
+            //   if (dragData.state === "start") {
+            //     this.lgs("navs")[1].transform("");
+            //     this.lline.tube.grTransform = this.lgs("group").transform().local;
+            //     this.lgs("group").add(this.lline.tube.navs[1]);
+            //   } else if (dragData.state === "drag") {
+            //     var _trans = this.lline.tube.grTransform + (this.lline.tube.grTransform ? "T" : "t") + [dragData.dx, dragData.dy];
+            //     tlines.group.transform(_trans);
+            //   } else if (dragData.state === "finish") {
+            //     var navsProp = this.lgs("navs")[0].getBBox();
+            //     //update point 0 
+            //     pts[0][0] = this.f(navsProp.x + 6, 0); // ?????
+            //     pts[0][1] = this.f(navsProp.y + 6, 0);
+            //     this.mvElem(this.lgs("navs")[1].node.id);
+
+            //     this.lgs("navs")[1].transform(this.lgs("group").transform().local);
+            //   }
+            // });
             lineAxis[0][0] = this.cfg.chart.padding;
             lineAxis[1][0] = this.chartArea.width;
           } else if (extra.consty) {
@@ -1163,6 +1194,10 @@ var Lines = Lines || {};
         });
       }
     });
+  };
+
+  Lines.prototype.navDotDrag = function() {
+    console.log("navDotDrag :::", this, arguments);
   };
 
   Lines.prototype.liveArrow = function(lineAxis) {
@@ -1249,7 +1284,7 @@ var Lines = Lines || {};
       this.lgs("group", tlines.group);
 
       // moving navDot
-      this.navDot({ x: pts[0][0], y: pts[0][1], action: "move" }, dragData => {
+      this.navDot({ axis: pts[0], action: "move" }, dragData => {
         if (dragData.state === "start") {
           this.lgs("navs")[1].transform("");
           this.lline.tube.grTransform = this.lgs("group").transform().local;
@@ -1269,7 +1304,7 @@ var Lines = Lines || {};
       });
 
       // rotation navDot
-      this.navDot({ x: pts[2][0], y: pts[2][1], action: "rotate" }, dragData => {
+      this.navDot({ axis: pts[2], action: "rotate" }, dragData => {
         if (dragData.state === "start") {
           this.lline.tube.grTransform = this.lgs("group").transform().local;
         } else if (dragData.state === "drag") {
@@ -1296,13 +1331,12 @@ var Lines = Lines || {};
 
   // !!! for rotation navDot need TWO navDots and the second one depend on the first.
   // for rotation we need to know the ordinate of navDot1 to determine exact angle between them.
-
   Lines.prototype.navDot = function(navData = {}, cb) {
     var navDot, nav1, initAngle, elem = {},
       self = this;
 
-    navData.x1 = navData.x - (this.cfg.chart.navDot / 2) + 1;
-    navData.y1 = navData.y - (this.cfg.chart.navDot / 2) + 1;
+    navData.x1 = navData.axis[0] - (this.cfg.chart.navDot / 2) + 1;
+    navData.y1 = navData.axis[1] - (this.cfg.chart.navDot / 2) + 1;
     navData.radius = this.cfg.chart.navDot;
     navDot = this.snap.circle(navData.x1, navData.y1, navData.radius);
     navDot.attr({ class: this.cfg.cssClass.navDot });
@@ -1416,65 +1450,46 @@ var Lines = Lines || {};
   //svg = {lines:{}, candles:{}, labes:{}, points:{}, smas:{}}
   // singleFlag mean to not create group and set directly id to the element
   // typeObj = {type:, length:, color: }
-  Lines.prototype.store2 = function(type, svgObject, singleFlag = false) {
-    var elemID = "svg-" + type;
 
-    //when have several sma append counter > sma1 sma2 ...
-    if (this.elems.id[elemID] && singleFlag) {
-      this.elems.count++;
-      elemID += this.elems.count;
-    }
-
-    if (singleFlag) {
-      this.elems.svg[type] = svgObject;
-      this.elems.svg[type].node.id = elemID;
-    } else {
-      this.elems.svg[type] || (this.elems.svg[type] = this.snap.g());
-      this.elems.svg[type].node.id = elemID;
-      this.elems.svg[type].add(svgObject);
-    }
-
-    this.elems.id[elemID] = true;
-  };
 
   // chartObj = {type, prop}
   // return array or element of value of property....
   Lines.prototype.get = function(chartObj) {};
 
   //dataObj = {type: type, sigle: true, length: length}
-  Lines.prototype.store = function(dataObj, storeData) {
+  Lines.prototype.store = function(storeInfo, storeData) {
     var elemID, prop;
-    elemID = this.makeId(dataObj);
-    prop = dataObj.prop || "elem";
+    elemID = this.makeId(storeInfo);
+    prop = storeInfo.prop || "elem";
 
-    this.elms[dataObj.type] || (this.elms[dataObj.type] = {});
-    this.elms[dataObj.type][elemID] || (this.elms[dataObj.type][elemID] = {});
-    if (dataObj.single) {
-      this.elms[dataObj.type][elemID][prop] = storeData;
+    this.elms[storeInfo.type] || (this.elms[storeInfo.type] = {});
+    this.elms[storeInfo.type][elemID] || (this.elms[storeInfo.type][elemID] = {});
+    if (storeInfo.single) {
+      this.elms[storeInfo.type][elemID][prop] = storeData;
     } else if (prop === "elem") {
-      if (!this.elms[dataObj.type][elemID]["elem"]) {
-        this.elms[dataObj.type][elemID]["elem"] = this.snap.g();
+      if (!this.elms[storeInfo.type][elemID]["elem"]) {
+        this.elms[storeInfo.type][elemID]["elem"] = this.snap.g();
       }
-      this.elms[dataObj.type][elemID]["elem"].add(storeData);
+      this.elms[storeInfo.type][elemID]["elem"].add(storeData);
     } else {
-      this.elms[dataObj.type][elemID][prop] = storeData;
+      this.elms[storeInfo.type][elemID][prop] = storeData;
     }
 
     // if property is element set ID
-    (prop === "elem") && (this.elms[dataObj.type][elemID]["elem"].node.id = elemID);
+    (prop === "elem") && (this.elms[storeInfo.type][elemID]["elem"].node.id = elemID);
     (this.elms.id.indexOf(elemID) === -1) && this.elms.id.push(elemID);
   };
 
   // element GET
-  // elemObj = {type: TYPE, id: ID}
-  Lines.prototype.eg = function(elemObj = {}) {
+  // elemInfo = {type: TYPE, id: ID}
+  Lines.prototype.eg = function(elemInfo = {}) {
     var prop;
-    if (!this.elms[elemObj.type]) {
+    if (!this.elms[elemInfo.type]) {
       return 0;
     }
-    prop = elemObj.prop || "svg";
+    prop = elemInfo.prop || "svg";
 
-    return this.elms[elemObj.type][elemObj.id][prop];
+    return this.elms[elemInfo.type][elemInfo.id][prop];
   };
 
   // getByProp valid only for init and line TYPE
@@ -1482,39 +1497,39 @@ var Lines = Lines || {};
     return this.g({ type: this.TYPE.init, prop: simpleType }) || this.g({ type: this.TYPE.line, prop: simpleType }) || false;
   };
 
-  //getter from dset =
-  // dataObj.type: init || lines || candles || sma || ema -> default init
-  // dataObj.prop: different .... 
-  // better to be more strict into return data ...
-  Lines.prototype.g = function(dataObj = {}) {
+  // getter from Dataset(dset)
+  // getInfo.type: init || lines || candles || sma || ema -> 
+  // default type is init
+  // getInfo.prop: different .... 
+  Lines.prototype.g = function(getInfo = {}) {
     var type;
-    type = dataObj.type || "init";
+    type = getInfo.type || "init";
     if (!this.dset[type]) {
       return 0;
     }
 
-    return dataObj.prop ?
-      this.dset[type][dataObj.prop] : this.dset[dataObj.type];
+    return getInfo.prop ?
+      this.dset[type][getInfo.prop] : this.dset[getInfo.type];
   };
 
-  //setter
-  //dataObj.type = same as g
-  //dataObj.prop = 
-  //data = data for store
-  Lines.prototype.s = function(dataObj = {}, data) {
-    if (!dataObj.type || !dataObj.prop) {
+  // setter for Dataset(dset)
+  // storeInfo.type = same as g
+  // storeInfo.prop = 
+  // setData = data for store
+  Lines.prototype.s = function(setInfo = {}, setData) {
+    if (!setInfo.type || !setInfo.prop) {
       return 1;
-    } else if (!this.dset[dataObj.type]) {
+    } else if (!this.dset[setInfo.type]) {
       return 2;
     }
 
     //inject secureINIT data into INIT property
-    if (dataObj.type === this.TYPE.init && this.g({ type: this.TYPE.sinit, prop: dataObj.prop })) {
-      data = this.g({ type: this.TYPE.sinit, prop: dataObj.prop });
+    if (setInfo.type === this.TYPE.init && this.g({ type: this.TYPE.sinit, prop: setInfo.prop })) {
+      setData = this.g({ type: this.TYPE.sinit, prop: setInfo.prop });
     }
 
     //store into dset
-    this.dset[dataObj.type][dataObj.prop] = data;
+    this.dset[setInfo.type][setInfo.prop] = setData;
   };
 
   //change value of property and return new value
@@ -1542,6 +1557,7 @@ var Lines = Lines || {};
     // return _num.toFixed(_fix);
   };
 
+  // Generate element ID based on type & length
   Lines.prototype.makeId = function(dataObj) {
     var elemID;
     elemID = dataObj.id || "svg-" + dataObj.type + (dataObj.length ? "-" + dataObj.length : "");
@@ -1555,7 +1571,7 @@ var Lines = Lines || {};
     return elem || 0;
   };
 
-  //this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
+  // Show/Hide chartType
   Lines.prototype.toggle = function(chartType) {
     var elemID, elem;
 
@@ -1581,42 +1597,15 @@ var Lines = Lines || {};
     }
   };
 
-  ////////////////////////////////////////
-  Lines.prototype.remove = function(chart = "all") {
+  // remove chart DOM elements
+  // chartType = this.TYPE
+  Lines.prototype.remove = function(chartType = "all") {
     for (var tk in this.elms) {
       for (var ek in this.elms[tk]) {
-        if (tk !== "id" && (tk === chart || chart === "all")) {
+        if (tk !== "id" && (tk === chartType || chartType === "all")) {
           this.elms[tk][ek].elem.remove();
         }
       }
-    }
-
-    return;
-    switch (chart) {
-      case this.TYPE.axis:
-        this.elems.svg[this.TYPE.axis].remove();
-        break;
-      case this.TYPE.line:
-        this.elems.svg[this.TYPE.line].remove();
-        break;
-      case this.TYPE.candle:
-        this.elems.svg[this.TYPE.candle].remove();
-        break;
-      case this.TYPE.point:
-        this.elems.svg[this.TYPE.point].remove();
-        break;
-      case this.TYPE.sma:
-        this.elems.svg[this.TYPE.sma].remove();
-        break;
-      case this.TYPE.ema:
-        this.elems.svg[this.TYPE.ema].remove();
-        break;
-      case "all":
-        for (var k in this.TYPE) {
-          this.elems.svg[this.TYPE[k]] && this.elems.svg[this.TYPE[k]].remove();
-        }
-        this.elems.svg = {};
-        break;
     }
   };
 
@@ -1624,8 +1613,11 @@ var Lines = Lines || {};
     return Math.floor(Math.random() * 50);
   };
 
-  //if savePointsFlag is set save points
-  // dublicate with remove ....
+  // reset - more than remove
+  // first remove every charts
+  // reset dataSet(dset), remain only secureInit(sinit)
+  // reset elements(elms)
+  // if savePoints flag is set then save points
   Lines.prototype.reset = function(savePoints = false) {
     !savePoints && this.s({ type: this.TYPE.line, prop: "points" }, []);
 
@@ -1650,18 +1642,20 @@ var Lines = Lines || {};
     rawAll && (this.dset.init.rawAll = rawAll);
   };
 
-
-
   //set elements attributes...
   Lines.prototype.colorize = function() {
     for (var eKey in this.elms.id) {
       this.setAttr(this.elms.id[eKey]);
     }
 
+    // lose candles
     this.colorCandle(0);
+    // win candles
     this.colorCandle(1);
   };
 
+  // set DOM elements attributes with values from external style
+  // this need to be done before print as CANVAS
   Lines.prototype.colorCandle = function(candleType = 0) {
     var celems, cclass = ["lcandle", "wcandle"],
       cstyle;
@@ -1727,18 +1721,19 @@ var Lines = Lines || {};
     return canElem;
   };
 
-  // toDo - store drawed charts 
-  // toDo - store showed/hide elems
-  Lines.prototype.move = function(type = "prev") {
+  // move all charts 
+  // with one step forward or back
+  // moveType prev or next
+  Lines.prototype.move = function(moveType = "prev") {
     var offset, allRaw, limit = {},
       ids;
 
     allRaw = this.g({ type: this.TYPE.sinit, prop: "allraw" }) || this.gg("raw");
     offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
 
-    if (type === "prev") {
+    if (moveType === "prev") {
       offset += this.cfg.step.offset;
-    } else {
+    } else if (moveType === "next") {
       offset -= this.cfg.step.offset;
     }
 
@@ -1749,7 +1744,8 @@ var Lines = Lines || {};
     this.redraw(ids);
   };
 
-  //zoom in or out change stepX value...
+  // zoom in/out all charts 
+  // change stepX value...
   // did not need to recalculate everething from begining
   // only change stepX and redraw ...
   Lines.prototype.zoom = function(type = "in") {

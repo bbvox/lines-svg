@@ -5,7 +5,7 @@
 
 ## About the project
 
-LinesSvg is a financial chart library based on snapsvg. You can use it to create HTML5 forex/stock asset charts. The library support time based graphics, toolset for end user draw, animation of data and store in PNG or Canvas.
+LinesSvg is a financial chart library based on snapsvg. You can use it to create HTML5 forex/stock asset charts. The library support time based graphics, toolset for end users draw, animation of data and store in PNG or Canvas.
 
 Currently script/library support these types of charts:
  1. Linear chart
@@ -53,7 +53,7 @@ lines.draw("all");
 
 Interface and function signature are : 
 1. Constructor <b>Lines("SVG element ID")</b>, expect argument to be existing HTML svg element, with ID.
-2. Instance.data(dataSet) method, expect dataSet to be Array, with values ['open', 'high', 'low', 'close'].
+2. Instance.data(dataSet) method, expect dataSet to be Array, with members ['open', 'high', 'low', 'close'].
 3. Instance.draw(type) method, expect/support: all, line, candle, sma, ema type of charts. Default value is all.
 
 4. Library support also end user draw of lines, arrows, tunels.
