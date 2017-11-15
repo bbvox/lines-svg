@@ -41,13 +41,18 @@ var Lines = Lines || {};
 
   // Live DOM elements
   // Instead of TYPE directly store with ID
-  // lelms.line1.elem
-  // lelms.line1.navs = [] -> navigation DOT 1
-  // lelms.tube1.elms
-  // lelems.tube1.group
-  // lelms.tube1.navs
+  // 
+  // lelms.TYPE.elemID >>> 
+  //  - lelems.nav["navdot1"] = element
+  //  - lelems.line["live-line-2-3"] = element
+  // ID of element determine which navID belong to him
   Lines.prototype.lelms = {
-    id: []
+    id: [],
+    navid: [],
+    last: {},
+    nav: {},
+    line: {},
+    arrow: {}
   }
 
   // candle.winp store path string for win candle shadow
@@ -1153,17 +1158,76 @@ var Lines = Lines || {};
     });
   };
 
-  Lines.prototype.navDotDrag = function (dragInfo, elem) {
-    console.log("nav DOT this :::", this);
-    console.log("nav DOT this :::", dragInfo);
-    console.log("nav DOT this :::", elem);
-    // this.navDot({ axis: lineAxis[0], action: "move" }, dragData => this.navDotDrag.call(this, dragData));
+  // set lelms.last.elem and use for further on
+  // callback function for drag navigation DOT...
+          //   var navsProp = this.lgs("navs")[0].getBBox();
+          // //update point 0 
+          // pts[0][0] = this.f(navsProp.x + 6, 0); // ?????
+          // pts[0][1] = this.f(navsProp.y + 6, 0);
+  Lines.prototype.navDotDrag = function (dragData = {}) {
+    var transform;
+
+    if (!this.lelms.last.elem) {
+      this.lelms.last.elem = this.gl({id: dragData.elemId});
+      var navsID = dragData.elemId.substring(1).split("-");
+      // accept that first navDot is for move
+      // second for rotate
+      // toDo should think about remove and resize navDot ... ???
+      this.lelms.last.nav1 = this.gl({id: "lnav-" + navsID[1]});
+      var nav1Axis = this.lelms.last.nav1.getBBox();
+      this.lelms.last.nav1axis = [nav1Axis.x - 6, nav1Axis.y - 6];
+    }
+
+    console.log(dragData);
+    if (dragData.state === "start") {
+      this.lelms.last.transform = this.lelms.last.elem.transform().local;
+    } else if (dragData.state === "drag") {
+      if (dragData.action === "move") {
+        transform = this.lelms.last.transform + (this.lelms.last.transform ? "T" : "t") + [dragData.dx, dragData.dy];
+      } else if (dragData.action === "rotate") {
+        transform = this.lelms.last.transform + (this.lelms.last.transform ? "R" : "r") + [dragData.angle, this.lelms.last.nav1axis[0], this.lelms.last.nav1axis[1]];
+      }
+      
+      this.lelms.last.elem.transform(transform);
+    }
+  };
+
+
+  //get live property
+  // start to use lelms
+  // should replace lgs
+
+  // this.lgs("navs").length;
+  // get live
+  Lines.prototype.gl = function (getInfo = {}) {
+    if (getInfo.id) {
+      var elemType = getInfo.id.substring(1).split("-");
+      return this.lelms[elemType[0]][getInfo.id];
+    } else {
+      return this.lelms[getInfo.type][getInfo.prop] || this.lelms[getInfo.type];
+    }
+
+  };
+
+  // set live
+  Lines.prototype.sl = function (setInfo = {}, setData) {
+    this.lelms[setInfo.type] || (this.lelms[setInfo.type] = {});
+
+    //add elemID
+    if (setInfo.type === "nav") {
+      this.lelms.navid.push(setInfo.prop);
+    } else {
+      this.lelms.id.push(setInfo.prop);
+    }
+
+    this.lelms[setInfo.type][setInfo.prop] = setData;
   };
   
 
   //toDo - change live elements object
   Lines.prototype.liveLine = function(extra = {}) {
-    var axis;
+    var axis, elemID;
+
     this.liveMove(extra, moveData => {
       axis = moveData.axis;
 
@@ -1171,18 +1235,23 @@ var Lines = Lines || {};
         if (!this.llive.last) {
           this.llive.last = this.snap.line(axis[0][0], axis[0][1], axis[1][0], axis[1][1]);
           this.llive.last.attr({ class: this.cfg.cssClass.liveLine });
+
+          var navTotal = this.gl({type: "navid"}).length;
+          elemID = this.makeId({type: "line", nav1: navTotal, nav2: navTotal + 1}, true);
+          this.llive.last.node.id = elemID;
+          this.sl({type: "line", prop: elemID}, this.llive.last); //set/store element
+
           extra.arrow && this.liveArrow([axis[1]]);
           extra.tube && this.liveTube([axis[1]]);
         }
-        console.log("liveLine START", axis)
+
         // add navigation DOT at start of MOVE
         if (!extra.tube) {
-          console.log("bind NAVDOT");
-          // this.navDot({axis: axis[0], action: "move"}, navData => {
-          //   console.log("drag navDOT 1::");
-          // });
-          this.navDot({ axis: axis[0], action: "move" }, dragData => this.navDotDrag.call(this, dragData));
-          // this.navDot({ axis: axis[0], action: "move" }, this.navDotDrag);
+          this.navDot({ axis: axis[0], action: "move", elemId: elemID }, 
+            dragData => this.navDotDrag.call(this, dragData));
+
+          this.navDot({ axis: axis[1], action: "rotate", elemId: elemID }, 
+            dragData => this.navDotDrag.call(this, dragData));
         }
       } else if (moveData.state === "move") {
         this.llive.last.attr({
@@ -1346,17 +1415,6 @@ var Lines = Lines || {};
     }
   };
 
-  //get live property
-  // start to use lelms
-  // should replace lgs
-  Lines.prototype.gLive = function (getInfo = {}) {
-
-  };
-
-  // should replace lgs
-  Lines.prototype.sLive = function (setInfo = {}, setData) {
-
-  };
 
   // live getter & setter
   // same as g & gg & s
@@ -1458,14 +1516,15 @@ var Lines = Lines || {};
   Lines.prototype.navDot = function(navData = {}, cb) {
     var navDot, nav1, initAngle, elem = {},
       self = this;
-
+      var testVar = this.random();
     navData.x1 = navData.axis[0] - (this.cfg.chart.navDot / 2) + 1;
     navData.y1 = navData.axis[1] - (this.cfg.chart.navDot / 2) + 1;
     navData.radius = this.cfg.chart.navDot;
     navDot = this.snap.circle(navData.x1, navData.y1, navData.radius);
     navDot.attr({ class: this.cfg.cssClass.navDot });
-    navDot.node.id = "navdot" + this.lgs("navs").length;
+    navDot.node.id = "lnav-" + this.lgs("navs").length;
 
+    this.sl({type:"nav", prop: navDot.node.id}, navDot);
     this.lline.tube.navs.push(navDot); // store element
 
     elem.left = this.chartArea.offsetLeft;
@@ -1474,16 +1533,18 @@ var Lines = Lines || {};
     navDot.drag(function drag(dx, dy, posx, posy) {
       var dragData = {};
       if (!(dx % 5) || !(dy % 5)) {
+      console.log("saved var::", testVar);
         dragData = { dx: dx, dy: dy, posx: (posx - elem.left), posy: (posy - elem.top) };
         dragData.state = "drag";
         dragData.transform = this.data("startTransform");
+        dragData.action = navData.action;
         if (navData.action === "move") {
           this.transform(dragData.transform + (dragData.transform ? "T" : "t") + [dx, dy]); // transform navDot
         } else if (navData.action === "rotate") {
           dragData.angle = Snap.angle(nav1.x, nav1.y, dragData.posx, dragData.posy) - initAngle;
           this.transform(dragData.transform + (dragData.transform ? "R" : "r") + [dragData.angle, nav1.x, nav1.y]); //rotate navDot
         }
-
+        dragData.elemId = navData.elemId || "tube";
         cb && cb(dragData);
       }
     }, function startDrag() {
@@ -1492,9 +1553,9 @@ var Lines = Lines || {};
         nav1 = self.getAxis("nav1");
       }
       this.data("startTransform", this.transform().local);
-      cb && cb({ state: "start" });
+      cb && cb({ state: "start", elemId: navData.elemId || "tube", action: navData.action });
     }, function finishDrag() {
-      cb && cb({ state: "finish" });
+      cb && cb({ state: "finish", elemId: navData.elemId || "tube", action: navData.action });
     }); //drag
   };
 
@@ -1682,9 +1743,15 @@ var Lines = Lines || {};
   };
 
   // Generate element ID based on type & length
-  Lines.prototype.makeId = function(dataObj) {
+  Lines.prototype.makeId = function(elemInfo, liveElem = false) {
     var elemID;
-    elemID = dataObj.id || "svg-" + dataObj.type + (dataObj.length ? "-" + dataObj.length : "");
+    if (!liveElem) {
+      elemID = elemInfo.id || "svg-" + elemInfo.type + (elemInfo.length ? "-" + elemInfo.length : "");
+    } else {
+      elemID = elemInfo.id || "l" + elemInfo.type;
+      elemID += (elemInfo.nav1 !== undefined) ? "-" + elemInfo.nav1 : "";
+      elemID += elemInfo.nav2 ? "-" + elemInfo.nav2 : "";
+    }
 
     return elemID;
   };
