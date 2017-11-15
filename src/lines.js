@@ -32,10 +32,23 @@ var Lines = Lines || {};
     ema: "ema"
   };
 
-  //
+  // chart DOM elements
+  // this.elms.TYPE.elemID.elem - snapSVG element
+  // this.elms.TYPE.elemID.color - color for this element
   Lines.prototype.elms = {
     id: []
   };
+
+  // Live DOM elements
+  // Instead of TYPE directly store with ID
+  // lelms.line1.elem
+  // lelms.line1.navs = [] -> navigation DOT 1
+  // lelms.tube1.elms
+  // lelems.tube1.group
+  // lelms.tube1.navs
+  Lines.prototype.lelms = {
+    id: []
+  }
 
   // candle.winp store path string for win candle shadow
   // candle.losep store path string for lose candle shadow
@@ -1088,12 +1101,113 @@ var Lines = Lines || {};
 
   };
 
+  // use for live draw
+  // CLICK > MOUSEMOVE callback(state)
+  // !!! handle ONLY mouseMove mouseClick and return moveAxis
+  // for reference see navDot function
+  //cb({state: start}) first click
+  //cb({state: move}) before second click
+  //cb({state: finish}) second click
+  // reduse complexity into liveLine
+  // - one from mousemove and one mouseclick
+  Lines.prototype.liveMove = function(liveInfo = {}, cb) {
+    var self = this,
+      clicks = 0,
+      offset = {},
+      axis = [],
+      magnet = {};
+
+    offset.left = this.chartArea.offsetLeft;
+    offset.top = this.chartArea.offsetTop;
+
+    this.snap.unclick();
+    this.snap.click((e, clickX, clickY) => {
+      axis[0] = [(clickX - offset.left), (clickY - offset.top)];
+      axis[1] = [(axis[0][0] + this.cfg.chart.padding), (axis[0][1] + this.cfg.chart.padding)];
+
+      (!clicks && cb) && cb({ state: "start", axis: axis });
+      clicks++;
+
+      if (clicks === 1) {
+        this.snap.unmousemove(); //bind only once
+        this.snap.mousemove(function(e, dx, dy) {
+          var _axis = axis.slice(0);
+          _axis[1] = [(dx - offset.left), (dy - offset.top)];
+
+          if ((!(dx % 5) || !(dy % 5)) && (_axis[1][0] < self.chartArea.width)) {
+            magnet = self.findY(_axis[1][0]); //return pixel, value
+            magnet.diff = Math.abs(_axis[1][1] - magnet.pixel);
+            if (self.cfg.magnetMode && magnet.diff < self.cfg.magnetMode) {
+              _axis[1][1] = magnet.pixel;
+            }
+
+            //axis > mouse axis, axis is with manipulation
+            cb && cb({ state: "move", axis: _axis});
+          }
+        });
+      } else if (clicks === 2) {
+        this.snap.unclick();
+        this.snap.unmousemove();
+        cb && cb({ state: "finish", axis: axis });
+      }
+    });
+  };
+
+  Lines.prototype.navDotDrag = function (dragInfo, elem) {
+    console.log("nav DOT this :::", this);
+    console.log("nav DOT this :::", dragInfo);
+    console.log("nav DOT this :::", elem);
+    // this.navDot({ axis: lineAxis[0], action: "move" }, dragData => this.navDotDrag.call(this, dragData));
+  };
+  
+
+  //toDo - change live elements object
+  Lines.prototype.liveLine = function(extra = {}) {
+    var axis;
+    this.liveMove(extra, moveData => {
+      axis = moveData.axis;
+
+      if (moveData.state === "start") {
+        if (!this.llive.last) {
+          this.llive.last = this.snap.line(axis[0][0], axis[0][1], axis[1][0], axis[1][1]);
+          this.llive.last.attr({ class: this.cfg.cssClass.liveLine });
+          extra.arrow && this.liveArrow([axis[1]]);
+          extra.tube && this.liveTube([axis[1]]);
+        }
+        console.log("liveLine START", axis)
+        // add navigation DOT at start of MOVE
+        if (!extra.tube) {
+          console.log("bind NAVDOT");
+          // this.navDot({axis: axis[0], action: "move"}, navData => {
+          //   console.log("drag navDOT 1::");
+          // });
+          this.navDot({ axis: axis[0], action: "move" }, dragData => this.navDotDrag.call(this, dragData));
+          // this.navDot({ axis: axis[0], action: "move" }, this.navDotDrag);
+        }
+      } else if (moveData.state === "move") {
+        this.llive.last.attr({
+          x1: axis[0][0],
+          y1: axis[0][1],
+          x2: axis[1][0],
+          y2: axis[1][1]
+        });
+
+        if (!extra.tube) {
+          this.lgs("navs")[0].attr({ cx: moveData.axis[1][0], cy: moveData.axis[1][1] });
+        }
+
+        extra.arrow && this.liveArrow([axis[1], axis[0]]);
+        extra.tube && this.liveTube([axis[1], axis[0]]);
+      }
+    });
+  };
+
   // lineAxis - [0] on first click, [1] on second 
   // lineAxis[1] dynamically change 
   // toDo - refactor funtion
   // toDo - add navDot to all lines (like tube)
   // extra = {arrow, tube, static}
-  Lines.prototype.liveLine = function(extra = {}) {
+  Lines.prototype.liveLine2 = function(extra = {}) {
     var self = this,
       elem = {},
       lineAxis = [],
@@ -1118,9 +1232,11 @@ var Lines = Lines || {};
           lineAxis[1][1] = y.pixel;
         }
 
+
+
         if (extra.constx) {
-          lineAxis[1][0] = this.chartArea.width; // axisX
-          lineAxis[0][1] = lineAxis[1][1]; // axisY
+          // lineAxis[1][0] = this.chartArea.width; // axisX2
+          lineAxis[0][1] = lineAxis[1][1]; // axisY1
         } else if (extra.consty) {
           lineAxis[1][1] = this.chartArea.height + this.cfg.chart.padding; // axisY
           lineAxis[0][0] = lineAxis[1][0]; // axisX
@@ -1136,13 +1252,14 @@ var Lines = Lines || {};
         extra.arrow && self.liveArrow([lineAxis[1], lineAxis[0]]);
         extra.tube && self.liveTube([lineAxis[1], lineAxis[0]]);
         //update navDot
-        this.lgs("navs")[0].attr({ cx: lineAxis[0][0], cy: lineAxis[0][1] });
+        this.lgs("navs")[0].attr({ cx: lineAxis[1][0], cy: lineAxis[1][1] });
       }
 
       //create Live Line
       if (cnt === 0) {
         cnt = 1;
         this.snap.click((e, clickX, clickY) => {
+          console.log("click")
           cnt++;
           lineAxis[0] = [(clickX - elem.left), (clickY - elem.top)];
           lineAxis[1] = [(lineAxis[0][0] + this.cfg.chart.padding), (lineAxis[0][1] + this.cfg.chart.padding)];
@@ -1196,9 +1313,6 @@ var Lines = Lines || {};
     });
   };
 
-  Lines.prototype.navDotDrag = function() {
-    console.log("navDotDrag :::", this, arguments);
-  };
 
   Lines.prototype.liveArrow = function(lineAxis) {
     var points = [],
@@ -1211,13 +1325,11 @@ var Lines = Lines || {};
 
     points.push([lineAxis[0][0] - size, lineAxis[0][1] + size]);
     points.push([lineAxis[0][0] + size, lineAxis[0][1] + size]);
-
     points.push(lineAxis[0]); //joint point
     if (lineAxis[1]) {
       angle = Snap.angle(lineAxis[0][0], lineAxis[0][1], lineAxis[1][0], lineAxis[1][1]);
       angle = this.f(angle, 0) + 90;
     }
-
 
     apath += this.getPath([points[0], points[2]]);
     apath += this.getPath([points[1], points[2]]);
@@ -1232,6 +1344,18 @@ var Lines = Lines || {};
     tube: {
       navs: []
     }
+  };
+
+  //get live property
+  // start to use lelms
+  // should replace lgs
+  Lines.prototype.gLive = function (getInfo = {}) {
+
+  };
+
+  // should replace lgs
+  Lines.prototype.sLive = function (setInfo = {}, setData) {
+
   };
 
   // live getter & setter
