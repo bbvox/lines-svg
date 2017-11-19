@@ -160,6 +160,7 @@ nav a.active {
 
 .stnavdot {
   fill: #fff;
+  fill: transparent;
   stroke: #2795EE;
   stroke-width: 4px;
   cursor: pointer;
