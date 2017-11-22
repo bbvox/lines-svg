@@ -108,6 +108,7 @@ nav a.active {
 }
 
 .lline {
+  fill: red;
   stroke: #9966ff;
   stroke-width: 2px;
 }
@@ -152,24 +153,60 @@ nav a.active {
   stroke: #9966ff;
 }
 
-
-
 .rootSvg {
 
 }
 
 .stnavdot {
-  fill: #fff;
-  fill: transparent;
+  /*fill: #fff;*/
+  /*fill: transparent;*/
   stroke: #2795EE;
   stroke-width: 4px;
   cursor: pointer;
   /*display: none;*/
 }
 
-.livet:hover + .stnavdot {
+.hidden {
+  display: none;
+}
+
+.movedot {
+  fill: #4caf50;
+  stroke: #4caf50;
+}
+
+.rotatedot {
+  fill: #5D4037;
+  stroke: #5D4037;
+  /*display: none;*/
+}
+
+.lline:hover {
+  stroke-width: 5px;
+}
+
+.lline:hover ~ .movedot.hidden {
+  fill: transparent;
   display: block;
 }
+
+.lline:hover ~ .rotatedot.hidden {
+  fill: transparent;
+  display: block;
+}
+
+
+.movedot:hover {
+  fill: #8bc34a;
+  stroke: #8bc34a;
+}
+
+
+.rotatedot:hover {
+  fill: #795548;
+  stroke: #795548;
+}
+
 
 .nav-dialog {
   position: absolute;
