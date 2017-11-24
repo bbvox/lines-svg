@@ -17,7 +17,16 @@ var Lines = Lines || {};
   };
 
   // Debug flag. When is set draw additional dots and debug messages
-  Lines.prototype.debug = false;
+  Lines.prototype.debug = true;
+
+  // Contstant TYPESVG
+  Lines.prototype.TYPESVG = {
+    line: "line",
+    text: "text",
+    rect: "rect",
+    circle: "circle",
+    path: "path"
+  };
 
   // Constant TYPE of charts
   Lines.prototype.TYPE = {
@@ -53,7 +62,7 @@ var Lines = Lines || {};
     nav: {},
     line: {},
     arrow: {}
-  }
+  };
 
   // candle.winp store path string for win candle shadow
   // candle.losep store path string for lose candle shadow
@@ -122,7 +131,7 @@ var Lines = Lines || {};
       radius: 3,
       attr: { stroke: "red" }
     },
-    timeUnit: "15m",
+    timeUnit: "1d",
     drawOrder: ["drawLine", "drawCandle", "drawSMA", "drawEMA"]
   };
 
@@ -441,7 +450,70 @@ var Lines = Lines || {};
     }
   };
 
-  //check if element with Id Exist
+  /**
+   * drawSVG Method.
+   * @desc draw snap svg element
+   *
+   * @param {object} svgInfo - {type: this.TYPESVG, axis: [], attr: {}, id, class}.
+   *
+   * @return {object} svgObject
+   */
+  Lines.prototype.drawSVG = function(svgInfo = {}) {
+    var svgData = {};
+    switch (svgInfo.type) {
+      case this.TYPESVG.rect:
+        svgData.args = {
+          x: svgInfo.axis[0],
+          y: svgInfo.axis[1],
+          width: svgInfo.w,
+          height: svgInfo.h
+        };
+        break;
+      case this.TYPESVG.text:
+        svgData.args = {
+          x: svgInfo.axis[0],
+          y: svgInfo.axis[1],
+          text: svgInfo.text
+        };
+        break;
+      case this.TYPESVG.circle:
+        svgData.args = {
+          cx: svgInfo.axis[0],
+          cy: svgInfo.axis[1],
+          r: svgInfo.r
+        };
+        break;
+    }
+
+    // add class to attributes
+    if (svgInfo.class) {
+      svgInfo.attr = svgInfo.attr || {};
+      svgInfo.attr.class = svgInfo.class;
+    }
+    //draw Element
+    svgData.element = this.snap[svgInfo.type](svgData.args);
+    svgInfo.id && (svgData.element.node.id = svgInfo.id);
+
+    //add attributes to svg element
+    if (svgInfo.attr) {
+      svgData.attr = {};
+      for (var attrKey in svgInfo.attr) {
+        svgData.attr[attrKey] = svgInfo.attr[attrKey];
+      }
+      svgData.element.attr(svgData.attr);
+    }
+
+    return svgData.element;
+  };
+
+  /**
+   * check Method.
+   * @desc get data property if empty create
+   * add new data and set 
+   *
+   * @param {object} elementInfo - {type: this.TYPE}.
+   *
+   */
   Lines.prototype.checkId = function(elementInfo) {
     var elemID;
     elemID = this.makeId(elementInfo);
@@ -454,6 +526,7 @@ var Lines = Lines || {};
     idArray = idArray || this.elms.id;
     for (key in idArray) {
       chart = this.splitId(idArray[key]);
+      console.log(chart);
       fnName = "draw" + chart.type;
       this[fnName](chart.length || 0);
     }
@@ -504,12 +577,22 @@ var Lines = Lines || {};
     cube.y = rowObj.y;
     cube.width = cube.height = 20;
 
-    svg.cube = this.snap.rect(cube.x, cube.y, cube.width, cube.height);
-    svg.cube.attr({ fill: rowObj.color });
-    svg.text = this.snap.text(cube.x + 30, cube.y + 15, rowObj.label);
-    svg.textAttr = this.cfg.chart.textAttr;
-    svg.textAttr.fill = rowObj.color;
-    svg.text.attr(svg.textAttr);
+    svg.cubeInfo = {
+      type: this.TYPESVG.rect,
+      axis: [cube.x, cube.y],
+      w: cube.width,
+      h: cube.height,
+      attr: { fill: rowObj.color }
+    };
+    svg.cube = this.drawSVG(svg.cubeInfo);
+
+    svg.textInfo = {
+      type: this.TYPESVG.text,
+      axis: [cube.x + 30, cube.y + 15],
+      text: rowObj.label,
+      attr: { stroke: rowObj.color }
+    };
+    svg.text = this.drawSVG(svg.textInfo);
 
     this.store({ type: this.TYPE.legend }, svg.cube);
     this.store({ type: this.TYPE.legend }, svg.text);
@@ -555,7 +638,6 @@ var Lines = Lines || {};
 
   Lines.prototype.drawLabelsX = function() {
     var xAxis, lineAxis = [
-        [],
         []
       ],
       plen, _linePath = "",
@@ -594,7 +676,7 @@ var Lines = Lines || {};
       svg.attr({ class: this.cfg.cssClass.textLabel });
       svg.attr(this.cfg.chart.textAttr);
       this.store({ type: this.TYPE.axis }, svg);
-      this.debugDot(point);
+      this.drawDebug(point);
 
       point[1] -= step;
       label += txtStep;
@@ -662,11 +744,11 @@ var Lines = Lines || {};
       lineAxis.push([points[pkey + 1][0], points[pkey + 1][1]]); // x2, y2
       _linePath += this.getPath(lineAxis);
 
-      this.debugDot(lineAxis[0]);
+      this.drawDebug(lineAxis[0]);
       lineAxis = [];
     }
 
-    this.debugDot(points[plen]); //last dot
+    this.drawDebug(points[plen]); //last dot
     this.printPath({ type: this.TYPE.line, path: _linePath });
   };
 
@@ -775,7 +857,7 @@ var Lines = Lines || {};
 
   Lines.prototype.getPath = function(lineAxis) {
     if (lineAxis.length !== 2) {
-      return "";
+      return;
     }
     var path = "M" + Math.floor(lineAxis[0][0]) + " " + Math.floor(lineAxis[0][1]);
     path += "L" + Math.floor(lineAxis[1][0]) + " " + Math.floor(lineAxis[1][1]);
@@ -783,6 +865,10 @@ var Lines = Lines || {};
     return path;
   };
 
+  // start with 
+  // 1. drawCandle
+  // 2. candle
+  // 3. candleShadow
   Lines.prototype.drawCandle = function() {
     var width, raw, rkey;
 
@@ -809,32 +895,38 @@ var Lines = Lines || {};
     }
   };
 
-  Lines.prototype.candle = function(cdata, key) {
-    var point1, point2, candle = {},
-      svg;
+  Lines.prototype.candle = function(candleData, period) {
+    var axis = [],
+      candle = {};
 
-    point1 = this.gg("points")[key - 1];
-    point2 = this.gg("points")[key];
+    axis[0] = this.gg("points")[period - 1];
+    axis[1] = this.gg("points")[period];
 
-    candle.data = cdata;
-    candle.height = point1[1] - point2[1];
-    candle.height = this.f(candle.height, 0);
-
+    candle.data = candleData;
+    candle.height = this.f(axis[0][1] - axis[1][1], 0);
     candle.width = this.g({ type: this.TYPE.candle, prop: "width" });
 
-    candle.x = point1[0] + ((1 - this.cfg.chart.candleFill) / 2 * this.gg("stepX"));
+    candle.x = axis[0][0] + ((1 - this.cfg.chart.candleFill) / 2 * this.gg("stepX"));
     candle.x = this.f(candle.x, 0);
-    if (point1[1] > point2[1]) {
+
+    if (axis[0][1] > axis[1][1]) {
       candle.class = this.cfg.cssClass.winCandle;
-      candle.y = point2[1];
+      candle.y = axis[1][1];
     } else {
       candle.class = this.cfg.cssClass.loseCandle;
-      candle.y = point1[1];
+      candle.y = axis[0][1];
     }
-    svg = this.snap.rect(candle.x, candle.y, candle.width, candle.height);
-    svg.attr({ class: candle.class });
-    this.store({ type: this.TYPE.candle }, svg);
-    this.candleShadow(candle, key);
+
+    candle.info = {
+      type: this.TYPESVG.rect,
+      axis: [candle.x, candle.y],
+      w: candle.width,
+      h: candle.height,
+      class: candle.class
+    };
+    candle.element = this.drawSVG(candle.info);
+    this.store({ type: this.TYPE.candle }, candle.element);
+    this.candleShadow(candle, period);
   };
 
   /* candleShadow - top & bottom
@@ -843,27 +935,23 @@ var Lines = Lines || {};
    * @param {type} color string
    */
   Lines.prototype.candleShadow = function(candle, period) {
-    var lineX, lineTop, lineBot, _linePath = "";
+    var axisX, lineTop, lineBot, _linePath = "";
     /* beautify preserve:start */
     lineTop = lineBot = [[], []];
     /* beautify preserve:end */
 
-    lineX = candle.x + this.f((candle.width / 2), 0);
-
-    lineTop[0] = [lineX, candle.y];
-    lineTop[1][0] = lineX;
+    axisX = candle.x + this.f((candle.width / 2), 0);
+    lineTop[0] = [axisX, candle.y];
+    lineTop[1][0] = axisX;
     lineTop[1][1] = (candle.data.high - candle.data.close) * this.gg("stepY");
     lineTop[1][1] = lineTop[0][1] - lineTop[1][1];
     _linePath += this.getPath(lineTop);
 
-    lineBot[0][0] = lineX;
+    lineBot[0][0] = axisX;
     lineBot[0][1] = lineTop[0][1] + candle.height;
-    lineBot[1][0] = lineX;
+    lineBot[1][0] = axisX;
     lineBot[1][1] = lineBot[0][1] + this.f(((candle.data.close - candle.data.low) * this.gg("stepY")), 0);
     _linePath += this.getPath(lineBot);
-    // printed one BY one
-    // this.printPath({ type: this.TYPE.candle, path: _linePath, class: candle.class });
-    // return;
 
     //store linePath into array make ALL candle shadows with only TWO DOM elements
     if (candle.class === this.cfg.cssClass.winCandle) {
@@ -916,7 +1004,7 @@ var Lines = Lines || {};
     this.initSMA(len);
   };
 
-  //define lastX & lastY for SMA
+  //define lastX & lastY for default SMA
   Lines.prototype.initSMA = function(smaLength) {
     var data, key = 1,
       len, lastAxis = [];
@@ -974,11 +1062,11 @@ var Lines = Lines || {};
 
       _linePath += this.getPath(lineAxis);
 
-      this.debugDot(lineAxis[0]);
+      this.drawDebug(lineAxis[0]);
       lineAxis = [];
     }
 
-    this.debugDot(lineAxis[plen]);
+    this.drawDebug(lineAxis[plen]);
     this.printPath({ type: this.TYPE.sma, path: _linePath, length: smaLength });
   };
 
@@ -1042,7 +1130,7 @@ var Lines = Lines || {};
 
       _linePath += this.getPath(lineAxis);
 
-      this.debugDot(lineAxis[0]);
+      this.drawDebug(lineAxis[0]);
       lineAxis = [];
     }
 
@@ -1055,7 +1143,8 @@ var Lines = Lines || {};
 
   //turn on live dot which follow user mouse 
   Lines.prototype.live = function() {
-    var foundY, self = this,
+    var live = {},
+      self = this,
       dot, label, left, dragX;
 
     if (this.cfg.animate && !this.liveFlag) {
@@ -1064,16 +1153,25 @@ var Lines = Lines || {};
       return;
     }
 
-    label = this.snap.text(this.chartArea.zeroX, this.chartArea.zeroY, "");
-    label.attr({ class: this.cfg.cssClass.liveLabel });
+    live.labelInfo = {
+      type: this.TYPESVG.text,
+      axis: [this.chartArea.zeroX, this.chartArea.zeroY],
+      text: "",
+      class: this.cfg.cssClass.liveLabel
+    };
+    label = this.drawSVG(live.labelInfo);
 
-    dot = this.snap.circle(100, this.findY(100).pixel, this.cfg.debug.radius);
-    dot.attr({ class: this.cfg.cssClass.liveDot });
+    live.dotInfo = {
+      type: this.TYPESVG.circle,
+      axis: [100, this.findY(100).pixel],
+      r: this.cfg.debug.radius,
+      class: this.cfg.cssClass.liveDot
+    };
+    dot = this.drawSVG(live.dotInfo);
 
     left = this.chartArea.offsetLeft;
-
     this.snap.mousemove((e, x) => {
-      var cx;
+      var cx, foundY;
       x -= left;
       if (x > this.chartArea.zeroX && !(x % 5)) {
         cx = x + this.dragX;
@@ -1105,19 +1203,15 @@ var Lines = Lines || {};
   Lines.prototype.llive = {};
   // http://jsfiddle.net/tM4L9/7/
   // mobile support
-  // store multiple lines ---
   // option {constx, consty, arrow, tube}
-  Lines.prototype.drawLive = function(option) {
-
-  };
 
   // use for live draw
   // CLICK > MOUSEMOVE callback(state)
   // !!! handle ONLY mouseMove mouseClick and return moveAxis
   // for reference see navDot function
-  //cb({state: start}) first click
-  //cb({state: move}) before second click
-  //cb({state: finish}) second click
+  // cb({state: start}) first click
+  // cb({state: move}) before second click
+  // cb({state: finish}) second click
   // reduse complexity into liveLine
   // - one from mousemove and one mouseclick
   Lines.prototype.liveMove = function(liveInfo = {}, cb) {
@@ -1139,21 +1233,32 @@ var Lines = Lines || {};
       clicks++;
 
       if (clicks === 1) {
-        this.snap.unmousemove(); //bind only once
+        this.snap.unmousemove(); //bind once
         this.snap.mousemove(function(e, dx, dy) {
-          var _axis = axis.slice(0);
-          _axis[1] = [(dx - offset.left), (dy - offset.top)];
-
-          if ((!(dx % 5) || !(dy % 5)) && (_axis[1][0] < self.chartArea.width)) {
-            magnet = self.findY(_axis[1][0]); //return pixel, value
-            magnet.diff = Math.abs(_axis[1][1] - magnet.pixel);
-            if (self.cfg.magnetMode && magnet.diff < self.cfg.magnetMode) {
-              _axis[1][1] = magnet.pixel;
-            }
-
-            //axis > mouse axis, axis is with manipulation
-            cb && cb({ state: "move", axis: _axis });
+          if (((dx % 5) && (dy % 5)) || (axis[1][0] > self.chartArea.width)) {
+            return;
           }
+
+          var _axis = axis.slice(0); //deep copy 
+          _axis[1] = [(dx - offset.left), (dy - offset.top)];
+          magnet = self.findY(_axis[1][0]); //return pixel, value
+          magnet.diff = Math.abs(_axis[1][1] - magnet.pixel);
+          if (self.cfg.magnetMode && magnet.diff < self.cfg.magnetMode) {
+            _axis[1][1] = magnet.pixel;
+          }
+
+          if (liveInfo.constx) {
+            _axis[0][0] = self.chartArea.zeroX;
+            _axis[1][0] = self.chartArea.width; // axisX2
+            _axis[0][1] = _axis[1][1]; // axisY1
+          } else if (liveInfo.consty) {
+            _axis[0][1] = self.cfg.chart.padding;
+            _axis[1][1] = self.chartArea.height + self.cfg.chart.padding; // axisY
+            _axis[0][0] = _axis[1][0]; // axisX
+          }
+
+          //axis > mouse axis, axis is with manipulation
+          cb && cb({ state: "move", axis: _axis });
         });
       } else if (clicks === 2) {
         this.snap.unclick();
@@ -1163,60 +1268,9 @@ var Lines = Lines || {};
     });
   };
 
-  Lines.prototype.dragtmp = {
-    elem: "",
-    move: "",
-    rotate: ""
-  };
-
-  // set lelms.last.elem and use for further on
-  // callback function for drag navigation DOT...
-  // state = [start, drag, finish]
-  // 
-  Lines.prototype.navDotDrag = function(dragData = {}) {
-    var transform, navDots, navAxis;
-
-    if (dragData.state === "start") {
-      //explicit set new element for EACH DRAG START !!!
-      this.dragtmp.elem = this.gl({ id: dragData.elemId });
-      navDots = this.splitId(dragData.elemId).navdot;
-      this.dragtmp.moveID = "live-nav-" + navDots[0];
-      this.dragtmp.rotateID = "live-nav-" + navDots[1];
-      this.dragtmp.move = this.gl({ id: this.dragtmp.moveID });
-      this.dragtmp.rotate = this.gl({ id: this.dragtmp.rotateID });
-
-      //get move navDot AXIS needed for rotation...
-      navAxis = this.dragtmp.move.getBBox();
-      this.dragtmp.moveAxis = [navAxis.cx, navAxis.cy];
-
-      this.dragtmp.transform = this.dragtmp.elem.transform ? this.dragtmp.elem.transform().local : 0;
-      // if action move add Rotation navDot to group for move
-      if (dragData.action === "move") {
-        // this.dragtmp.group = this.snap.g(this.dragtmp.elem, this.getNavDot(dragData.elemId, "rotate").rotate);
-        this.dragtmp.elem.transform("");
-        this.dragtmp.rotate.transform("");
-        this.dragtmp.group = this.snap.g(this.dragtmp.elem, this.dragtmp.rotate);
-        this.dragtmp.group.transform(this.dragtmp.transform);
-      }
-    } else if (dragData.state === "drag") {
-      if (dragData.action === "move") {
-        transform = this.dragtmp.transform + (this.dragtmp.transform ? "T" : "t");
-        transform += [dragData.dx, dragData.dy];
-        this.dragtmp.group.transform(transform);
-      } else if (dragData.action === "rotate") {
-        transform = this.dragtmp.transform + (this.dragtmp.transform ? "R" : "r");
-        transform += [dragData.angle, this.dragtmp.moveAxis[0], this.dragtmp.moveAxis[1]];
-        this.dragtmp.elem.transform(transform);
-      }
-    } else if (dragData.state === "finish" && dragData.action === "move") {
-      this.mvElem(dragData.elemId);
-      this.mvElem(this.dragtmp.rotateID);
-    }
-  };
-
   // delete from id or navid
   // delete from live element object(lelms)
-  Lines.prototype.dl = function (deleteInfo = {}) {
+  Lines.prototype.dl = function(deleteInfo = {}) {
     var delIndex;
     if (deleteInfo.type === "nav" && this.lelms.navid.indexOf(deleteInfo.prop) !== -1) {
       delIndex = this.lelms.navid.indexOf(deleteInfo.prop);
@@ -1265,9 +1319,54 @@ var Lines = Lines || {};
   };
 
 
+  Lines.prototype.dragtmp = {
+    elem: "",
+    move: "",
+    rotate: ""
+  };
+
+  // set lelms.last.elem and use for further on
+  // callback function for drag navigation DOT...
+  // dragData.state = [start, drag, finish]
+  Lines.prototype.navDotDrag = function(dragData = {}) {
+
+    //explicit set new element for EACH DRAG START !!!
+    if (dragData.state === "start") {
+      this.dragtmp.elem = this.gl({ id: dragData.elemId });
+      this.dragtmp.move = this.getNavDot(dragData.elemId, "move");
+      this.dragtmp.rotate = this.getNavDot(dragData.elemId, "rotate");
+
+      this.dragtmp.moveAxis = this.getAxis(dragData.elemId, "move");
+      this.dragtmp.transform = this.dragtmp.elem.transform ? this.dragtmp.elem.transform().local : 0;
+      if (dragData.action === "move") {
+        this.dragtmp.elem.transform("");
+        this.dragtmp.rotate.transform("");
+        this.dragtmp.group = this.snap.g(this.dragtmp.elem, this.dragtmp.rotate);
+        this.dragtmp.group.transform(this.dragtmp.transform);
+      }
+    } else if (dragData.state === "drag") {
+      var transform;
+      if (dragData.action === "move") {
+        transform = this.dragtmp.transform + (this.dragtmp.transform ? "T" : "t");
+        transform += [dragData.dx, dragData.dy];
+        this.dragtmp.group.transform(transform);
+      } else if (dragData.action === "rotate") {
+        transform = this.dragtmp.transform + (this.dragtmp.transform ? "R" : "r");
+        transform += [dragData.angle, this.dragtmp.moveAxis.x, this.dragtmp.moveAxis.y];
+        this.dragtmp.elem.transform(transform);
+      }
+    } else if (dragData.state === "finish" && dragData.action === "move") {
+      this.mvElem(dragData.elemId);
+      this.mvElem(this.dragtmp.rotate.node.id);
+    }
+  };
+
   //toDo - change live elements object
+  // quite heavy method !!! BE CAREFUL
+  // liveMove !!!
+  // navDotDrag !!!
   Lines.prototype.liveLine = function(extra = {}) {
-    var axis, elemID, navidLength;
+    var axis, elemID, navidLength, liveLine = {};
     //restore last live element for multiple lines ...
     this.lelms.last = 0;
 
@@ -1275,13 +1374,15 @@ var Lines = Lines || {};
       axis = moveData.axis;
       if (moveData.state === "start") {
         if (!this.lelms.last) {
-          this.lelms.last = this.snap.line(axis[0][0], axis[0][1], axis[1][0], axis[1][1]);
-          this.lelms.last.attr({ class: this.cfg.cssClass.liveLine });
-
           navidLength = this.gl({ type: "navid" }).length;
           elemID = this.makeId({ type: "line", nav1: navidLength, nav2: navidLength + 1 }, true);
-          this.lelms.last.node.id = elemID;
-
+          liveLine.info = {
+            type: this.TYPESVG.line,
+            axis: axis,
+            class: this.cfg.cssClass.liveLine,
+            id: elemID
+          };
+          this.lelms.last = this.drawSVG(liveLine.info);
           this.sl({ type: "line", prop: elemID }, this.lelms.last); //set/store element
 
           extra.arrow && this.liveArrow([axis[1]]);
@@ -1290,10 +1391,10 @@ var Lines = Lines || {};
 
         // add navigation DOT at start of MOVE
         if (!extra.tube) {
-          this.navDot({ axis: axis[0], action: "move", elemId: elemID },
+          this.navDot({ axis: axis[0], action: "move", elemId: elemID, extra: extra },
             dragData => this.navDotDrag.call(this, dragData));
 
-          this.navDot({ axis: axis[1], action: "rotate", elemId: elemID },
+          this.navDot({ axis: axis[1], action: "rotate", elemId: elemID, extra: extra },
             dragData => this.navDotDrag.call(this, dragData));
         }
       } else if (moveData.state === "move") {
@@ -1303,7 +1404,6 @@ var Lines = Lines || {};
           x2: axis[1][0],
           y2: axis[1][1]
         });
-
         if (!extra.tube) {
           navidLength = this.gl({ type: "navid" }).length - 1;
           this.lgs("navs")[navidLength].attr({ cx: moveData.axis[1][0], cy: moveData.axis[1][1] });
@@ -1320,7 +1420,7 @@ var Lines = Lines || {};
   };
 
   // Toggle hidden class for line's navDots
-  Lines.prototype.liveLineClick = function (liveLineID) {
+  Lines.prototype.liveLineClick = function(liveLineID) {
     var navDots;
     navDots = this.getNavDot(liveLineID); // return move & rotate
     navDots.classMove = navDots.move.attr("class").split(" ");
@@ -1333,8 +1433,8 @@ var Lines = Lines || {};
       navDots.classMove.push("hidden");
       navDots.classRotate.push("hidden");
     }
-    navDots.move.attr({class: navDots.classMove.join(" ")});
-    navDots.rotate.attr({class: navDots.classRotate.join(" ")});
+    navDots.move.attr({ class: navDots.classMove.join(" ") });
+    navDots.rotate.attr({ class: navDots.classRotate.join(" ") });
   };
 
   // REMOVE liveLineID and related navDots
@@ -1343,124 +1443,12 @@ var Lines = Lines || {};
     navDots = this.getNavDot(liveLineID);
     navDots.move.remove();
     navDots.rotate.remove();
-    this.gl({type: "line", prop: liveLineID}).remove();
+    this.gl({ type: "line", prop: liveLineID }).remove();
     //delete from live element storage
-    this.dl({type: "line", prop: liveLineID});
-    this.dl({type: "nav", prop: navDots.move.node.id});
-    this.dl({type: "nav", prop: navDots.rotate.node.id});
+    this.dl({ type: "line", prop: liveLineID });
+    this.dl({ type: "nav", prop: navDots.move.node.id });
+    this.dl({ type: "nav", prop: navDots.rotate.node.id });
   };
-
-  // lineAxis - [0] on first click, [1] on second 
-  // lineAxis[1] dynamically change 
-  // toDo - refactor funtion
-  // toDo - add navDot to all lines (like tube)
-  // extra = {arrow, tube, static}
-  Lines.prototype.liveLine2 = function(extra = {}) {
-    var self = this,
-      elem = {},
-      lineAxis = [],
-      cnt = 0;
-
-    elem.left = this.chartArea.offsetLeft;
-    elem.top = this.chartArea.offsetTop;
-
-    delete self.lelms.last.elem;
-
-    this.snap.undrag();
-    this.snap.unmousemove();
-    this.snap.mousemove((e, dx, dy) => {
-      // update live Line position
-      if ((!(dx % 5) || !(dy % 5)) && self.lelms.last) {
-        lineAxis[1] = [(dx - elem.left), (dy - elem.top)];
-        if (lineAxis[1][0] < 0 || lineAxis[1][0] > this.chartArea.width) {
-          return;
-        }
-        var y = self.findY(lineAxis[1][0]);
-        if (self.cfg.magnetMode && Math.abs(lineAxis[1][1] - y.pixel) < self.cfg.magnetMode) {
-          lineAxis[1][1] = y.pixel;
-        }
-
-
-
-        if (extra.constx) {
-          // lineAxis[1][0] = this.chartArea.width; // axisX2
-          lineAxis[0][1] = lineAxis[1][1]; // axisY1
-        } else if (extra.consty) {
-          lineAxis[1][1] = this.chartArea.height + this.cfg.chart.padding; // axisY
-          lineAxis[0][0] = lineAxis[1][0]; // axisX
-        }
-        // update LINE
-        self.lelms.last.attr({
-          x1: lineAxis[0][0],
-          y1: lineAxis[0][1],
-          x2: lineAxis[1][0],
-          y2: lineAxis[1][1]
-        });
-        // activate ARROW or TUBE
-        extra.arrow && self.liveArrow([lineAxis[1], lineAxis[0]]);
-        extra.tube && self.liveTube([lineAxis[1], lineAxis[0]]);
-        //update navDot
-        this.lgs("navs")[0].attr({ cx: lineAxis[1][0], cy: lineAxis[1][1] });
-      }
-
-      //create Live Line
-      if (cnt === 0) {
-        cnt = 1;
-        this.snap.click((e, clickX, clickY) => {
-          console.log("click")
-          cnt++;
-          lineAxis[0] = [(clickX - elem.left), (clickY - elem.top)];
-          lineAxis[1] = [(lineAxis[0][0] + this.cfg.chart.padding), (lineAxis[0][1] + this.cfg.chart.padding)];
-
-          self.debugDot(lineAxis[0]);
-          //horizontal || vertical line
-          if (extra.constx) {
-            //create navDot
-            this.navDot({ axis: lineAxis[0], action: "move" }, dragData => this.navDotDrag.call(this, dragData));
-
-            // this.navDot({axis: lineAxis[0], action: "move"}, navData => {
-            //   if (dragData.state === "start") {
-            //     this.lgs("navs")[1].transform("");
-            //     this.lline.tube.grTransform = this.lgs("group").transform().local;
-            //     this.lgs("group").add(this.lline.tube.navs[1]);
-            //   } else if (dragData.state === "drag") {
-            //     var _trans = this.lline.tube.grTransform + (this.lline.tube.grTransform ? "T" : "t") + [dragData.dx, dragData.dy];
-            //     tlines.group.transform(_trans);
-            //   } else if (dragData.state === "finish") {
-            //     var navsProp = this.lgs("navs")[0].getBBox();
-            //     //update point 0 
-            //     pts[0][0] = this.f(navsProp.x + 6, 0); // ?????
-            //     pts[0][1] = this.f(navsProp.y + 6, 0);
-            //     this.mvElem(this.lgs("navs")[1].node.id);
-
-            //     this.lgs("navs")[1].transform(this.lgs("group").transform().local);
-            //   }
-            // });
-            lineAxis[0][0] = this.cfg.chart.padding;
-            lineAxis[1][0] = this.chartArea.width;
-          } else if (extra.consty) {
-            lineAxis[0][1] = this.cfg.chart.padding;
-            lineAxis[1][1] = this.chartArea.height + this.cfg.chart.padding;
-          }
-
-          if (!self.lelms.last) {
-            self.lelms.last = self.snap.line(lineAxis[0][0], lineAxis[0][1], lineAxis[1][0], lineAxis[1][1]);
-            self.lelms.last.attr({ class: self.cfg.cssClass.liveLine });
-
-            extra.arrow && self.liveArrow([lineAxis[1]]);
-            extra.tube && self.liveTube([lineAxis[1]]);
-          }
-
-          //finish drawing
-          if (cnt === 3) {
-            this.snap.unclick();
-            self.snap.unmousemove();
-          }
-        });
-      }
-    });
-  };
-
 
   Lines.prototype.liveArrow = function(lineAxis) {
     var points = [],
@@ -1484,7 +1472,7 @@ var Lines = Lines || {};
 
     this.llive.arrow = this.snap.path(apath);
     this.llive.arrow.attr({ class: this.cfg.cssClass.liveLine });
-    this.llive.arrow.node.id = this.makeId({type: "arrow", nav1: 1});
+    this.llive.arrow.node.id = this.makeId({ type: "arrow", nav1: 1 });
 
     this.llive.arrow && this.llive.arrow.transform("r" + angle + "," + lineAxis[0][0] + "," + lineAxis[0][1]);
   };
@@ -1517,8 +1505,7 @@ var Lines = Lines || {};
   // toDo - refactor 
   Lines.prototype.liveTube = function(lineAxis = []) {
     var pts = [],
-      tlines = {},
-      self = this;
+      tlines = {};
 
     if (lineAxis.length !== 2) {
       return;
@@ -1590,58 +1577,71 @@ var Lines = Lines || {};
   };
 
 
-  // navigation DOTS >>>
-  // encapsulate dot inside function - try to achieve whole navigation inside
-  // simplify the drag
-  // export params via callback mainly with drag state !
-
-  // !!! for rotation navDot need TWO navDots and the second one depend on the first.
-  // for rotation we need to know the ordinate of navDot1 to determine exact angle between them.
+  /**
+   * navDot Method.
+   * @desc Draw navDot and attach drag to the element
+   * @desc encapsulate navDot drag inside in the method
+   * - There are two types of navDot: move & rotate
+   * - Rotation navDot need to be second one, because it depend on axis of the first
+   * - We use move.navDot AXIS for center of rotation
+   * - Also need to know the angle between navDot1 & navDot2 for proper Rotation
+   *
+   * @param {object} navData - The difference from previous point data.
+   * @param {function} cb - Callback({state: start || drag || finish}) state from drag
+   *
+   *  FIRST navDot - MOVE
+   *  SECOND navDot - ROTATE
+   *  toDo - add RESIZE navDot or use some of exist ones
+   */
   Lines.prototype.navDot = function(navData = {}, cb) {
-    var navDot, navRotate, initAngle, elem = {},
+    var navDot = {},
+      navRotate, initAngle, chart = {},
       self = this;
 
-    //add x1 & y1
-    navData.center = [navData.axis[0] - this.cfg.chart.navDot, navData.axis[1] - this.cfg.chart.navDot];
-    navDot = this.snap.circle(navData.center[0], navData.center[1], this.cfg.chart.navDot);
-    var navid = this.gl({ type: "navid" }) || [];
+    navDot.count = (this.gl({ type: "navid" }) || []).length; //
 
-    if (navid.length % 2 === 0) {
-      navDot.attr({ class: this.cfg.cssClass.navDot + " " + this.cfg.cssClass.moveNavDot + " hidden" });
+    navDot.info = {
+      type: this.TYPESVG.circle,
+      axis: [navData.axis[0] - this.cfg.chart.navDot, navData.axis[1] - this.cfg.chart.navDot],
+      r: this.cfg.chart.navDot,
+      id: this.makeId({ type: "nav", nav1: navDot.count }, true)
+    };
+    navDot.elem = this.drawSVG(navDot.info);
+
+    if (navDot.count % 2 === 0) {
+      navDot.elem.attr({ class: this.cfg.cssClass.navDot + " " + this.cfg.cssClass.moveNavDot + " hidden" });
     } else {
-      navDot.attr({ class: this.cfg.cssClass.navDot + " " + this.cfg.cssClass.rotateNavDot + " hidden" });
+      navDot.elem.attr({ class: this.cfg.cssClass.navDot + " " + this.cfg.cssClass.rotateNavDot + " hidden" });
     }
-    navDot.node.id = this.makeId({ type: "nav", nav1: navid.length }, true);
+    this.sl({ type: "nav", prop: navDot.info.id }, navDot.elem);
+    this.lline.tube.navs.push(navDot.elem); // store element
 
-    this.sl({ type: "nav", prop: navDot.node.id }, navDot);
-    this.lline.tube.navs.push(navDot); // store element
-
-    elem.left = this.chartArea.offsetLeft;
-    elem.top = this.chartArea.offsetTop;
-
-    navDot.drag(function drag(dx, dy, posx, posy) {
-      var dragData = {};
-      if (!(dx % 5) || !(dy % 5)) {
-      // if (!(dx % self.gg("stepX"))) {
-        dragData = {
-          dx: dx,
-          dy: dy,
-          posx: (posx - elem.left),
-          posy: (posy - elem.top),
-          state: "drag",
-          transform: this.data("startTransform"),
-          action: navData.action //move or rotate
-        };
-
-        if (navData.action === "move") {
-          this.transform(dragData.transform + (dragData.transform ? "T" : "t") + [dx, dy]); // transform navDot
-        } else if (navData.action === "rotate") {
-          dragData.angle = Snap.angle(navRotate.x, navRotate.y, dragData.posx, dragData.posy) - initAngle;
-          this.transform(dragData.transform + (dragData.transform ? "R" : "r") + [dragData.angle, navRotate.x, navRotate.y]); //rotate navDot
-        }
-        dragData.elemId = navData.elemId || "tube";
-        cb && cb(dragData);
+    chart.left = this.chartArea.offsetLeft;
+    chart.top = this.chartArea.offsetTop;
+    navDot.elem.drag(function drag(dx, dy, posx, posy) {
+      if ((dx % 5) && (dy % 5)) {
+        return;
       }
+
+      var dragData = {
+        dx: (navData.extra.constx ? 0 : dx),
+        dy: (navData.extra.consty ? 0 : dy),
+        posx: (posx - chart.left),
+        posy: (posy - chart.top),
+        state: "drag",
+        transform: this.data("startTransform"),
+        action: navData.action //move or rotate
+      };
+
+
+      if (navData.action === "move") {
+        this.transform(dragData.transform + (dragData.transform ? "T" : "t") + [dragData.dx, dragData.dy]); // transform navDot
+      } else if (navData.action === "rotate" && !navData.extra.constx && !navData.extra.consty) {
+        dragData.angle = Snap.angle(navRotate.x, navRotate.y, dragData.posx, dragData.posy) - initAngle;
+        this.transform(dragData.transform + (dragData.transform ? "R" : "r") + [dragData.angle, navRotate.x, navRotate.y]); //rotate navDot
+      }
+      dragData.elemId = navData.elemId || "tube";
+      cb && cb(dragData);
     }, function startDrag() {
       if (navData.action === "rotate") {
         initAngle = self.navsAngle(navData.elemId);
@@ -1654,14 +1654,18 @@ var Lines = Lines || {};
     }); //drag
   };
 
-  //move Element from group into its parent
-  // toDo also translate TRANSFORM from group to this element 1.
-  // remove group if last element is removed 2.
-
-  // window.getComputedStyle(document.getElementById('live-line-0-1')).transform > GET TRANSFORM
-  // 1. mvElem from group to parent 
-  // 2. translate group's transform at element...
-  // 3. last element from group delete group
+  /**
+   * mvElem Method.
+   * @desc Move Element(elemID) from group to parent
+   * @desc Get group transform and set to moved element
+   * @desc Remove of last element in group - Destroy group.
+   *
+   * @param {string} elemID - Move element ID.
+   *
+   *  FIRST move Element
+   *  SECOND move Transform from group to new Element
+   *  THIRD last element destroy group
+   */
   Lines.prototype.mvElem = function(elemID) {
     var elem, groupElem, groupParentElem;
 
@@ -1670,7 +1674,7 @@ var Lines = Lines || {};
     groupParentElem = groupElem.parentNode;
     elem.remove();
     // add transform from group to element
-    elem.setAttribute("transform", window.getComputedStyle(groupElem).transform)
+    elem.setAttribute("transform", window.getComputedStyle(groupElem).transform);
 
     // destroy group if it is empty
     if (!groupElem.childNodes.length) {
@@ -1679,13 +1683,18 @@ var Lines = Lines || {};
     groupParentElem.append(elem);
   };
 
-  // return MOVE NavDot axisX axisY for line
-  // extras can get lastMove axis
-  // based on 
-  // first DOT is for move
-  // second is for rotate
-  // liveElemID hold navigation DOts ID
-  // live-line-0-1 -> 0 is move navDot, 1 is rotate navDot
+  /**
+   * getAxis Method.
+   * @desc Get navDot Axis for live Element(liveElemID)
+   * 
+   * @desc The ID of liveElement - consist of type + moveNavDotKEY + rotate NavDotKey
+   * live-line-0-1 > type: line, moveNavDot KEY: 0, rotateNavDot KEY: 1
+   *
+   * @param {string} liveElemID - live element ID.
+   * @param {string} navType - live element ID.
+   *
+   * @return {object} axis - all: {move & rotate}, move: {moveX & moveY}
+   */
   Lines.prototype.getAxis = function(liveElemID, navType = "all") {
     var dotsElements, navdot = {},
       axis = {};
@@ -1700,6 +1709,8 @@ var Lines = Lines || {};
       axis.rotate = { x: navdot.rotateAxis.cx, y: navdot.rotateAxis.cy };
     } else if (navType === "move") {
       axis = { x: navdot.moveAxis.cx, y: navdot.moveAxis.cy };
+    } else if (navType === "rotate") {
+      axis = { x: navdot.rotateAxis.cx, y: navdot.rotateAxis.cy };
     }
 
     return axis;
@@ -1727,9 +1738,9 @@ var Lines = Lines || {};
     navdot.moveElem = this.gl({ type: "nav", prop: navdot.moveID });
     navdot.rotateElem = this.gl({ type: "nav", prop: navdot.rotateID });
     if (navType === "move") {
-      resultNavDot.move = navdot.moveElem;
+      resultNavDot = navdot.moveElem;
     } else if (navType === "rotate") {
-      resultNavDot.rotate = navdot.rotateElem;
+      resultNavDot = navdot.rotateElem;
     } else {
       resultNavDot.move = navdot.moveElem;
       resultNavDot.rotate = navdot.rotateElem;
@@ -1776,23 +1787,23 @@ var Lines = Lines || {};
     this.debug && console.log(consoleText);
   };
 
-  Lines.prototype.debugDot = function(pointAxis) {
-    var svg;
-    if (this.debug && this.snap && pointAxis && pointAxis.length > 1) {
-      svg = this.snap.circle(pointAxis[0], pointAxis[1], this.cfg.debug.radius);
-      svg.attr({ class: this.cfg.cssClass.debugDot });
-      this.store({ type: this.TYPE.debug }, svg);
+  Lines.prototype.drawDebug = function(pointAxis) {
+    var debug = {};
+    if (this.debug && pointAxis) {
+      debug.info = {
+        type: this.TYPESVG.circle,
+        axis: pointAxis,
+        r: this.cfg.debug.radius,
+        class: this.cfg.cssClass.debugDot
+      };
+      debug.elem = this.drawSVG(debug.info);
+      this.store({ type: this.TYPE.debug }, debug.elem);
     }
   };
 
   //svg = {lines:{}, candles:{}, labes:{}, points:{}, smas:{}}
   // singleFlag mean to not create group and set directly id to the element
   // typeObj = {type:, length:, color: }
-
-
-  // chartObj = {type, prop}
-  // return array or element of value of property....
-  Lines.prototype.get = function(chartObj) {};
 
   //dataObj = {type: type, sigle: true, length: length}
   Lines.prototype.store = function(storeInfo, storeData) {
@@ -1912,8 +1923,8 @@ var Lines = Lines || {};
     return elemID;
   };
 
-  // svg-sma-20
-  // live-line-2-3
+  // svg-sma-20 => {type: SMA, length: 20}
+  // live-line-2-3 => {type: line, navdot: [2, 3]}
   Lines.prototype.splitId = function(elemID, liveElement = false) {
     var idArray, idData = {};
 
@@ -1929,7 +1940,7 @@ var Lines = Lines || {};
     if (idArray[3]) {
       idData.navdot = [idArray[2], idArray[3]];
     } else if (idArray[2]) {
-      idData.length = parseInt(idArray[2])
+      idData.length = parseInt(idArray[2]);
     }
 
     return idData;
@@ -2095,8 +2106,7 @@ var Lines = Lines || {};
   // with one step forward or back
   // moveType prev or next
   Lines.prototype.move = function(moveType = "prev") {
-    var offset, allRaw, limit = {},
-      ids;
+    var offset, allRaw, ids;
 
     allRaw = this.g({ type: this.TYPE.sinit, prop: "allraw" }) || this.gg("raw");
     offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
