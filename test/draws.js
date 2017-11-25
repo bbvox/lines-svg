@@ -63,7 +63,9 @@ describe("Lines check some of draw methods", function() {
     // call at drawCandle
     expect(spyDraw.printPath.calledOnce).to.be.true;
     //should be zeroX & zeroY but for tests zeroY is NaN
-    expect(spyDraw.debug.getCall(0).args[0]).to.include.members([lines.chartArea.zeroX]);
+    if (lines.debug) {
+      expect(spyDraw.debug.getCall(0).args[0]).to.include.members([lines.chartArea.zeroX]);
+    }
   });
 
   it("drawLine should call printPath once with params", function() {

@@ -17,7 +17,7 @@ var Lines = Lines || {};
   };
 
   // Debug flag. When is set draw additional dots and debug messages
-  Lines.prototype.debug = true;
+  Lines.prototype.debug = false;
 
   // Contstant TYPESVG
   Lines.prototype.TYPESVG = {
@@ -131,7 +131,11 @@ var Lines = Lines || {};
       radius: 3,
       attr: { stroke: "red" }
     },
-    timeUnit: "1d",
+    timeUnit: "4h",
+    timeUnit: "1h",
+    // timeUnit: "1d",
+    // timeUnit: "1w",
+    timeUnits: ["15m", "30m", "1h", "4h", "1d", "1w"], //supported TIME UNITS
     drawOrder: ["drawLine", "drawCandle", "drawSMA", "drawEMA"]
   };
 
@@ -163,6 +167,10 @@ var Lines = Lines || {};
     this.snap && this.snap.attr(this.cfg.chart.attr);
   };
 
+  Lines.prototype.setConfig = function (confInfo, confValue) {
+
+  };
+
   // Interface method
   // check dataArray, handle dataArray
   Lines.prototype.data = function(dataArray) {
@@ -183,6 +191,8 @@ var Lines = Lines || {};
       this.calculate();
     }
   };
+
+  Lines.prototype.date
 
   // Internal method
   // - check data length
@@ -641,19 +651,27 @@ var Lines = Lines || {};
         []
       ],
       plen, _linePath = "",
-      svg, lk = 0;
+      svg, lk = 0, diff = 0, xlabel;
 
     plen = this.gg("points").length;
     lineAxis[0][0] = this.chartArea.zeroX + this.gg("stepX");
     lineAxis[0][1] = Math.floor(this.chartArea.zeroY + this.cfg.chart.padding / 2);
     lineAxis[1] = [lineAxis[0][0], lineAxis[0][1] + 4];
     xAxis = lineAxis[0][0] = lineAxis[1][0];
+    if (this.cfg.timeUnit === "4h") {
+      diff = 1;
+    }
+
     for (; lk <= plen; lk++) {
-      if (!(lk % 3)) {
+      if ((lk % 3) === diff) {
+        xlabel = this.dateTime(lk);
         _linePath += "M" + xAxis + " " + lineAxis[0][1] + "L" + xAxis + " " + lineAxis[1][1];
-        svg = this.snap.text(xAxis - 5, lineAxis[0][1] + 15, this.labelX(lk));
+        svg = this.snap.text(xAxis - 5, lineAxis[0][1] + 15, xlabel);
         svg.attr({ class: this.cfg.cssClass.textLabel });
         svg.attr(this.cfg.chart.textAttr);
+        if (xlabel.length === 1 || xlabel.length === 2 || xlabel.length === 3) {
+
+        }
 
         this.store({ type: this.TYPE.axis }, svg);
       }
@@ -683,13 +701,129 @@ var Lines = Lines || {};
     }
   };
 
+  // 1. calculate whole length width/stepX
+  // 2. calculate one Period depend on cfg.timeUnit
+  // 3. calculate begining of chart 
+  // 
+  // timeUnits: ["15m", "30m", "1h", "4h", "1d", "1w"], //supported TIME UNITS
+  Lines.prototype.dateTime = function(period) {
+    var periodLength, timeLine = {};
+
+    periodLength = this.chartArea.width / this.gg("stepX");
+    periodLength = this.f(periodLength, 0) - 1;
+    //add or subtrack offset 
+    periodLength += this.g({type: "sinit", prop: "offset"}) || 0;
+
+    timeLine.perPeriod = this.dateUnit(); // in milliseconds
+    if (period === periodLength) {
+      timeLine.end = (new Date).getTime();
+    } else {
+      //should round end time
+      // if it is 10.12 subtrack 12 min to become 10
+      timeLine.end = (new Date).getTime();
+      timeLine.diff = timeLine.end % timeLine.perPeriod;
+      timeLine.end -= timeLine.diff;
+    }
+
+    timeLine.begin = timeLine.end - (timeLine.perPeriod * periodLength); //start scale
+    timeLine.thisPeriod = timeLine.begin + (period * timeLine.perPeriod);
+
+    return this.formatDate(timeLine.thisPeriod);
+  };
+
+  Lines.prototype.formatDate = function(period) {
+    var base, dateFormat, months;
+    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    base = new Date(period);
+
+    if (["15m", "30m"].indexOf(this.cfg.timeUnit) !== -1) {
+      dateFormat = base.getHours();
+      if (dateFormat === 0 || dateFormat === 1) {
+        dateFormat = base.getDate();
+      } else {
+        dateFormat += ":" + base.getMinutes();
+      }
+    } else if (["1h"].indexOf(this.cfg.timeUnit) !== -1) {
+      dateFormat = base.getHours();
+      if (dateFormat === 0 || dateFormat === 1 || dateFormat === 2) {
+        dateFormat = base.getDate();
+      } else {
+        dateFormat += ":00";
+      }
+    } else if (["4h"].indexOf(this.cfg.timeUnit) !== -1) {
+      dateFormat = base.getHours();
+      if ([0, 1, 2, 3].indexOf(dateFormat) !== -1) {
+        dateFormat = base.getDate();
+      } else {
+        dateFormat += ":00";
+      }
+    } else if (["1d", "1w"].indexOf(this.cfg.timeUnit) !== -1) {
+      if ([1, 2, 3].indexOf(base.getDate()) !== -1) {
+        dateFormat = months[base.getMonth()];
+      } else {
+        dateFormat = base.getDate();
+      }
+      // dateFormat += " " + base.getHours();
+    }
+
+    return dateFormat;
+  };
+
+  /*
+function timeConverter(UNIX_timestamp){
+  var a = new Date(UNIX_timestamp * 1000);
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var year = a.getFullYear();
+  var month = months[a.getMonth()];
+  var date = a.getDate();
+  var hour = a.getHours();
+  var min = a.getMinutes();
+  var sec = a.getSeconds();
+  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+  return time;
+}
+  */
+
+  // return one period unit(milisecconds) for current period
+  Lines.prototype.dateUnit = function() {
+    var oneMin, unit;
+
+    oneMin = 60000; //60
+
+    switch (this.cfg.timeUnit) {
+      case "5m":
+        unit = 5 * oneMin;
+        break;
+      case "15m":
+        unit = 15 * oneMin;
+        break;
+      case "30m":
+        unit = 30 * oneMin;
+        break;
+      case "1h":
+        unit = 60 * oneMin;
+        break;
+      case "4h":
+        unit = 4 * 60 * oneMin;
+        break;
+      case "1d":
+        unit = 24 * 60 * oneMin;
+        break;
+      case "1w":
+        unit = 7 * 24 * 60 * oneMin;
+        break;
+    }
+
+    return unit;
+  };
+
   //calculate hours;
   //in minute
   //start date
   //start hour
   Lines.prototype.labelX = function(step) {
     var label, res = "";
-    label = 840; //14
+    label = 840; //14 why 14 ???
     switch (this.cfg.timeUnit) {
       case "5m":
         label += 5 * step;
@@ -2128,6 +2262,14 @@ var Lines = Lines || {};
   // change stepX value...
   // did not need to recalculate everething from begining
   // only change stepX and redraw ...
+
+  /*
+    if (stepX > this.cfg.step.xMax) {
+      stepX = this.cfg.step.xMax;
+    } else if (stepX < this.cfg.step.xMin) {
+      stepX = this.cfg.step.xMin;
+    }
+  */
   Lines.prototype.zoom = function(type = "in") {
     var oldData, stepX, ids;
 
@@ -2139,6 +2281,10 @@ var Lines = Lines || {};
       stepX += this.cfg.step.zoom;
     } else if (type === "out") {
       stepX -= this.cfg.step.zoom;
+    }
+    if (stepX > this.cfg.step.xMax || stepX < this.cfg.step.xMin) {
+      this.pr("step X reach the limit");
+      return;
     }
     this.s({ type: this.TYPE.sinit, prop: "stepX" }, stepX);
 
