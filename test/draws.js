@@ -57,8 +57,8 @@ describe("Lines check some of draw methods", function() {
     spyDraw.store = sinon.stub(lines, "store");
     spyDraw.printPath = sinon.stub(lines, "printPath");
 
+    lines.debug = false;
     spyDraw.debug = sinon.stub(lines, "debugDot");
-
     lines.draw("axis");
     // call at drawCandle
     expect(spyDraw.printPath.calledOnce).to.be.true;

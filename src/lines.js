@@ -17,7 +17,7 @@ var Lines = Lines || {};
   };
 
   // Debug flag. When is set draw additional dots and debug messages
-  Lines.prototype.debug = false;
+  Lines.prototype.debug = true;
 
   // Contstant TYPESVG
   Lines.prototype.TYPESVG = {
@@ -58,10 +58,10 @@ var Lines = Lines || {};
   Lines.prototype.lelms = {
     id: [],
     navid: [],
-    last: 0,
-    nav: {},
-    line: {},
-    arrow: {}
+    last: false,
+    nav: false,
+    line: false,
+    arrow: false
   };
 
   // candle.winp store path string for win candle shadow
@@ -93,6 +93,7 @@ var Lines = Lines || {};
       padding: 40,
       attr: { stroke: "#ddd", fill: "none", strokeWidth: 1 },
       textAttr: { "stroke-width": "0.1px", "font-family": "Verdana", "font-size": "12px", fill: "#000" },
+      textBold: { "font-weight": "bold" },
       enableGrid: true,
       candleFill: 0.4,
       grids: 5,
@@ -133,7 +134,7 @@ var Lines = Lines || {};
     },
     timeUnit: "4h",
     timeUnit: "1h",
-    // timeUnit: "1d",
+    timeUnit: "1d",
     // timeUnit: "1w",
     timeUnits: ["15m", "30m", "1h", "4h", "1d", "1w"], //supported TIME UNITS
     drawOrder: ["drawLine", "drawCandle", "drawSMA", "drawEMA"]
@@ -165,10 +166,6 @@ var Lines = Lines || {};
 
     // check if snap exist. for testing purposes
     this.snap && this.snap.attr(this.cfg.chart.attr);
-  };
-
-  Lines.prototype.setConfig = function (confInfo, confValue) {
-
   };
 
   // Interface method
@@ -651,7 +648,9 @@ var Lines = Lines || {};
         []
       ],
       plen, _linePath = "",
-      svg, lk = 0, diff = 0, xlabel;
+      svg, lk = 0,
+      diff = 0,
+      xlabel;
 
     plen = this.gg("points").length;
     lineAxis[0][0] = this.chartArea.zeroX + this.gg("stepX");
@@ -669,10 +668,11 @@ var Lines = Lines || {};
         svg = this.snap.text(xAxis - 5, lineAxis[0][1] + 15, xlabel);
         svg.attr({ class: this.cfg.cssClass.textLabel });
         svg.attr(this.cfg.chart.textAttr);
-        if (xlabel.length === 1 || xlabel.length === 2 || xlabel.length === 3) {
-
+        if ((xlabel.length === 1 || xlabel.length === 2 || xlabel.length === 3) && this.cfg.timeUnit !== "1w" && this.cfg.timeUnit !== "1d") {
+          svg.attr(this.cfg.chart.textBold);
+        } else if (xlabel.length > 2) {
+          svg.attr(this.cfg.chart.textBold);
         }
-
         this.store({ type: this.TYPE.axis }, svg);
       }
       xAxis += this.gg("stepX");
@@ -712,7 +712,7 @@ var Lines = Lines || {};
     periodLength = this.chartArea.width / this.gg("stepX");
     periodLength = this.f(periodLength, 0) - 1;
     //add or subtrack offset 
-    periodLength += this.g({type: "sinit", prop: "offset"}) || 0;
+    periodLength += this.g({ type: "sinit", prop: "offset" }) || 0;
 
     timeLine.perPeriod = this.dateUnit(); // in milliseconds
     if (period === periodLength) {
@@ -724,17 +724,16 @@ var Lines = Lines || {};
       timeLine.diff = timeLine.end % timeLine.perPeriod;
       timeLine.end -= timeLine.diff;
     }
-
     timeLine.begin = timeLine.end - (timeLine.perPeriod * periodLength); //start scale
     timeLine.thisPeriod = timeLine.begin + (period * timeLine.perPeriod);
 
     return this.formatDate(timeLine.thisPeriod);
   };
 
-  Lines.prototype.formatDate = function(period) {
+  Lines.prototype.formatDate = function(timeStamp) {
     var base, dateFormat, months;
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    base = new Date(period);
+    base = new Date(timeStamp);
 
     if (["15m", "30m"].indexOf(this.cfg.timeUnit) !== -1) {
       dateFormat = base.getHours();
@@ -757,16 +756,22 @@ var Lines = Lines || {};
       } else {
         dateFormat += ":00";
       }
-    } else if (["1d", "1w"].indexOf(this.cfg.timeUnit) !== -1) {
+    } else if (["1d"].indexOf(this.cfg.timeUnit) !== -1) {
       if ([1, 2, 3].indexOf(base.getDate()) !== -1) {
         dateFormat = months[base.getMonth()];
       } else {
         dateFormat = base.getDate();
       }
       // dateFormat += " " + base.getHours();
+    } else if (["1w"].indexOf(this.cfg.timeUnit) !== -1) {
+      if ([1, 2, 3, 4, 5].indexOf(base.getDate()) !== -1) {
+        dateFormat = months[base.getMonth()];
+      } else {
+        dateFormat = base.getDate();
+      }
     }
-
-    return dateFormat;
+    //convert to string
+    return dateFormat + "";
   };
 
   /*
@@ -1432,16 +1437,16 @@ function timeConverter(UNIX_timestamp){
       var elemInfo = this.splitId(getInfo.id, true);
       return this.lelms[elemInfo.type][getInfo.id];
     } else if (getInfo.prop) {
-      return this.lelms[getInfo.type][getInfo.prop] || this.lelms[getInfo.type];
+      return this.lelms[getInfo.type][getInfo.prop] || false;
     } else {
-      return this.lelms[getInfo.type];
+      return this.lelms[getInfo.type] || false;
     }
   };
 
   // set live
   Lines.prototype.sl = function(setInfo = {}, setData) {
     this.lelms[setInfo.type] || (this.lelms[setInfo.type] = {});
-
+    console.log("sl :::", setInfo, setData)
     //push elemID into navid OR id
     if (setInfo.type === "nav") {
       this.lelms.navid.push(setInfo.prop);
@@ -1462,22 +1467,31 @@ function timeConverter(UNIX_timestamp){
   // set lelms.last.elem and use for further on
   // callback function for drag navigation DOT...
   // dragData.state = [start, drag, finish]
-  Lines.prototype.navDotDrag = function(dragData = {}) {
+  Lines.prototype.navDotDrag = function(dragData = {}, extraData = {}) {
 
     //explicit set new element for EACH DRAG START !!!
     if (dragData.state === "start") {
       this.dragtmp.elem = this.gl({ id: dragData.elemId });
       this.dragtmp.move = this.getNavDot(dragData.elemId, "move");
       this.dragtmp.rotate = this.getNavDot(dragData.elemId, "rotate");
-
       this.dragtmp.moveAxis = this.getAxis(dragData.elemId, "move");
-      this.dragtmp.transform = this.dragtmp.elem.transform ? this.dragtmp.elem.transform().local : 0;
-      if (dragData.action === "move") {
+
+      if (!this.dragtmp.group) {
         this.dragtmp.elem.transform("");
-        this.dragtmp.rotate.transform("");
-        this.dragtmp.group = this.snap.g(this.dragtmp.elem, this.dragtmp.rotate);
+        this.dragtmp.group = this.snap.g(this.dragtmp.elem);
         this.dragtmp.group.transform(this.dragtmp.transform);
+        if (extraData.arrow) {
+          this.dragtmp.group.add(this.getArrow(dragData.elemId));
+        }
       }
+
+      if (dragData.action === "move") {
+        this.dragtmp.rotate.transform("");
+        // this.dragtmp.group = this.snap.g(this.dragtmp.elem, this.dragtmp.rotate);
+        this.dragtmp.group.add(this.dragtmp.rotate);
+        // this.dragtmp.group.add(this.dragtmp.arrow);
+      }
+      this.dragtmp.transform = this.dragtmp.group.transform ? this.dragtmp.group.transform().local : 0;
     } else if (dragData.state === "drag") {
       var transform;
       if (dragData.action === "move") {
@@ -1487,11 +1501,13 @@ function timeConverter(UNIX_timestamp){
       } else if (dragData.action === "rotate") {
         transform = this.dragtmp.transform + (this.dragtmp.transform ? "R" : "r");
         transform += [dragData.angle, this.dragtmp.moveAxis.x, this.dragtmp.moveAxis.y];
-        this.dragtmp.elem.transform(transform);
+        this.dragtmp.group.transform(transform);
       }
     } else if (dragData.state === "finish" && dragData.action === "move") {
-      this.mvElem(dragData.elemId);
+      // this.mvElem(dragData.elemId);
       this.mvElem(this.dragtmp.rotate.node.id);
+
+      // this.dragtmp = {};
     }
   };
 
@@ -1503,11 +1519,10 @@ function timeConverter(UNIX_timestamp){
     var axis, elemID, navidLength, liveLine = {};
     //restore last live element for multiple lines ...
     this.lelms.last = 0;
-
     this.liveMove(extra, moveData => {
       axis = moveData.axis;
       if (moveData.state === "start") {
-        if (!this.lelms.last) {
+        // if (!this.lelms.last) {
           navidLength = this.gl({ type: "navid" }).length;
           elemID = this.makeId({ type: "line", nav1: navidLength, nav2: navidLength + 1 }, true);
           liveLine.info = {
@@ -1519,18 +1534,18 @@ function timeConverter(UNIX_timestamp){
           this.lelms.last = this.drawSVG(liveLine.info);
           this.sl({ type: "line", prop: elemID }, this.lelms.last); //set/store element
 
-          extra.arrow && this.liveArrow([axis[1]]);
-          extra.tube && this.liveTube([axis[1]]);
-        }
+        // }
 
         // add navigation DOT at start of MOVE
         if (!extra.tube) {
           this.navDot({ axis: axis[0], action: "move", elemId: elemID, extra: extra },
-            dragData => this.navDotDrag.call(this, dragData));
+            dragData => this.navDotDrag.call(this, dragData, extra));
 
           this.navDot({ axis: axis[1], action: "rotate", elemId: elemID, extra: extra },
-            dragData => this.navDotDrag.call(this, dragData));
+            dragData => this.navDotDrag.call(this, dragData, extra));
         }
+        extra.arrow && this.liveArrow([axis[1]]);
+        extra.tube && this.liveTube([axis[1]]);
       } else if (moveData.state === "move") {
         this.lelms.last.attr({
           x1: axis[0][0],
@@ -1539,9 +1554,15 @@ function timeConverter(UNIX_timestamp){
           y2: axis[1][1]
         });
         if (!extra.tube) {
-          navidLength = this.gl({ type: "navid" }).length - 1;
-          this.lgs("navs")[navidLength].attr({ cx: moveData.axis[1][0], cy: moveData.axis[1][1] });
-          this.lgs("navs")[navidLength - 1].attr({ cx: moveData.axis[0][0], cy: moveData.axis[0][1] });
+          var ndots = this.getNavDot(elemID);
+          ndots.move.attr({ cx: moveData.axis[1][0], cy: moveData.axis[1][1] });
+          ndots.rotate.attr({ cx: moveData.axis[0][0], cy: moveData.axis[0][1] });
+          
+          // navidLength = this.gl({ type: "navid" }).length - 1;
+          // // var navDots = this.getNavDot();
+          // console.log("moveDATA :::", moveData, elemID)
+          // this.lgs("navs")[navidLength].attr({ cx: moveData.axis[1][0], cy: moveData.axis[1][1] });
+          // this.lgs("navs")[navidLength - 1].attr({ cx: moveData.axis[0][0], cy: moveData.axis[0][1] });
         }
 
         extra.arrow && this.liveArrow([axis[1], axis[0]]);
@@ -1569,6 +1590,8 @@ function timeConverter(UNIX_timestamp){
     }
     navDots.move.attr({ class: navDots.classMove.join(" ") });
     navDots.rotate.attr({ class: navDots.classRotate.join(" ") });
+
+    this.dragtmp = {};
   };
 
   // REMOVE liveLineID and related navDots
@@ -1584,31 +1607,58 @@ function timeConverter(UNIX_timestamp){
     this.dl({ type: "nav", prop: navDots.rotate.node.id });
   };
 
+  // return arrow for this element // ?? ?? ??
+  Lines.prototype.getArrow = function(liveElemID) {
+    var elemInfo, arrow = {};
+    elemInfo = this.splitId(liveElemID);
+
+    arrow.id = this.makeId({ type: "arrow", nav1: elemInfo.navdot[1] }, true);
+
+    arrow.elem = this.gl({ type: "arrow", prop: arrow.id });
+
+    return arrow.elem;
+  };
+
+  //draw arrow ONLY from lineAxis[0]
   Lines.prototype.liveArrow = function(lineAxis) {
     var points = [],
       size, angle = 0,
-      apath = "";
+      apath = "",
+      arrow = {};
 
-    this.llive.arrow && this.llive.arrow.remove();
-
+    var navidLength = this.gl({ type: "navid" }).length;
+    navidLength = navidLength ? navidLength - 1 : 1;
+    arrow.id = this.makeId({ type: "arrow", nav1: navidLength }, true);
     size = this.cfg.step.arrow / 5;
-
     points.push([lineAxis[0][0] - size, lineAxis[0][1] + size]);
     points.push([lineAxis[0][0] + size, lineAxis[0][1] + size]);
     points.push(lineAxis[0]); //joint point
-    if (lineAxis[1]) {
-      angle = Snap.angle(lineAxis[0][0], lineAxis[0][1], lineAxis[1][0], lineAxis[1][1]);
-      angle = this.f(angle, 0) + 90;
-    }
-
     apath += this.getPath([points[0], points[2]]);
     apath += this.getPath([points[1], points[2]]);
 
-    this.llive.arrow = this.snap.path(apath);
-    this.llive.arrow.attr({ class: this.cfg.cssClass.liveLine });
-    this.llive.arrow.node.id = this.makeId({ type: "arrow", nav1: 1 });
+    arrow.elem = this.gl({ type: "arrow", prop: arrow.id });
+    console.log(">>> ",arrow.id, arrow.elem)
+    if (arrow.elem) {
+      if (lineAxis[1]) {
+        angle = Snap.angle(lineAxis[0][0], lineAxis[0][1], lineAxis[1][0], lineAxis[1][1]);
+        angle = this.f(angle, 0) + 90;
+      }
+      arrow.elem.attr({ d: apath });
+      arrow.elem.transform("r" + angle + "," + lineAxis[0][0] + "," + lineAxis[0][1]);
+    } else {
+      arrow.elem = this.snap.path(apath);
+      arrow.elem.attr({ class: this.cfg.cssClass.liveLine });
+      arrow.elem.node.id = arrow.id;
+      this.sl({ type: "arrow", prop: arrow.id }, arrow.elem);
+    }
 
-    this.llive.arrow && this.llive.arrow.transform("r" + angle + "," + lineAxis[0][0] + "," + lineAxis[0][1]);
+
+
+    // arrow.elem.transform("r" + angle + "," + lineAxis[0][0] + "," + lineAxis[0][1]);
+    // this.llive.arrow = this.snap.path(apath);
+    // this.llive.arrow.attr({ class: this.cfg.cssClass.liveLine });
+    // this.llive.arrow.node.id = this.makeId({ type: "arrow", nav1: 1 });
+    // this.llive.arrow && this.llive.arrow.transform("r" + angle + "," + lineAxis[0][0] + "," + lineAxis[0][1]);
   };
 
   Lines.prototype.lline = {
