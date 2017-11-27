@@ -1437,7 +1437,7 @@ function timeConverter(UNIX_timestamp){
       var elemInfo = this.splitId(getInfo.id, true);
       return this.lelms[elemInfo.type][getInfo.id];
     } else if (getInfo.prop) {
-      return this.lelms[getInfo.type][getInfo.prop] || false;
+      return this.lelms[getInfo.type] ? (this.lelms[getInfo.type][getInfo.prop] || false) : false;
     } else {
       return this.lelms[getInfo.type] || false;
     }
@@ -1446,7 +1446,6 @@ function timeConverter(UNIX_timestamp){
   // set live
   Lines.prototype.sl = function(setInfo = {}, setData) {
     this.lelms[setInfo.type] || (this.lelms[setInfo.type] = {});
-    console.log("sl :::", setInfo, setData)
     //push elemID into navid OR id
     if (setInfo.type === "nav") {
       this.lelms.navid.push(setInfo.prop);
@@ -1481,7 +1480,10 @@ function timeConverter(UNIX_timestamp){
         this.dragtmp.group = this.snap.g(this.dragtmp.elem);
         this.dragtmp.group.transform(this.dragtmp.transform);
         if (extraData.arrow) {
-          this.dragtmp.group.add(this.getArrow(dragData.elemId));
+          this.dragtmp.group.add(this.getByType(dragData.elemId, "arrow"));
+        } else if (extraData.tube) {
+          var tubeElem = this.getByType(dragData.elemId, "tube");
+          this.dragtmp.group.add(tubeElem.top, tubeElem.bot);
         }
       }
 
@@ -1523,16 +1525,16 @@ function timeConverter(UNIX_timestamp){
       axis = moveData.axis;
       if (moveData.state === "start") {
         // if (!this.lelms.last) {
-          navidLength = this.gl({ type: "navid" }).length;
-          elemID = this.makeId({ type: "line", nav1: navidLength, nav2: navidLength + 1 }, true);
-          liveLine.info = {
-            type: this.TYPESVG.line,
-            axis: axis,
-            class: this.cfg.cssClass.liveLine,
-            id: elemID
-          };
-          this.lelms.last = this.drawSVG(liveLine.info);
-          this.sl({ type: "line", prop: elemID }, this.lelms.last); //set/store element
+        navidLength = this.gl({ type: "navid" }).length;
+        elemID = this.makeId({ type: "line", nav1: navidLength, nav2: navidLength + 1 }, true);
+        liveLine.info = {
+          type: this.TYPESVG.line,
+          axis: axis,
+          class: this.cfg.cssClass.liveLine,
+          id: elemID
+        };
+        this.lelms.last = this.drawSVG(liveLine.info);
+        this.sl({ type: "line", prop: elemID }, this.lelms.last); //set/store element
 
         // }
 
@@ -1544,8 +1546,8 @@ function timeConverter(UNIX_timestamp){
           this.navDot({ axis: axis[1], action: "rotate", elemId: elemID, extra: extra },
             dragData => this.navDotDrag.call(this, dragData, extra));
         }
-        extra.arrow && this.liveArrow([axis[1]]);
-        extra.tube && this.liveTube([axis[1]]);
+        // extra.arrow && this.liveArrow([axis[1]]);
+        // extra.tube && this.liveTube([axis[1]]);
       } else if (moveData.state === "move") {
         this.lelms.last.attr({
           x1: axis[0][0],
@@ -1557,12 +1559,6 @@ function timeConverter(UNIX_timestamp){
           var ndots = this.getNavDot(elemID);
           ndots.move.attr({ cx: moveData.axis[1][0], cy: moveData.axis[1][1] });
           ndots.rotate.attr({ cx: moveData.axis[0][0], cy: moveData.axis[0][1] });
-          
-          // navidLength = this.gl({ type: "navid" }).length - 1;
-          // // var navDots = this.getNavDot();
-          // console.log("moveDATA :::", moveData, elemID)
-          // this.lgs("navs")[navidLength].attr({ cx: moveData.axis[1][0], cy: moveData.axis[1][1] });
-          // this.lgs("navs")[navidLength - 1].attr({ cx: moveData.axis[0][0], cy: moveData.axis[0][1] });
         }
 
         extra.arrow && this.liveArrow([axis[1], axis[0]]);
@@ -1578,8 +1574,8 @@ function timeConverter(UNIX_timestamp){
   Lines.prototype.liveLineClick = function(liveLineID) {
     var navDots;
     navDots = this.getNavDot(liveLineID); // return move & rotate
-    navDots.classMove = navDots.move.attr("class").split(" ");
-    navDots.classRotate = navDots.rotate.attr("class").split(" ");
+    navDots.classMove = navDots.move ? navDots.move.attr("class").split(" ") : [];
+    navDots.classRotate = navDots.rotate ? navDots.rotate.attr("class").split(" ") : [];
 
     if (navDots.classMove.indexOf("hidden") !== -1) {
       navDots.classMove.pop();
@@ -1588,8 +1584,9 @@ function timeConverter(UNIX_timestamp){
       navDots.classMove.push("hidden");
       navDots.classRotate.push("hidden");
     }
-    navDots.move.attr({ class: navDots.classMove.join(" ") });
-    navDots.rotate.attr({ class: navDots.classRotate.join(" ") });
+
+    navDots.move && navDots.move.attr({ class: navDots.classMove.join(" ") });
+    navDots.rotate && navDots.rotate.attr({ class: navDots.classRotate.join(" ") });
 
     this.dragtmp = {};
   };
@@ -1607,16 +1604,23 @@ function timeConverter(UNIX_timestamp){
     this.dl({ type: "nav", prop: navDots.rotate.node.id });
   };
 
-  // return arrow for this element // ?? ?? ??
-  Lines.prototype.getArrow = function(liveElemID) {
-    var elemInfo, arrow = {};
+  // return arrow for liveElemID
+  // return tube bot & top
+  Lines.prototype.getByType = function(liveElemID, typeElem = "arrow") {
+    var elemInfo, liveElem = {};
     elemInfo = this.splitId(liveElemID);
+    if (typeElem === "arrow") {
+      liveElem.id = this.makeId({ type: typeElem, nav1: elemInfo.navdot[1] }, true);
+      liveElem.elem = this.gl({ type: typeElem, prop: liveElem.id });
+    } else if (typeElem === "tube") {
+      liveElem.id1 = this.makeId({ type: typeElem, nav1: elemInfo.navdot[0] }, true);
+      liveElem.id2 = this.makeId({ type: typeElem, nav1: elemInfo.navdot[1] }, true);
+      liveElem.elem = {};
+      liveElem.elem.top = this.gl({ type: typeElem, prop: liveElem.id1 });
+      liveElem.elem.bot = this.gl({ type: typeElem, prop: liveElem.id2 });
+    }
 
-    arrow.id = this.makeId({ type: "arrow", nav1: elemInfo.navdot[1] }, true);
-
-    arrow.elem = this.gl({ type: "arrow", prop: arrow.id });
-
-    return arrow.elem;
+    return liveElem.elem;
   };
 
   //draw arrow ONLY from lineAxis[0]
@@ -1637,7 +1641,6 @@ function timeConverter(UNIX_timestamp){
     apath += this.getPath([points[1], points[2]]);
 
     arrow.elem = this.gl({ type: "arrow", prop: arrow.id });
-    console.log(">>> ",arrow.id, arrow.elem)
     if (arrow.elem) {
       if (lineAxis[1]) {
         angle = Snap.angle(lineAxis[0][0], lineAxis[0][1], lineAxis[1][0], lineAxis[1][1]);
@@ -1651,47 +1654,13 @@ function timeConverter(UNIX_timestamp){
       arrow.elem.node.id = arrow.id;
       this.sl({ type: "arrow", prop: arrow.id }, arrow.elem);
     }
-
-
-
-    // arrow.elem.transform("r" + angle + "," + lineAxis[0][0] + "," + lineAxis[0][1]);
-    // this.llive.arrow = this.snap.path(apath);
-    // this.llive.arrow.attr({ class: this.cfg.cssClass.liveLine });
-    // this.llive.arrow.node.id = this.makeId({ type: "arrow", nav1: 1 });
-    // this.llive.arrow && this.llive.arrow.transform("r" + angle + "," + lineAxis[0][0] + "," + lineAxis[0][1]);
   };
 
-  Lines.prototype.lline = {
-    tube: {
-      navs: []
-    }
-  };
-
-  // live getter & setter
-  // same as g & gg & s
-  // if liveData exist setter else getter
-  Lines.prototype.lgs = function(liveProp = "", liveData = false) {
-    var liveObj = { type: "tube" };
-    if (!liveProp) {
-      return false;
-    }
-
-    liveObj.prop = liveProp;
-
-    //set value
-    if (liveData) {
-      this.lline[liveObj.type][liveObj.prop] = liveData;
-    }
-
-    return this.lline[liveObj.type][liveObj.prop] || false;
-  };
-
-  // toDo - refactor 
   Lines.prototype.liveTube = function(lineAxis = []) {
-    var pts = [],
+    var liveElemID, pts = [],
       tlines = {};
 
-    if (lineAxis.length !== 2) {
+    if (!lineAxis[1]) {
       return;
     }
     pts[0] = [lineAxis[1][0], lineAxis[1][1]];
@@ -1700,63 +1669,41 @@ function timeConverter(UNIX_timestamp){
     pts[3] = [lineAxis[0][0] + (this.chartArea.width - lineAxis[0][0]), lineAxis[0][1]];
 
     tlines.angle = Snap.angle(lineAxis[0][0], lineAxis[0][1], lineAxis[1][0], lineAxis[1][1]);
+    liveElemID = this.lelms.last.node.id;
 
-    //if top & bott element did not exist
-    if (!this.lgs("top") || !this.lgs("bott")) {
-      tlines.top = this.snap.line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
-      tlines.top.attr({ class: this.cfg.cssClass.liveLine });
-      tlines.bott = this.snap.line(pts[2][0], pts[2][1], pts[3][0], pts[3][1]).attr({ class: this.cfg.cssClass.liveLine });
-      tlines.bott.attr({ class: this.cfg.cssClass.liveLine });
-      this.lgs("top", tlines.top);
-      this.lgs("bott", tlines.bott);
-
-      //create group with top, bott and line
-      tlines.group = this.snap.g(tlines.top, tlines.bott, this.lelms.last);
-      tlines.group.attr({ class: "livet" });
-
+    if (!this.getByType(liveElemID, "tube").top || !this.getByType(liveElemID, "tube").bot) {
       var navidLength = this.gl({ type: "navid" }).length;
-      var elemID = this.makeId({ type: "tube", nav1: navidLength, nav2: navidLength + 1 }, true);
-      tlines.group.node.id = elemID;
-      this.lgs("group", tlines.group);
+      navidLength = !navidLength ? 1 : navidLength;
+      // TOP LINE
+      tlines.topID = this.makeId({ type: "tube", nav1: navidLength }, true);
+      tlines.top = this.snap.line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
+      tlines.top.attr({ class: this.cfg.cssClass.liveLine, id: tlines.topID });
+      // BOT LINE
+      tlines.botID = this.makeId({ type: "tube", nav1: navidLength - 1 }, true);
+      tlines.bot = this.snap.line(pts[2][0], pts[2][1], pts[3][0], pts[3][1]);
+      tlines.bot.attr({ class: this.cfg.cssClass.liveLine, id: tlines.botID });
+      this.sl({ type: "tube", prop: tlines.topID }, tlines.top);
+      this.sl({ type: "tube", prop: tlines.botID }, tlines.bot);
 
-      // moving navDot
-      var navDotAxis = [pts[0][0] + this.cfg.chart.navDot, pts[0][1] + this.cfg.chart.navDot];
-      this.navDot({ axis: navDotAxis, action: "move", elemId: elemID }, dragData => {
-        if (dragData.state === "start") {
-          this.lgs("navs")[1].transform("");
-          this.lline.tube.grTransform = this.lgs("group").transform().local;
-          this.lgs("group").add(this.lline.tube.navs[1]);
-        } else if (dragData.state === "drag") {
-          var _trans = this.lline.tube.grTransform + (this.lline.tube.grTransform ? "T" : "t") + [dragData.dx, dragData.dy];
-          tlines.group.transform(_trans);
-        } else if (dragData.state === "finish") {
-          var navsProp = this.lgs("navs")[0].getBBox();
-          //update point 0 
-          pts[0][0] = this.f(navsProp.cx, 0); // ?????
-          pts[0][1] = this.f(navsProp.cy, 0);
-          this.mvElem(this.lgs("navs")[1].node.id);
+      tlines.moveAxis = [pts[0][0] + this.cfg.chart.navDot, pts[0][1] + this.cfg.chart.navDot];
+      this.navDot({ axis: tlines.moveAxis, action: "move", elemId: liveElemID },
+        dragData => this.navDotDrag.call(this, dragData, { tube: true }));
 
-          // this.lgs("navs")[1].transform(this.lgs("group").transform().local);
-        }
-      });
-
-      // rotation navDot
-      this.navDot({ axis: pts[2], action: "rotate", elemId: elemID }, dragData => {
-        if (dragData.state === "start") {
-          this.lline.tube.grTransform = this.lgs("group").transform().local;
-        } else if (dragData.state === "drag") {
-          var _trans = this.lline.tube.grTransform + (this.lline.tube.grTransform ? "R" : "r") + [dragData.angle, pts[0][0], pts[0][1]];
-          tlines.group.transform(_trans);
-        }
-      });
+      tlines.rotateAxis = [pts[2][0] + this.cfg.chart.navDot, pts[2][1] + this.cfg.chart.navDot];
+      this.navDot({ axis: tlines.rotateAxis, action: "rotate", elemId: liveElemID },
+        dragData => this.navDotDrag.call(this, dragData, { tube: true }));
     } else {
       tlines.angle -= 90;
 
-      this.lgs("top").transform("r" + tlines.angle + "," + [pts[0][0], pts[0][1]]);
-      this.lgs("bott").attr({ x1: pts[2][0], x2: pts[3][0] });
-      this.lgs("bott").attr({ y1: pts[2][1], y2: pts[3][1] });
-      this.lgs("bott").transform("r" + tlines.angle + "," + [pts[2][0], pts[2][1]]);
-      this.lgs("navs")[1].attr({ cx: pts[2][0], cy: pts[2][1] });
+      if (!this.updateOnce) {
+        this.getByType(liveElemID, "tube").top.attr({ x1: pts[0][0], x2: pts[1][0], y1: pts[0][1], y2: pts[1][1] });
+        this.getNavDot(liveElemID, "rotate").attr({ cx: lineAxis[1][0], cy: lineAxis[1][1] });
+        this.updateOnce = true;
+      }
+      this.getByType(liveElemID, "tube").top.transform("r" + tlines.angle + "," + [pts[0][0], pts[0][1]]);
+      this.getByType(liveElemID, "tube").bot.attr({ x1: pts[2][0], y1: pts[2][1], y2: pts[3][1] });
+      this.getByType(liveElemID, "tube").bot.transform("r" + tlines.angle + "," + [pts[2][0], pts[2][1]]);
+      this.getNavDot(liveElemID, "move").attr({ cx: pts[2][0], cy: pts[2][1] });
     }
   };
 
@@ -1798,7 +1745,7 @@ function timeConverter(UNIX_timestamp){
       navDot.elem.attr({ class: this.cfg.cssClass.navDot + " " + this.cfg.cssClass.rotateNavDot + " hidden" });
     }
     this.sl({ type: "nav", prop: navDot.info.id }, navDot.elem);
-    this.lline.tube.navs.push(navDot.elem); // store element
+    // this.lline.tube.navs.push(navDot.elem); // store element
 
     chart.left = this.chartArea.offsetLeft;
     chart.top = this.chartArea.offsetTop;
@@ -1808,8 +1755,8 @@ function timeConverter(UNIX_timestamp){
       }
 
       var dragData = {
-        dx: (navData.extra.constx ? 0 : dx),
-        dy: (navData.extra.consty ? 0 : dy),
+        dx: (navData.extra && navData.extra.constx ? 0 : dx),
+        dy: (navData.extra && navData.extra.consty ? 0 : dy),
         posx: (posx - chart.left),
         posy: (posy - chart.top),
         state: "drag",
@@ -1820,7 +1767,7 @@ function timeConverter(UNIX_timestamp){
 
       if (navData.action === "move") {
         this.transform(dragData.transform + (dragData.transform ? "T" : "t") + [dragData.dx, dragData.dy]); // transform navDot
-      } else if (navData.action === "rotate" && !navData.extra.constx && !navData.extra.consty) {
+      } else if (navData.action === "rotate" && (!navData.extra || (navData.extra && !navData.extra.constx && !navData.extra.consty))) {
         dragData.angle = Snap.angle(navRotate.x, navRotate.y, dragData.posx, dragData.posy) - initAngle;
         this.transform(dragData.transform + (dragData.transform ? "R" : "r") + [dragData.angle, navRotate.x, navRotate.y]); //rotate navDot
       }
