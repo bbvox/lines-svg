@@ -9,6 +9,7 @@
     "dest": "dist/lines.js"
   },
   "scripts": {
+    "postinstall": "npm run build",
     "test": "mocha test/lines.js test/draws.js test/ma.js",
     "lint": "eslint .",
     "step0": "rm -rf dist .tmp",
