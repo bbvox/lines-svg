@@ -189,8 +189,6 @@ var Lines = Lines || {};
     }
   };
 
-  Lines.prototype.date
-
   // Internal method
   // - check data length
   // if data is more than available slots slice it

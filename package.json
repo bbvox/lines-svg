@@ -1,6 +1,6 @@
 {
   "name": "lines-svg",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "LinesSvg is a financial chart library based on snapsvg",
   "main": "index.js",
   "repository": {
@@ -13,7 +13,6 @@
     "dest": "dist/lines.js"
   },
   "scripts": {
-    "_postinstall": "npm install && npm run build",
     "test": "mocha test/lines.js test/draws.js test/ma.js",
     "lint": "eslint .",
     "step0": "rm -rf dist .tmp",
