@@ -158,12 +158,14 @@ var Lines = Lines || {};
       h: height,
       width: (width - (this.cfg.chart.padding * 2)),
       height: (height - (this.cfg.chart.padding * 2)),
+      endX: this.cfg.chart.padding,
       zeroX: this.cfg.chart.padding,
       zeroY: height - this.cfg.chart.padding,
       offsetLeft: this.el.offsetLeft || this.el.parentElement.offsetLeft || 0,
       offsetTop: this.el.offsetTop || this.el.parentElement.offsetTop || 0
     };
-
+    // invert the chart start from left to right
+    this.chartArea.zeroX = this.chartArea.width;
     // check if snap exist. for testing purposes
     this.snap && this.snap.attr(this.cfg.chart.attr);
   };
@@ -215,9 +217,10 @@ var Lines = Lines || {};
       this.s({ type: this.TYPE.sinit, prop: "allraw" }, raw);
       offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
       slice = {
-        begin: (data.length - offset - perPage),
-        end: (data.length - offset)
+        begin: (offset > 0 ) ? offset : 0,
+        end: perPage + offset
       };
+      // slice
       cuttedData = raw.slice(slice.begin, slice.end);
       this.s({ type: this.TYPE.sinit, prop: "slice" }, slice);
       this.reset();
@@ -343,7 +346,7 @@ var Lines = Lines || {};
       change = {};
 
     change.x = this.gg("stepX");
-    point[0] = this.action({ type: chartType, prop: "lastX" + propPostfix }, { action: "+", value: change.x });
+    point[0] = this.action({ type: chartType, prop: "lastX" + propPostfix }, { action: "-", value: change.x });
 
     change.y = this.f((increase * this.gg("stepY")), 5);
     point[1] = this.action({ type: chartType, prop: "lastY" + propPostfix }, { action: "+", value: change.y });
@@ -367,7 +370,7 @@ var Lines = Lines || {};
       change = {};
 
     change.x = this.gg("stepX");
-    point[0] = this.action({ type: chartType, prop: "lastX" + propPostfix }, { action: "+", value: change.x });
+    point[0] = this.action({ type: chartType, prop: "lastX" + propPostfix }, { action: "-", value: change.x });
 
     change.y = this.f((decrease * this.gg("stepY")), 5);
     point[1] = this.action({ type: chartType, prop: "lastY" + propPostfix }, { action: "-", value: change.y });
@@ -391,7 +394,7 @@ var Lines = Lines || {};
       change = {};
 
     change.x = this.gg("stepX");
-    point[0] = this.action({ type: chartType, prop: "lastX" + propPostfix }, { action: "+", value: change.x });
+    point[0] = this.action({ type: chartType, prop: "lastX" + propPostfix }, { action: "-", value: change.x });
 
     point[1] = this.g({ type: chartType, prop: "lastY" + propPostfix });
 
@@ -651,7 +654,7 @@ var Lines = Lines || {};
       xlabel;
 
     plen = this.gg("points").length;
-    lineAxis[0][0] = this.chartArea.zeroX + this.gg("stepX");
+    lineAxis[0][0] = this.chartArea.endX + this.gg("stepX");
     lineAxis[0][1] = Math.floor(this.chartArea.zeroY + this.cfg.chart.padding / 2);
     lineAxis[1] = [lineAxis[0][0], lineAxis[0][1] + 4];
     xAxis = lineAxis[0][0] = lineAxis[1][0];
@@ -1045,6 +1048,7 @@ function timeConverter(UNIX_timestamp){
 
     candle.x = axis[0][0] + ((1 - this.cfg.chart.candleFill) / 2 * this.gg("stepX"));
     candle.x = this.f(candle.x, 0);
+    candle.x -= this.gg("stepX") //invert chart fix
 
     if (axis[0][1] > axis[1][1]) {
       candle.class = this.cfg.cssClass.winCandle;
@@ -1304,13 +1308,15 @@ function timeConverter(UNIX_timestamp){
       r: this.cfg.debug.radius,
       class: this.cfg.cssClass.liveDot
     };
+    console.log(live.dotInfo)
     dot = this.drawSVG(live.dotInfo);
 
     left = this.chartArea.offsetLeft;
     this.snap.mousemove((e, x) => {
       var cx, foundY;
       x -= left;
-      if (x > this.chartArea.zeroX && !(x % 5)) {
+      // if (x > this.chartArea.zeroX && !(x % 5)) {
+      if (x < this.chartArea.zeroX && !(x % 5)) {
         cx = x + this.dragX;
         foundY = this.findY((x - this.dragX)) || 0;
         if (foundY.pixel) {
@@ -1891,7 +1897,8 @@ function timeConverter(UNIX_timestamp){
 
     points = this.gg("points");
 
-    period = (x - this.chartArea.zeroX) / this.gg("stepX");
+    // period = (x - this.chartArea.zeroX) / this.gg("stepX");
+    period = (this.chartArea.zeroX - x) / this.gg("stepX");
     period = parseInt(period); // do not change with this.f !!!
 
     if (!points || !points[period] || !points[(period + 1)])
