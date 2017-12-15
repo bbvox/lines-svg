@@ -54,7 +54,6 @@ https://github.com/gabelerner/canvg
       </ul>
     </nav>
     <div id="svgRoot">
-      <div class="nav-dialog"><a href="">DEL</a></div>
       <svg id="svgBox"></svg>
       <nav id="svgZoom">
         <a href onclick="svg.zoom(event)">IN</a>
@@ -92,14 +91,79 @@ https://github.com/gabelerner/canvg
       var ratesJson = JSON.parse(this.responseText);
 
       window.l = new Lines("svgBox");
+
+var chartData = [];
+
+      chartData.push([0.986755,0.986765,0.986735,0.98674]);
+      chartData.push([0.98674,0.986765,0.986735,0.986755]);
+      chartData.push([0.98675,0.986765,0.98674,0.98674]);
+      chartData.push([0.986785,0.986785,0.98674,0.98675]);
+      chartData.push([0.986755,0.98676,0.98674,0.98676]);
+      chartData.push([0.98674,0.986765,0.986725,0.986755]);
+      chartData.push([0.98675,0.98676,0.98674,0.98674]);
+      chartData.push([0.986755,0.98676,0.98675,0.98676]);
+      chartData.push([0.98675,0.986765,0.986745,0.98676]);
+      chartData.push([0.986755,0.986765,0.986745,0.98675]);
+      chartData.push([0.986765,0.986765,0.98674,0.986755]);
+      chartData.push([0.98676,0.986765,0.98675,0.98675]);
+      chartData.push([0.98676,0.986765,0.98675,0.98676]);
+      chartData.push([0.986745,0.986775,0.98674,0.98675]);
+      chartData.push([0.98676,0.986775,0.986745,0.986745]);
+      chartData.push([0.986745,0.986765,0.986745,0.986755]);
+      chartData.push([0.98676,0.986775,0.986745,0.986745]);
+      chartData.push([0.98675,0.98678,0.98674,0.98676]);
+      chartData.push([0.986755,0.986765,0.98675,0.98676]);
+      chartData.push([0.98676,0.986765,0.986745,0.986755]);
+      chartData.push([0.98676,0.986765,0.98675,0.986755]);
+      chartData.push([0.98676,0.986765,0.98675,0.986765]);
+
+      chartData.push([0.98676,0.986765,0.98675,0.98675]);
+      chartData.push([0.98676,0.986765,0.98675,0.98676]);
+      chartData.push([0.986745,0.986775,0.98674,0.98675]);
+      chartData.push([0.98676,0.986775,0.986745,0.986745]);
+      chartData.push([0.986745,0.986765,0.986745,0.986755]);
+      chartData.push([0.98676,0.986775,0.986745,0.986745]);
+      chartData.push([0.98675,0.98678,0.98674,0.98676]);
+      chartData.push([0.986755,0.986765,0.98675,0.98676]);
+      chartData.push([0.98676,0.986765,0.986745,0.986755]);
+      chartData.push([0.98676,0.986765,0.98675,0.986755]);
+      chartData.push([0.98676,0.986765,0.98675,0.986765]);
+
+      chartData.push([0.98676,0.986765,0.98675,0.98675]);
+      chartData.push([0.98676,0.986765,0.98675,0.98676]);
+      chartData.push([0.986745,0.986775,0.98674,0.98675]);
+      chartData.push([0.98676,0.986775,0.986745,0.986745]);
+      chartData.push([0.986745,0.986765,0.986745,0.986755]);
+      chartData.push([0.98676,0.986775,0.986745,0.986745]);
+      chartData.push([0.98675,0.98678,0.98674,0.98676]);
+      chartData.push([0.986755,0.986765,0.98675,0.98676]);
+      chartData.push([0.98676,0.986765,0.986745,0.986755]);
+      chartData.push([0.98676,0.986765,0.98675,0.986755]);
+      chartData.push([0.98676,0.986765,0.98675,0.986765]);
+
+            chartData.push([0.98676,0.986765,0.98675,0.98675]);
+      chartData.push([0.98676,0.986765,0.98675,0.98676]);
+      chartData.push([0.986745,0.986775,0.98674,0.98675]);
+      chartData.push([0.98676,0.986775,0.986745,0.986745]);
+      chartData.push([0.986745,0.986765,0.986745,0.986755]);
+      chartData.push([0.98676,0.986775,0.986745,0.986745]);
+      chartData.push([0.98675,0.98678,0.98674,0.98676]);
+      chartData.push([0.986755,0.986765,0.98675,0.98676]);
+      chartData.push([0.98676,0.986765,0.986745,0.986755]);
+      chartData.push([0.98676,0.986765,0.98675,0.986755]);
+      chartData.push([0.98676,0.986765,0.98675,0.986765]);
+      console.log(chartData)
+
+
       l.data(ratesJson); // always second after that drawEMPTY
+      // l.data(chartData); // always second after that drawEMPTY
 
       l.draw("axis");
       l.draw("line");
       l.draw("candle");
       
-      /*
       l.draw("sma");
+      /*
       l.drawSMA(20); //sma 20
       l.liveLine({tube: true});
       */
