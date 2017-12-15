@@ -17,7 +17,7 @@ var Lines = Lines || {};
   };
 
   // Debug flag. When is set draw additional dots and debug messages
-  Lines.prototype.debug = true;
+  Lines.prototype.debug = false;
 
   // Contstant TYPESVG
   Lines.prototype.TYPESVG = {
@@ -132,9 +132,9 @@ var Lines = Lines || {};
       radius: 3,
       attr: { stroke: "red" }
     },
-    timeUnit: "4h",
     timeUnit: "1h",
-    timeUnit: "1d",
+    timeUnit: "15m",
+    timeUnit: "15m",
     // timeUnit: "1w",
     timeUnits: ["15m", "30m", "1h", "4h", "1d", "1w"], //supported TIME UNITS
     drawOrder: ["drawLine", "drawCandle", "drawSMA", "drawEMA"]
@@ -257,7 +257,7 @@ var Lines = Lines || {};
     var step = {},
       amplitude;
 
-    amplitude = this.f((this.gg("max") - this.gg("min")), 4);
+    amplitude = this.f((this.gg("max") - this.gg("min")), 5);
     this.s({ type: this.TYPE.init, prop: "amplitude" }, amplitude);
 
     step.y = this.f((this.chartArea.height / amplitude), 0);
@@ -611,6 +611,7 @@ var Lines = Lines || {};
     });
   };
 
+  //draw empty Grid behind chart
   Lines.prototype.drawAxis = function() {
     var lineAxis = [],
       yAxis, _linePath = "",
@@ -630,8 +631,8 @@ var Lines = Lines || {};
     gridStep = this.chartArea.height / this.cfg.chart.grids;
     this.s({ type: this.TYPE.init, prop: "gridstep" }, this.f(gridStep, 0));
 
-    lineAxis[0] = [this.chartArea.zeroX, this.chartArea.zeroY];
-    lineAxis[1] = [this.chartArea.width, this.chartArea.zeroY];
+    lineAxis[0] = [this.chartArea.endX, this.chartArea.zeroY];
+    lineAxis[1] = [this.chartArea.zeroX, this.chartArea.zeroY];
     yAxis = lineAxis[0][1] = lineAxis[1][1];
 
     for (; lk <= this.cfg.chart.grids; lk++) {
@@ -669,11 +670,18 @@ var Lines = Lines || {};
         svg = this.snap.text(xAxis - 5, lineAxis[0][1] + 15, xlabel);
         svg.attr({ class: this.cfg.cssClass.textLabel });
         svg.attr(this.cfg.chart.textAttr);
-        if ((xlabel.length === 1 || xlabel.length === 2 || xlabel.length === 3) && this.cfg.timeUnit !== "1w" && this.cfg.timeUnit !== "1d") {
-          svg.attr(this.cfg.chart.textBold);
-        } else if (xlabel.length > 2) {
-          svg.attr(this.cfg.chart.textBold);
+        switch (this.cfg.timeUnit) {
+          case "15m":
+            (xlabel.length === 2) && svg.attr(this.cfg.chart.textBold);
+            break;
         }
+
+        // if ((xlabel.length === 1 || xlabel.length === 2 || xlabel.length === 3) && this.cfg.timeUnit !== "1w" && this.cfg.timeUnit !== "1d") {
+        //   svg.attr(this.cfg.chart.textBold);
+        // } else if (xlabel.length > 2 && this.cfg.timeUnit !== "1h" && this.cfg.timeUnit !== "15m") {
+        //   svg.attr(this.cfg.chart.textBold);
+        // }
+
         this.store({ type: this.TYPE.axis }, svg);
       }
       xAxis += this.gg("stepX");
@@ -738,7 +746,7 @@ var Lines = Lines || {};
 
     if (["15m", "30m"].indexOf(this.cfg.timeUnit) !== -1) {
       dateFormat = base.getHours();
-      if (dateFormat === 0 || dateFormat === 1) {
+      if (dateFormat === 0 && base.getMinutes() < 31) {
         dateFormat = base.getDate();
       } else {
         dateFormat += ":" + base.getMinutes();
@@ -883,7 +891,6 @@ function timeConverter(UNIX_timestamp){
       lineAxis.push([points[pkey][0], points[pkey][1]]); // x1, y1
       lineAxis.push([points[pkey + 1][0], points[pkey + 1][1]]); // x2, y2
       _linePath += this.getPath(lineAxis);
-
       this.drawDebug(lineAxis[0]);
       lineAxis = [];
     }
@@ -1236,7 +1243,7 @@ function timeConverter(UNIX_timestamp){
       ema.yest = this.g({ type: this.TYPE.ema, prop: "data" + emaLength })[key - 1];
       ema.today = ema.price * emaK + ema.yest * emaK2;
 
-      this.add({ type: this.TYPE.ema, prop: "data" + emaLength }, this.f(ema.today, 4));
+      this.add({ type: this.TYPE.ema, prop: "data" + emaLength }, this.f(ema.today, 5));
     }
 
     len = key;
@@ -1914,7 +1921,7 @@ function timeConverter(UNIX_timestamp){
     foundY.pixel = (foundY.pixel > 0) ? Math.round(foundY.pixel) : 0;
 
     foundY.value = (this.chartArea.zeroY - foundY.pixel) / this.gg("stepY") + this.gg("min");
-    foundY.value = this.f(foundY.value, 4);
+    foundY.value = this.f(foundY.value, );
 
     return foundY;
   };
@@ -1932,6 +1939,7 @@ function timeConverter(UNIX_timestamp){
         r: this.cfg.debug.radius,
         class: this.cfg.cssClass.debugDot
       };
+      console.log(debug.info)
       debug.elem = this.drawSVG(debug.info);
       this.store({ type: this.TYPE.debug }, debug.elem);
     }
@@ -2253,6 +2261,11 @@ function timeConverter(UNIX_timestamp){
       offset -= this.cfg.step.offset;
     }
 
+    if (this.gg("stepX") > (this.cfg.step.xMax - 35) || this.gg("stepX") < this.cfg.step.xMin) {
+      this.pr("step X reach the limit");
+      return;
+    }
+
     this.s({ type: this.TYPE.sinit, prop: "offset" }, offset);
     ids = this.elms.id;
     this.reset();
@@ -2264,14 +2277,6 @@ function timeConverter(UNIX_timestamp){
   // change stepX value...
   // did not need to recalculate everething from begining
   // only change stepX and redraw ...
-
-  /*
-    if (stepX > this.cfg.step.xMax) {
-      stepX = this.cfg.step.xMax;
-    } else if (stepX < this.cfg.step.xMin) {
-      stepX = this.cfg.step.xMin;
-    }
-  */
   Lines.prototype.zoom = function(type = "in") {
     var oldData, stepX, ids;
 
@@ -2288,11 +2293,10 @@ function timeConverter(UNIX_timestamp){
       this.pr("step X reach the limit");
       return;
     }
-    this.s({ type: this.TYPE.sinit, prop: "stepX" }, stepX);
 
+    this.s({ type: this.TYPE.sinit, prop: "stepX" }, stepX);
     ids = this.elms.id;
     this.reset();
-
     this.data(oldData);
     this.redraw(ids);
   };
