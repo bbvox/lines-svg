@@ -25,7 +25,8 @@ var Lines = Lines || {};
     text: "text",
     rect: "rect",
     circle: "circle",
-    path: "path"
+    path: "path",
+    input: "input"
   };
 
   // Constant TYPE of charts
@@ -90,7 +91,7 @@ var Lines = Lines || {};
     animate: false,
     chart: {
       type: ["line", "candle", "sma", "ema"],
-      padding: 40,
+      padding: 30,
       attr: { stroke: "#ddd", fill: "none", strokeWidth: 1 },
       textAttr: { "stroke-width": "0.1px", "font-family": "Verdana", "font-size": "12px", fill: "#000" },
       textBold: { "font-weight": "bold" },
@@ -1056,12 +1057,11 @@ function timeConverter(UNIX_timestamp){
     candle.x = axis[0][0] + ((1 - this.cfg.chart.candleFill) / 2 * this.gg("stepX"));
     candle.x = this.f(candle.x, 0);
     candle.x -= this.gg("stepX") //invert chart fix
-
     if (axis[0][1] > axis[1][1]) {
-      candle.class = this.cfg.cssClass.winCandle;
+      candle.class = this.cfg.cssClass.loseCandle;
       candle.y = axis[1][1];
     } else {
-      candle.class = this.cfg.cssClass.loseCandle;
+      candle.class = this.cfg.cssClass.winCandle;
       candle.y = axis[0][1];
     }
 
@@ -1534,9 +1534,11 @@ function timeConverter(UNIX_timestamp){
     this.lelms.last = 0;
     this.liveMove(extra, moveData => {
       axis = moveData.axis;
-      if (moveData.state === "start") {
-        // if (!this.lelms.last) {
-        navidLength = this.gl({ type: "navid" }).length;
+
+      if (extra.text) {
+        this.liveText(moveData);
+      } else if (moveData.state === "start") {
+        navidLength = (this.gl({ type: "navid" }) || []).length;
         elemID = this.makeId({ type: "line", nav1: navidLength, nav2: navidLength + 1 }, true);
         liveLine.info = {
           type: this.TYPESVG.line,
@@ -1546,8 +1548,6 @@ function timeConverter(UNIX_timestamp){
         };
         this.lelms.last = this.drawSVG(liveLine.info);
         this.sl({ type: "line", prop: elemID }, this.lelms.last); //set/store element
-
-        // }
 
         // add navigation DOT at start of MOVE
         if (!extra.tube) {
@@ -1578,6 +1578,99 @@ function timeConverter(UNIX_timestamp){
         this.lelms.last.click(() => this.liveLineClick.call(this, elemID));
         this.lelms.last.dblclick(() => this.liveLineDblclick.call(this, elemID));
       }
+    });
+  };
+
+  //add input type=text
+  // toDo create it with contenteditable and 
+  // svg.text > tspan multi lines
+  Lines.prototype.liveText = function (moveData) {
+    var txtSvg = {}
+
+    txtSvg.rectId = this.makeId({ type: "rect" }, true);
+    txtSvg.textId = this.makeId({ type: "text" }, true);
+    txtSvg.elem1 = this.gl({ type: "rect", prop: txtSvg.rectId })
+    txtSvg.elem2 = this.gl({ type: "text", prop: txtSvg.textId })
+    if (!txtSvg.elem1) {
+      txtSvg.rectInfo = {
+        type: this.TYPESVG.rect,
+        axis: moveData.axis[0],
+        w: 200,
+        h: 25,
+        id: txtSvg.rectId,
+        attr: {fill: "white"}
+      };
+      txtSvg.rect = this.drawSVG(txtSvg.rectInfo);
+      this.sl({ type: "rect", prop: txtSvg.rectId }, txtSvg.rect);
+      txtSvg.textInfo = {
+        type: this.TYPESVG.text,
+        axis: [moveData.axis[0][0] + 30, moveData.axis[0][1] + 15],
+        id: txtSvg.textId,
+        class: "tlabel",
+        text: "Your comment"
+      };
+      txtSvg.text = this.drawSVG(txtSvg.textInfo);
+      this.sl({ type: "text", prop: txtSvg.textId }, txtSvg.text);
+    } else {
+      this.moveElem(txtSvg.elem1, moveData.axis[1])
+      this.moveElem(txtSvg.elem2, moveData.axis[1].map(val => val + 20))
+    }
+
+    if (moveData.state === "finish") {
+      this.moveElem(txtSvg.elem1, moveData.axis[0])
+      this.moveElem(txtSvg.elem2, moveData.axis[0].map(val => val + 20))
+
+      // txtSvg.elem1.click((ev, cx, cy) => this.liveTextClick.call(this, cx, cy))
+      console.log("bind ONCE")
+      txtSvg.elem1.click((ev, cx, cy) => this.liveTextClick.call(this, moveData.axis, txtSvg.textId))
+      txtSvg.elem2.click((ev, cx, cy) => this.liveTextClick.call(this, moveData.axis, txtSvg.textId))
+    }
+  };
+
+  // handle click on text
+  Lines.prototype.liveTextClick = function (axis, textAreaId) {
+    var self = this, textId, inputStyle, delInput;
+
+    textId = textAreaId || this.makeId({ type: "text" }, true);
+    var txt = this.gl({type: this.TYPESVG.text, prop: textId})
+    cl(txt, txt.node.innerHTML)
+
+    var inputElem = document.createElement("textarea");
+    // inputElem.type = "text";
+    inputStyle = "position: absolute;";
+    inputStyle += "left: " + (axis[0][0] + 7) + "px;";
+    inputStyle += "top: " + (axis[0][1] + 7) + "px;";
+    inputElem.id = this.makeId({type: this.TYPESVG.input}, true)
+    inputElem.style.cssText = inputStyle;
+    inputElem.class = "tlabel";
+    inputElem.addEventListener('input', function () {
+      self.gl({ type: self.TYPESVG.text, prop: textId })
+        .attr({text: this.value})
+      console.log(this.value)
+      // self.el.addEventListener("click", delInput)
+    }, false);
+    if (txt.node.innerHTML === "Your comment") {
+      inputElem.placeholder = txt.node.innerHTML
+    } else {
+      inputElem.value = txt.node.innerHTML
+    }
+
+    this.el.parentElement.appendChild(inputElem)
+    inputElem.focus()
+    setTimeout(function () {
+      self.el.addEventListener("click", delInput)
+    },0)
+
+    delInput = function () {
+      document.getElementById(inputElem.id).remove()
+      self.el.removeEventListener("click", delInput, false)
+    }
+  };
+
+  Lines.prototype.moveElem = function (elem, axis) {
+    elem.attr({
+      x: axis[0],
+      y: axis[1]
     });
   };
 
@@ -1641,9 +1734,7 @@ function timeConverter(UNIX_timestamp){
       apath = "",
       arrow = {};
 
-    var navidLength = this.gl({ type: "navid" }).length;
-    navidLength = navidLength ? navidLength - 1 : 1;
-    arrow.id = this.makeId({ type: "arrow", nav1: navidLength }, true);
+    arrow.id = this.makeId({ type: "arrow" }, true);
     size = this.cfg.step.arrow / 5;
     points.push([lineAxis[0][0] - size, lineAxis[0][1] + size]);
     points.push([lineAxis[0][0] + size, lineAxis[0][1] + size]);
@@ -1683,7 +1774,7 @@ function timeConverter(UNIX_timestamp){
     liveElemID = this.lelms.last.node.id;
 
     if (!this.getByType(liveElemID, "tube").top || !this.getByType(liveElemID, "tube").bot) {
-      var navidLength = this.gl({ type: "navid" }).length;
+      var navidLength = (this.gl({ type: "navid" }) || []).length;
       navidLength = !navidLength ? 1 : navidLength;
       // TOP LINE
       tlines.topID = this.makeId({ type: "tube", nav1: navidLength }, true);
@@ -1939,7 +2030,6 @@ function timeConverter(UNIX_timestamp){
         r: this.cfg.debug.radius,
         class: this.cfg.cssClass.debugDot
       };
-      console.log(debug.info)
       debug.elem = this.drawSVG(debug.info);
       this.store({ type: this.TYPE.debug }, debug.elem);
     }
@@ -2050,18 +2140,31 @@ function timeConverter(UNIX_timestamp){
     // return _num.toFixed(_fix);
   };
 
+var cl = console.log;
   // Generate element ID based on type & length and navDots
   // svg-sma-20 for chart element > chart type SMA with length 20 periods
   // lline-2-3 > live line with navDot 2 & 3
-  Lines.prototype.makeId = function(elemInfo, liveElement = false) {
+  // !!!  if nav1 did not provide automatic take navigation Dots length
+  Lines.prototype.makeId = function(elemInfo, liveElementFlag = false) {
     var elemID;
 
-    if (liveElement) {
-      elemID = elemInfo.id || "live-" + elemInfo.type;
-      elemID += (elemInfo.nav1 !== undefined) ? "-" + elemInfo.nav1 : "";
-      elemID += elemInfo.nav2 ? "-" + elemInfo.nav2 : "";
+    if (elemInfo.id) {
+      return elemInfo.id;
+    }
+
+    if (liveElementFlag) {
+      elemID = "live-" + elemInfo.type;
+      if (elemInfo.nav1 !== undefined) {
+        elemID += "-" + elemInfo.nav1;
+        elemID += elemInfo.nav2 ? "-" + elemInfo.nav2 : "";
+      } else {
+        var dotLen = (this.gl({ type: "navid" }) || []).length;
+        dotLen = dotLen ? dotLen - 1 : dotLen;
+        elemID += "-" + dotLen;
+      }
     } else {
-      elemID = elemInfo.id || "svg-" + elemInfo.type + (elemInfo.length ? "-" + elemInfo.length : "");
+      elemID = "svg-" + elemInfo.type;
+      elemID += elemInfo.length ? "-" + elemInfo.length : "";
     }
 
     return elemID;

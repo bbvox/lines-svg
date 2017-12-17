@@ -30,6 +30,7 @@ https://github.com/gabelerner/canvg
         <li><a data-period="1d" class="opts period">1d</a></li>
         <li><a data-period="1w" class="opts period">1w</a></li>
         <li class="title">DRAW :</li>
+        <li><a data-draw="text" class="opts draw"> text </a></li>
         <li><a data-draw="line" class="opts draw"> line </a></li>
         <li><a data-draw="arrow" class="opts draw"> arrow </a></li>
         <li><a data-draw="tube" class="opts draw"> tube </a></li>
@@ -94,78 +95,120 @@ https://github.com/gabelerner/canvg
 
 var chartData = [];
 
-      chartData.push([0.986755,0.986765,0.986735,0.98674]);
-      chartData.push([0.98674,0.986765,0.986735,0.986755]);
-      chartData.push([0.98675,0.986765,0.98674,0.98674]);
-      chartData.push([0.986785,0.986785,0.98674,0.98675]);
-      chartData.push([0.986755,0.98676,0.98674,0.98676]);
-      chartData.push([0.98674,0.986765,0.986725,0.986755]);
-      chartData.push([0.98675,0.98676,0.98674,0.98674]);
-      chartData.push([0.986755,0.98676,0.98675,0.98676]);
-      chartData.push([0.98675,0.986765,0.986745,0.98676]);
-      chartData.push([0.986755,0.986765,0.986745,0.98675]);
-      chartData.push([0.986765,0.986765,0.98674,0.986755]);
-      chartData.push([0.98676,0.986765,0.98675,0.98675]);
-      chartData.push([0.98676,0.986765,0.98675,0.98676]);
-      chartData.push([0.986745,0.986775,0.98674,0.98675]);
-      chartData.push([0.98676,0.986775,0.986745,0.986745]);
-      chartData.push([0.986745,0.986765,0.986745,0.986755]);
-      chartData.push([0.98676,0.986775,0.986745,0.986745]);
-      chartData.push([0.98675,0.98678,0.98674,0.98676]);
-      chartData.push([0.986755,0.986765,0.98675,0.98676]);
-      chartData.push([0.98676,0.986765,0.986745,0.986755]);
-      chartData.push([0.98676,0.986765,0.98675,0.986755]);
-      chartData.push([0.98676,0.986765,0.98675,0.986765]);
+      chartData.push([1.184395,1.184425,1.184375,1.184415]);
+      chartData.push([1.18442,1.18443,1.184415,1.18442]);
+      chartData.push([1.18441,1.184425,1.18441,1.18442]);
+      chartData.push([1.18442,1.184435,1.18441,1.18442]);
+      chartData.push([1.184435,1.184435,1.18441,1.184425]);
+      chartData.push([1.184425,1.18443,1.18441,1.18442]);
+      chartData.push([1.18442,1.184435,1.184415,1.184435]);
+      chartData.push([1.18442,1.184435,1.18441,1.18442]);
+      chartData.push([1.18442,1.18443,1.18441,1.18442]);
+      chartData.push([1.18442,1.184425,1.18441,1.18442]);
+      chartData.push([1.18442,1.184435,1.18441,1.184415]);
+      chartData.push([1.184415,1.18443,1.184415,1.18442]);
+      chartData.push([1.18442,1.184435,1.184405,1.184425]);
+      chartData.push([1.18442,1.184425,1.18441,1.184425]);
+      chartData.push([1.184415,1.184425,1.184415,1.18442]);
+      chartData.push([1.18443,1.18443,1.18441,1.18443]);
+      chartData.push([1.18443,1.18443,1.18441,1.184415]);
+      chartData.push([1.184415,1.184425,1.18441,1.184415]);
+      chartData.push([1.18442,1.184435,1.18442,1.18442]);
+      chartData.push([1.18442,1.184425,1.18441,1.18442]);
+      chartData.push([1.18442,1.184425,1.18441,1.184415]);
+      chartData.push([1.184415,1.184425,1.18441,1.18442]);
+      chartData.push([1.18442,1.184425,1.18441,1.18442]);
+      chartData.push([1.18442,1.184425,1.18441,1.18441]);
+      chartData.push([1.18441,1.184425,1.18441,1.18441]);
+      chartData.push([1.184405,1.18443,1.184405,1.184425]);
+      chartData.push([1.18442,1.18443,1.18441,1.184425]);
+      chartData.push([1.184425,1.18443,1.18441,1.184425]);
+      chartData.push([1.184425,1.184425,1.18441,1.18442]);
+      chartData.push([1.18441,1.184425,1.18441,1.18442]);
+      chartData.push([1.18442,1.18443,1.184415,1.18442]);
+      chartData.push([1.184415,1.18443,1.18441,1.18441]);
+      chartData.push([1.18441,1.18443,1.18441,1.18441]);
+      chartData.push([1.18442,1.184425,1.184415,1.18442]);
+      chartData.push([1.18442,1.184425,1.18441,1.18442]);
+      chartData.push([1.18442,1.184425,1.18441,1.18442]);
+      chartData.push([1.18442,1.184425,1.18441,1.184425]);
+      chartData.push([1.184425,1.184435,1.18441,1.18441]);
+      chartData.push([1.184415,1.18443,1.18441,1.184415]);
+      chartData.push([1.184415,1.184425,1.18441,1.18441]);
+      chartData.push([1.184425,1.184425,1.18441,1.184425]);
+      chartData.push([1.184425,1.184425,1.184405,1.18442]);
+      chartData.push([1.18442,1.184425,1.18441,1.18442]);
+      chartData.push([1.18442,1.18453,1.184415,1.18453]);
+      chartData.push([1.184535,1.184535,1.18451,1.18451]);
+      chartData.push([1.18451,1.18486,1.184505,1.18486]);
+      chartData.push([1.18489,1.184905,1.18488,1.184905]);
+      chartData.push([1.184905,1.186325,1.18488,1.18631]);
+      chartData.push([1.1863,1.186325,1.1863,1.18631]);
+      chartData.push([1.186325,1.18634,1.186305,1.186315]);
+      chartData.push([1.18631,1.186325,1.1863,1.186315]);
+      chartData.push([1.186315,1.18632,1.1863,1.186315]);
+      chartData.push([1.186315,1.18632,1.186305,1.18631]);
+      chartData.push([1.18631,1.18632,1.1863,1.18631]);
+      chartData.push([1.18631,1.186315,1.186295,1.18631]);
+      chartData.push([1.186315,1.18632,1.1863,1.186315]);
+      chartData.push([1.186315,1.186315,1.186295,1.1863]);
+      chartData.push([1.1863,1.186315,1.1863,1.18631]);
+      chartData.push([1.18631,1.186315,1.186305,1.18631]);
+      chartData.push([1.18631,1.186315,1.186295,1.18631]);
+      chartData.push([1.18631,1.186315,1.1863,1.18631]);
+      chartData.push([1.18631,1.18632,1.186305,1.186315]);
+      chartData.push([1.18631,1.186315,1.1863,1.18631]);
+      chartData.push([1.18631,1.186315,1.1863,1.186315]);
+      chartData.push([1.1863,1.186315,1.1863,1.18631]);
+      chartData.push([1.18631,1.18632,1.1863,1.186315]);
+      chartData.push([1.186315,1.186325,1.18631,1.18631]);
+      chartData.push([1.18631,1.18632,1.1863,1.18631]);
+      chartData.push([1.18631,1.186315,1.1863,1.18631]);
+      chartData.push([1.18631,1.18632,1.1863,1.18631]);
+      chartData.push([1.18631,1.18632,1.1863,1.186315]);
+      chartData.push([1.18631,1.186325,1.1863,1.18631]);
+      chartData.push([1.18631,1.186315,1.1863,1.186315]);
+      chartData.push([1.186315,1.186325,1.1863,1.18631]);
+      chartData.push([1.18631,1.186315,1.1863,1.18631]);
+      chartData.push([1.18631,1.186325,1.1863,1.186315]);
+      chartData.push([1.186315,1.18632,1.1863,1.18631]);
+      chartData.push([1.18631,1.186325,1.18631,1.18631]);
+      chartData.push([1.18631,1.186325,1.1863,1.186315]);
+      chartData.push([1.18631,1.18633,1.186295,1.18631]);
+      chartData.push([1.18631,1.1864,1.18631,1.1864]);
+      chartData.push([1.1864,1.186455,1.17789,1.178185]);
+      chartData.push([1.17815,1.178295,1.17815,1.178185]);
+      chartData.push([1.178185,1.1783,1.17818,1.178225]);
+      chartData.push([1.17821,1.178215,1.178145,1.178145]);
+      chartData.push([1.178145,1.178155,1.178125,1.178135]);
+      chartData.push([1.17815,1.17815,1.17813,1.17813]);
+      chartData.push([1.178135,1.17815,1.17813,1.178135]);
+      chartData.push([1.178135,1.178145,1.17813,1.17813]);
+      chartData.push([1.17813,1.178145,1.178115,1.17812]);
+      chartData.push([1.17812,1.178135,1.17812,1.178135]);
+      chartData.push([1.178135,1.17847,1.17812,1.17847]);
+      chartData.push([1.17854,1.17908,1.17853,1.17908]);
+      chartData.push([1.17908,1.17908,1.179065,1.17907]);
+      chartData.push([1.17907,1.179085,1.179065,1.179085]);
+      chartData.push([1.179085,1.179085,1.17906,1.179075]);
+      chartData.push([1.179075,1.179085,1.17906,1.17907]);
+      chartData.push([1.17907,1.17908,1.179065,1.179075]);
+      chartData.push([1.17907,1.1791,1.179065,1.1791]);
+      chartData.push([1.1791,1.179145,1.1791,1.17914]);
 
-      chartData.push([0.98676,0.986765,0.98675,0.98675]);
-      chartData.push([0.98676,0.986765,0.98675,0.98676]);
-      chartData.push([0.986745,0.986775,0.98674,0.98675]);
-      chartData.push([0.98676,0.986775,0.986745,0.986745]);
-      chartData.push([0.986745,0.986765,0.986745,0.986755]);
-      chartData.push([0.98676,0.986775,0.986745,0.986745]);
-      chartData.push([0.98675,0.98678,0.98674,0.98676]);
-      chartData.push([0.986755,0.986765,0.98675,0.98676]);
-      chartData.push([0.98676,0.986765,0.986745,0.986755]);
-      chartData.push([0.98676,0.986765,0.98675,0.986755]);
-      chartData.push([0.98676,0.986765,0.98675,0.986765]);
-
-      chartData.push([0.98676,0.986765,0.98675,0.98675]);
-      chartData.push([0.98676,0.986765,0.98675,0.98676]);
-      chartData.push([0.986745,0.986775,0.98674,0.98675]);
-      chartData.push([0.98676,0.986775,0.986745,0.986745]);
-      chartData.push([0.986745,0.986765,0.986745,0.986755]);
-      chartData.push([0.98676,0.986775,0.986745,0.986745]);
-      chartData.push([0.98675,0.98678,0.98674,0.98676]);
-      chartData.push([0.986755,0.986765,0.98675,0.98676]);
-      chartData.push([0.98676,0.986765,0.986745,0.986755]);
-      chartData.push([0.98676,0.986765,0.98675,0.986755]);
-      chartData.push([0.98676,0.986765,0.98675,0.986765]);
-
-            chartData.push([0.98676,0.986765,0.98675,0.98675]);
-      chartData.push([0.98676,0.986765,0.98675,0.98676]);
-      chartData.push([0.986745,0.986775,0.98674,0.98675]);
-      chartData.push([0.98676,0.986775,0.986745,0.986745]);
-      chartData.push([0.986745,0.986765,0.986745,0.986755]);
-      chartData.push([0.98676,0.986775,0.986745,0.986745]);
-      chartData.push([0.98675,0.98678,0.98674,0.98676]);
-      chartData.push([0.986755,0.986765,0.98675,0.98676]);
-      chartData.push([0.98676,0.986765,0.986745,0.986755]);
-      chartData.push([0.98676,0.986765,0.98675,0.986755]);
-      chartData.push([0.98676,0.986765,0.98675,0.986765]);
-      console.log(chartData)
 
 
-      l.data(ratesJson); // always second after that drawEMPTY
-      // l.data(chartData); // always second after that drawEMPTY
+      // l.data(ratesJson); // always second after that drawEMPTY
+      l.data(chartData); // always second after that drawEMPTY
 
       l.draw("axis");
       l.draw("line");
       l.draw("candle");
       
       l.draw("sma");
+      l.liveLine({text: 1});
       /*
       l.drawSMA(20); //sma 20
-      l.liveLine({tube: true});
       */
 
       // // l.live();
@@ -265,16 +308,28 @@ var chartData = [];
         } else if (dset.chart) {
           l.toggle(dset.chart);
         } else if (dset.draw) {
-          if (dset.draw === "line") {
-            l.liveLine()
-          } else if (dset.draw === "arrow") {
-            l.liveLine({ arrow: 1 });
-          } else if (dset.draw === "tube") {
-            l.liveLine({ tube: 1 });
-          } else if (dset.draw === "constx") {
-            l.liveLine({ constx: 1 });
-          } else if (dset.draw === "consty") {
-            l.liveLine({ consty: 1 });
+          switch(dset.draw) {
+            case "line":
+              l.liveLine()
+              break;
+            case "text":
+              l.liveLine({ text: 1 })
+              break;
+            case "arrow":
+              l.liveLine({ arrow: 1 })
+              break;
+            case "tube":
+              l.liveLine({ tube: 1 })
+              break;
+            case "constx":
+              l.liveLine({ constx: 1 })
+              break;
+            case "consty":
+              l.liveLine({ consty: 1 })
+              break;
+            case "text":
+              l.liveLine({ text: 1 })
+              break;
           }
         } else if (dset.timeline) {
           if (dset.timeline === "zoomin" || dset.timeline === "zoomout") {
