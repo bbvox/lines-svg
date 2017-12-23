@@ -134,10 +134,7 @@ var Lines = Lines || {};
       radius: 3,
       attr: { stroke: "red" }
     },
-    timeUnit: "1h",
     timeUnit: "15m",
-    timeUnit: "15m",
-    // timeUnit: "1w",
     timeUnits: ["15m", "30m", "1h", "4h", "1d", "1w"], //supported TIME UNITS
     drawOrder: ["drawLine", "drawCandle", "drawSMA", "drawEMA"]
   };
@@ -171,7 +168,7 @@ var Lines = Lines || {};
     // check if snap exist. for testing purposes
     this.snap && this.snap.attr(this.cfg.chart.attr);
 
-    this.chartEvents()
+    this.snap && this.chartEvents();
   };
 
   Lines.prototype.events = {
@@ -181,46 +178,46 @@ var Lines = Lines || {};
   // mouseWheel
   // mouse Drag
   // once Per interaction throught debounce
-  Lines.prototype.chartEvents = function () {
+  Lines.prototype.chartEvents = function() {
     var _debounce, self = this;
-    
-    _debounce = function (cb, wait) {
-      var timeout
-      return function () {
-        var args = arguments
-        arguments[0].preventDefault && arguments[0].preventDefault()
-        var later = function () {
-          timeout = null
-          cb.apply(self, args)
-        }
+
+    _debounce = function(cb, wait) {
+      var timeout;
+      return function() {
+        var args = arguments;
+        arguments[0].preventDefault && arguments[0].preventDefault();
+        var later = function() {
+          timeout = null;
+          cb.apply(self, args);
+        };
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
-      }
+      };
     };
 
     if (!this.events.wheel) {
-      this.events.wheel = true
+      this.events.wheel = true;
       this.el.addEventListener("wheel", _debounce(this.cbEvent, 300), false);
     }
 
     if (!this.events.drag) {
-      this.events.drag = true
-      this.snap.drag(_debounce(this.cbEvent, 300))
+      this.events.drag = true;
+      this.snap.drag(_debounce(this.cbEvent, 300));
     }
   };
 
   // for wheel -> wheelDelta >>> this.zoom
   // for drag -> dx, dy, posx, posy >>> this.move
-  Lines.prototype.cbEvent = function () {
+  Lines.prototype.cbEvent = function() {
     var param;
     if (arguments[0] && (arguments[0].wheelDelta || arguments[0].deltaY)) {
-      param = arguments[0].wheelDelta || arguments[0].deltaY
-      this.zoom(param > 0 ? "in" : "out")
+      param = arguments[0].wheelDelta || arguments[0].deltaY;
+      this.zoom(param > 0 ? "in" : "out");
     } else if (arguments.length === 5) {
-      param = arguments[0]
-      this.move(param > 0 ? "prev" : "next")
+      param = arguments[0];
+      this.move(param > 0 ? "prev" : "next");
     }
-  }
+  };
 
   // Interface method
   // check dataArray, handle dataArray
@@ -238,7 +235,7 @@ var Lines = Lines || {};
     this.s({ type: this.TYPE.line, prop: "data" }, data);
 
     //recover values from sinit
-    this.restore()
+    this.restore();
     if (this.checkLen()) {
       this.dataInit();
       this.calculate();
@@ -272,7 +269,7 @@ var Lines = Lines || {};
       this.s({ type: this.TYPE.sinit, prop: "allraw" }, raw);
       offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
       slice = {
-        begin: (offset > 0 ) ? offset : 0,
+        begin: (offset > 0) ? offset : 0,
         end: perPage + offset
       };
       // slice
@@ -795,7 +792,7 @@ var Lines = Lines || {};
 
   Lines.prototype.formatDate = function(timeStamp) {
     var base, dateFormat, months;
-    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     base = new Date(timeStamp);
 
     if (["15m", "30m"].indexOf(this.cfg.timeUnit) !== -1) {
@@ -836,21 +833,6 @@ var Lines = Lines || {};
     //convert to string
     return dateFormat + "";
   };
-
-  /*
-function timeConverter(UNIX_timestamp){
-  var a = new Date(UNIX_timestamp * 1000);
-  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var year = a.getFullYear();
-  var month = months[a.getMonth()];
-  var date = a.getDate();
-  var hour = a.getHours();
-  var min = a.getMinutes();
-  var sec = a.getSeconds();
-  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
-  return time;
-}
-  */
 
   // return one period unit(milisecconds) for current period
   Lines.prototype.dateUnit = function() {
@@ -1109,7 +1091,7 @@ function timeConverter(UNIX_timestamp){
 
     candle.x = axis[0][0] + ((1 - this.cfg.chart.candleFill) / 2 * this.gg("stepX"));
     candle.x = this.f(candle.x, 0);
-    candle.x -= this.gg("stepX") //invert chart fix
+    candle.x -= this.gg("stepX"); //invert chart fix
     if (axis[0][1] > axis[1][1]) {
       candle.class = this.cfg.cssClass.loseCandle;
       candle.y = axis[1][1];
@@ -1368,14 +1350,12 @@ function timeConverter(UNIX_timestamp){
       r: this.cfg.debug.radius,
       class: this.cfg.cssClass.liveDot
     };
-    console.log(live.dotInfo)
     dot = this.drawSVG(live.dotInfo);
 
     left = this.chartArea.offsetLeft;
     this.snap.mousemove((e, x) => {
       var cx, foundY;
       x -= left;
-      // if (x > this.chartArea.zeroX && !(x % 5)) {
       if (x < this.chartArea.zeroX && !(x % 5)) {
         cx = x + this.dragX;
         foundY = this.findY((x - this.dragX)) || 0;
@@ -1637,13 +1617,13 @@ function timeConverter(UNIX_timestamp){
   //add input type=text
   // toDo create it with contenteditable and 
   // svg.text > tspan multi lines
-  Lines.prototype.liveText = function (moveData) {
-    var txtSvg = {}
+  Lines.prototype.liveText = function(moveData) {
+    var txtSvg = {};
 
     txtSvg.rectId = this.makeId({ type: "rect" }, true);
     txtSvg.textId = this.makeId({ type: "text" }, true);
-    txtSvg.elem1 = this.gl({ type: "rect", prop: txtSvg.rectId })
-    txtSvg.elem2 = this.gl({ type: "text", prop: txtSvg.textId })
+    txtSvg.elem1 = this.gl({ type: "rect", prop: txtSvg.rectId });
+    txtSvg.elem2 = this.gl({ type: "text", prop: txtSvg.textId });
     if (!txtSvg.elem1) {
       txtSvg.rectInfo = {
         type: this.TYPESVG.rect,
@@ -1651,7 +1631,7 @@ function timeConverter(UNIX_timestamp){
         w: 200,
         h: 25,
         id: txtSvg.rectId,
-        attr: {fill: "white"}
+        attr: { fill: "white" }
       };
       txtSvg.rect = this.drawSVG(txtSvg.rectInfo);
       this.sl({ type: "rect", prop: txtSvg.rectId }, txtSvg.rect);
@@ -1665,60 +1645,58 @@ function timeConverter(UNIX_timestamp){
       txtSvg.text = this.drawSVG(txtSvg.textInfo);
       this.sl({ type: "text", prop: txtSvg.textId }, txtSvg.text);
     } else {
-      this.moveElem(txtSvg.elem1, moveData.axis[1])
-      this.moveElem(txtSvg.elem2, moveData.axis[1].map(val => val + 20))
+      this.moveElem(txtSvg.elem1, moveData.axis[1]);
+      this.moveElem(txtSvg.elem2, moveData.axis[1].map(val => val + 20));
     }
 
     if (moveData.state === "finish") {
-      this.moveElem(txtSvg.elem1, moveData.axis[0])
-      this.moveElem(txtSvg.elem2, moveData.axis[0].map(val => val + 20))
+      this.moveElem(txtSvg.elem1, moveData.axis[0]);
+      this.moveElem(txtSvg.elem2, moveData.axis[0].map(val => val + 20));
 
-      // txtSvg.elem1.click((ev, cx, cy) => this.liveTextClick.call(this, cx, cy))
-      txtSvg.elem1.click((ev, cx, cy) => this.liveTextClick.call(this, moveData.axis, txtSvg.textId))
-      txtSvg.elem2.click((ev, cx, cy) => this.liveTextClick.call(this, moveData.axis, txtSvg.textId))
+      txtSvg.elem1.click((ev, cx, cy) => this.liveTextClick.call(this, moveData.axis, txtSvg.textId));
+      txtSvg.elem2.click((ev, cx, cy) => this.liveTextClick.call(this, moveData.axis, txtSvg.textId));
     }
   };
 
   // handle click on text
-  Lines.prototype.liveTextClick = function (axis, textAreaId) {
-    var self = this, textId, inputStyle, delInput;
+  Lines.prototype.liveTextClick = function(axis, textAreaId) {
+    var self = this,
+      textId, inputStyle, delInput;
 
     textId = textAreaId || this.makeId({ type: "text" }, true);
-    var txt = this.gl({type: this.TYPESVG.text, prop: textId})
+    var txt = this.gl({ type: this.TYPESVG.text, prop: textId });
 
     var inputElem = document.createElement("textarea");
     // inputElem.type = "text";
     inputStyle = "position: absolute;";
     inputStyle += "left: " + (axis[0][0] + 7) + "px;";
     inputStyle += "top: " + (axis[0][1] + 7) + "px;";
-    inputElem.id = this.makeId({type: this.TYPESVG.input}, true)
+    inputElem.id = this.makeId({ type: this.TYPESVG.input }, true);
     inputElem.style.cssText = inputStyle;
     inputElem.class = "tlabel";
-    inputElem.addEventListener('input', function () {
+    inputElem.addEventListener('input', function() {
       self.gl({ type: self.TYPESVG.text, prop: textId })
-        .attr({text: this.value})
-      console.log(this.value)
-      // self.el.addEventListener("click", delInput)
+        .attr({ text: this.value });
     }, false);
     if (txt.node.innerHTML === "Your comment") {
-      inputElem.placeholder = txt.node.innerHTML
+      inputElem.placeholder = txt.node.innerHTML;
     } else {
-      inputElem.value = txt.node.innerHTML
+      inputElem.value = txt.node.innerHTML;
     }
 
-    this.el.parentElement.appendChild(inputElem)
-    inputElem.focus()
-    setTimeout(function () {
-      self.el.addEventListener("click", delInput)
-    },0)
+    this.el.parentElement.appendChild(inputElem);
+    inputElem.focus();
+    setTimeout(function() {
+      self.el.addEventListener("click", delInput);
+    }, 0);
 
-    delInput = function () {
-      document.getElementById(inputElem.id).remove()
-      self.el.removeEventListener("click", delInput, false)
-    }
+    delInput = function() {
+      document.getElementById(inputElem.id).remove();
+      self.el.removeEventListener("click", delInput, false);
+    };
   };
 
-  Lines.prototype.moveElem = function (elem, axis) {
+  Lines.prototype.moveElem = function(elem, axis) {
     elem.attr({
       x: axis[0],
       y: axis[1]
@@ -2063,7 +2041,7 @@ function timeConverter(UNIX_timestamp){
     foundY.pixel = (foundY.pixel > 0) ? Math.round(foundY.pixel) : 0;
 
     foundY.value = (this.chartArea.zeroY - foundY.pixel) / this.gg("stepY") + this.gg("min");
-    foundY.value = this.f(foundY.value, );
+    foundY.value = this.f(foundY.value, 0);
 
     return foundY;
   };
@@ -2168,10 +2146,10 @@ function timeConverter(UNIX_timestamp){
 
   //Restore init properties
   // retrieve
-  Lines.prototype.restore = function () {
+  Lines.prototype.restore = function() {
     var initProp;
     for (initProp in this.dset[this.TYPE.sinit]) {
-      this.s({type: this.TYPE.init, prop: initProp}, this.dset[this.TYPE.sinit][initProp])
+      this.s({ type: this.TYPE.init, prop: initProp }, this.dset[this.TYPE.sinit][initProp]);
     }
   };
 
@@ -2412,9 +2390,9 @@ function timeConverter(UNIX_timestamp){
   // with one step forward or back
   // moveType prev or next
   Lines.prototype.move = function(moveType = "prev") {
-    var offset, allRaw, ids;
+    var offset, ids;
 
-    allRaw = this.g({ type: this.TYPE.sinit, prop: "allraw" }) || this.gg("raw");
+    // var allRaw = this.g({ type: this.TYPE.sinit, prop: "allraw" }) || this.gg("raw");
     offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
     if (moveType === "prev") {
       offset += this.cfg.step.offset;
@@ -2426,7 +2404,7 @@ function timeConverter(UNIX_timestamp){
       this.pr("step X reach the limit");
       return;
     } else if (offset < 0) {
-      cl("limit reached")
+      cl("limit reached");
       return;
     }
 
@@ -2445,20 +2423,20 @@ function timeConverter(UNIX_timestamp){
   // only change stepX and redraw ...
   Lines.prototype.zoom = function(type = "in") {
     var stepX, ids;
-    
+
     stepX = this.gg("stepX");
     if (type === "in") {
       stepX += this.cfg.step.zoom;
     } else if (type === "out") {
       stepX -= this.cfg.step.zoom;
     }
-    
+
     if (stepX > this.cfg.step.xMax || stepX < this.cfg.step.xMin) {
       this.pr("step X reach the limit");
       return;
     }
     this.s({ type: this.TYPE.sinit, prop: "stepX" }, stepX);
-    
+
     // var oldData = this.gg("raw");
     var oldData = this.gg("allraw");
 
@@ -2472,29 +2450,3 @@ function timeConverter(UNIX_timestamp){
 if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
   module.exports = Lines;
 }
-
-/////////////////////////////////////
-/*
-https://gist.github.com/austinhyde/4321f22a476e1cbee65f
-var _n = 5, _nListeners = [];
-function n(n) {
-  if (arguments.length && n !== _n) {
-    _n = n;
-    _nListeners.forEach(function(listener) { listener(n); });
-  }
-  return _n;
-}
-n.subscribe = function(listener) { _nListeners.push(listener); }
-
-console.log(n()); // 5
-n.subscribe(function(newN) { console.log(newN); });
-n(10); // logs 10
-n(10); // no output, value didn't change.
-
-
-        http://jsfiddle.net/hungerstar/AP6e9/3/
-
-REFERENCES ::::
-// http://jsfiddle.net/fuzic/kKLtH/
-/ http://jsfiddle.net/hungerstar/AP6e9/3/
-*/
