@@ -16,7 +16,8 @@ var Lines = Lines || {};
     this.setup();
   };
 
-  // Debug flag. When is set draw additional dots and debug messages
+  // Debug flag. 
+  // When is set have additional dots and debug messages
   Lines.prototype.debug = false;
 
   // Contstant TYPESVG
@@ -169,7 +170,57 @@ var Lines = Lines || {};
     this.chartArea.zeroX = this.chartArea.width;
     // check if snap exist. for testing purposes
     this.snap && this.snap.attr(this.cfg.chart.attr);
+
+    this.chartEvents()
   };
+
+  Lines.prototype.events = {
+    wheel: false
+  };
+
+  // mouseWheel
+  // mouse Drag
+  // once Per interaction throught debounce
+  Lines.prototype.chartEvents = function () {
+    var _debounce, self = this;
+    
+    _debounce = function (cb, wait) {
+      var timeout
+      return function () {
+        var args = arguments
+        arguments[0].preventDefault && arguments[0].preventDefault()
+        var later = function () {
+          timeout = null
+          cb.apply(self, args)
+        }
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      }
+    };
+
+    if (!this.events.wheel) {
+      this.events.wheel = true
+      this.el.addEventListener("wheel", _debounce(this.cbEvent, 300), false);
+    }
+
+    if (!this.events.drag) {
+      this.events.drag = true
+      this.snap.drag(_debounce(this.cbEvent, 300))
+    }
+  };
+
+  // for wheel -> wheelDelta >>> this.zoom
+  // for drag -> dx, dy, posx, posy >>> this.move
+  Lines.prototype.cbEvent = function () {
+    var param;
+    if (arguments[0] && (arguments[0].wheelDelta || arguments[0].deltaY)) {
+      param = arguments[0].wheelDelta || arguments[0].deltaY
+      this.zoom(param > 0 ? "in" : "out")
+    } else if (arguments.length === 5) {
+      param = arguments[0]
+      this.move(param > 0 ? "prev" : "next")
+    }
+  }
 
   // Interface method
   // check dataArray, handle dataArray
@@ -186,6 +237,8 @@ var Lines = Lines || {};
     var data = dataArray.map(item => this.f(item[3], 5));
     this.s({ type: this.TYPE.line, prop: "data" }, data);
 
+    //recover values from sinit
+    this.restore()
     if (this.checkLen()) {
       this.dataInit();
       this.calculate();
@@ -201,7 +254,7 @@ var Lines = Lines || {};
     var data, stepX, perPage;
 
     data = this.gg("data");
-    stepX = this.f((this.chartArea.width / data.length), 0);
+    stepX = this.gg("stepX") || this.f((this.chartArea.width / data.length), 0);
 
     if (stepX > this.cfg.step.xMax) {
       stepX = this.cfg.step.xMax;
@@ -210,7 +263,8 @@ var Lines = Lines || {};
     }
     this.s({ type: this.TYPE.init, prop: "stepX" }, stepX);
 
-    perPage = this.f(this.chartArea.width / stepX, 0) + 1;
+    perPage = this.f(this.chartArea.width / stepX, 0);
+    if (stepX < 50) perPage -= 1;
     if (data.length > perPage) {
       var offset, cuttedData, raw, slice = {};
 
@@ -535,7 +589,6 @@ var Lines = Lines || {};
     idArray = idArray || this.elms.id;
     for (key in idArray) {
       chart = this.splitId(idArray[key]);
-      console.log(chart);
       fnName = "draw" + chart.type;
       this[fnName](chart.length || 0);
     }
@@ -1621,7 +1674,6 @@ function timeConverter(UNIX_timestamp){
       this.moveElem(txtSvg.elem2, moveData.axis[0].map(val => val + 20))
 
       // txtSvg.elem1.click((ev, cx, cy) => this.liveTextClick.call(this, cx, cy))
-      console.log("bind ONCE")
       txtSvg.elem1.click((ev, cx, cy) => this.liveTextClick.call(this, moveData.axis, txtSvg.textId))
       txtSvg.elem2.click((ev, cx, cy) => this.liveTextClick.call(this, moveData.axis, txtSvg.textId))
     }
@@ -1633,7 +1685,6 @@ function timeConverter(UNIX_timestamp){
 
     textId = textAreaId || this.makeId({ type: "text" }, true);
     var txt = this.gl({type: this.TYPESVG.text, prop: textId})
-    cl(txt, txt.node.innerHTML)
 
     var inputElem = document.createElement("textarea");
     // inputElem.type = "text";
@@ -2115,6 +2166,15 @@ function timeConverter(UNIX_timestamp){
     this.dset[setInfo.type][setInfo.prop] = setData;
   };
 
+  //Restore init properties
+  // retrieve
+  Lines.prototype.restore = function () {
+    var initProp;
+    for (initProp in this.dset[this.TYPE.sinit]) {
+      this.s({type: this.TYPE.init, prop: initProp}, this.dset[this.TYPE.sinit][initProp])
+    }
+  };
+
   //change value of property and return new value
   Lines.prototype.action = function(actionInfo, changeObj) {
     if (!actionInfo.type || !actionInfo.prop || !changeObj.action || typeof changeObj.value === "undefined") {
@@ -2381,23 +2441,24 @@ var cl = console.log;
   // did not need to recalculate everething from begining
   // only change stepX and redraw ...
   Lines.prototype.zoom = function(type = "in") {
-    var oldData, stepX, ids;
-
-    oldData = this.gg("raw");
-
+    var stepX, ids;
+    
     stepX = this.gg("stepX");
-
     if (type === "in") {
       stepX += this.cfg.step.zoom;
     } else if (type === "out") {
       stepX -= this.cfg.step.zoom;
     }
+    
     if (stepX > this.cfg.step.xMax || stepX < this.cfg.step.xMin) {
       this.pr("step X reach the limit");
       return;
     }
-
     this.s({ type: this.TYPE.sinit, prop: "stepX" }, stepX);
+    
+    // var oldData = this.gg("raw");
+    var oldData = this.gg("allraw");
+
     ids = this.elms.id;
     this.reset();
     this.data(oldData);
