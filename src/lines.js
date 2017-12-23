@@ -2200,7 +2200,6 @@ function timeConverter(UNIX_timestamp){
     // return _num.toFixed(_fix);
   };
 
-var cl = console.log;
   // Generate element ID based on type & length and navDots
   // svg-sma-20 for chart element > chart type SMA with length 20 periods
   // lline-2-3 > live line with navDot 2 & 3
@@ -2417,7 +2416,6 @@ var cl = console.log;
 
     allRaw = this.g({ type: this.TYPE.sinit, prop: "allraw" }) || this.gg("raw");
     offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
-
     if (moveType === "prev") {
       offset += this.cfg.step.offset;
     } else if (moveType === "next") {
@@ -2427,12 +2425,17 @@ var cl = console.log;
     if (this.gg("stepX") > (this.cfg.step.xMax - 35) || this.gg("stepX") < this.cfg.step.xMin) {
       this.pr("step X reach the limit");
       return;
+    } else if (offset < 0) {
+      cl("limit reached")
+      return;
     }
+
+    var oldData = this.gg("allraw");
 
     this.s({ type: this.TYPE.sinit, prop: "offset" }, offset);
     ids = this.elms.id;
     this.reset();
-    this.data(allRaw);
+    this.data(oldData);
     this.redraw(ids);
   };
 
