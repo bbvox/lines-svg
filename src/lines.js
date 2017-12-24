@@ -57,13 +57,16 @@ var Lines = Lines || {};
   //  - lelems.nav["navdot1"] = element
   //  - lelems.line["live-line-2-3"] = element
   // ID of element determine which navID belong to him
+  // action.draw when draw 
+  // action.drag when drag
   Lines.prototype.lelms = {
     id: [],
     navid: [],
     last: false,
     nav: false,
     line: false,
-    arrow: false
+    arrow: false,
+    action: {}
   };
 
   // candle.winp store path string for win candle shadow
@@ -119,7 +122,7 @@ var Lines = Lines || {};
     },
     smaLength: 5,
     emaLength: 10,
-    magnetMode: 30,
+    magnetMode: 50,
     step: {
       x: 50,
       xMin: 20,
@@ -184,7 +187,13 @@ var Lines = Lines || {};
     _debounce = function(cb, wait) {
       var timeout;
       return function() {
-        var args = arguments;
+        var action = {}, args = arguments;
+        action.draw = self.gl({ type: "action", prop: "draw" });
+        action.drag = self.gl({ type: "action", prop: "drag" });
+        //check draw or drag 
+        if (action.draw || action.drag) {
+          return;
+        }
         arguments[0].preventDefault && arguments[0].preventDefault();
         var later = function() {
           timeout = null;
@@ -1383,7 +1392,6 @@ var Lines = Lines || {};
     });
   };
 
-  Lines.prototype.llive = {};
   // http://jsfiddle.net/tM4L9/7/
   // mobile support
   // option {constx, consty, arrow, tube}
@@ -1409,6 +1417,7 @@ var Lines = Lines || {};
 
     this.snap.unclick();
     this.snap.click((e, clickX, clickY) => {
+      this.sl({type: "action", prop: "draw"}, true);
       axis[0] = [(clickX - offset.left), (clickY - offset.top)];
       axis[1] = [(axis[0][0] + this.cfg.chart.padding), (axis[0][1] + this.cfg.chart.padding)];
 
@@ -1444,6 +1453,7 @@ var Lines = Lines || {};
           cb && cb({ state: "move", axis: _axis });
         });
       } else if (clicks === 2) {
+        this.sl({type: "action", prop: "draw"}, false);
         this.snap.unclick();
         this.snap.unmousemove();
         cb && cb({ state: "finish", axis: axis });
@@ -1514,6 +1524,7 @@ var Lines = Lines || {};
 
     //explicit set new element for EACH DRAG START !!!
     if (dragData.state === "start") {
+      this.sl({type: "action", prop: "drag"}, true);
       this.dragtmp.elem = this.gl({ id: dragData.elemId });
       this.dragtmp.move = this.getNavDot(dragData.elemId, "move");
       this.dragtmp.rotate = this.getNavDot(dragData.elemId, "rotate");
@@ -1552,8 +1563,7 @@ var Lines = Lines || {};
     } else if (dragData.state === "finish" && dragData.action === "move") {
       // this.mvElem(dragData.elemId);
       this.mvElem(this.dragtmp.rotate.node.id);
-
-      // this.dragtmp = {};
+      this.sl({type: "action", prop: "drag"}, false);
     }
   };
 
@@ -1711,7 +1721,7 @@ var Lines = Lines || {};
     navDots.classRotate = navDots.rotate ? navDots.rotate.attr("class").split(" ") : [];
 
     if (navDots.classMove.indexOf("hidden") !== -1) {
-      navDots.classMove.pop();
+      navDots.classMove.pop(); //remove last element from array
       navDots.classRotate.pop();
     } else {
       navDots.classMove.push("hidden");
@@ -2404,7 +2414,6 @@ var Lines = Lines || {};
       this.pr("step X reach the limit");
       return;
     } else if (offset < 0) {
-      cl("limit reached");
       return;
     }
 
