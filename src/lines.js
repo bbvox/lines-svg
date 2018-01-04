@@ -2516,6 +2516,25 @@ var Lines = Lines || {};
     this.redraw(ids);
   };
 
+  //now x ordinate explicit draw labels ...
+  // for new period need new Data with new labels !!!
+  Lines.prototype.period = function (periodType = "15m") {
+    if (this.cfg.timeUnits.indexOf(periodType) === -1) {
+      this.pr("Wrong period format!")
+      return;
+    }
+
+    this.cfg.timeUnit = periodType;
+    
+    // var oldData = this.gg("raw");
+    var oldData = this.gg("allraw");
+
+    var ids = this.elms.id;
+    this.reset();
+    this.data(oldData);
+    this.redraw(ids);
+  };
+
   // zoom in/out all charts 
   // change stepX value...
   // did not need to recalculate everething from begining

@@ -304,8 +304,7 @@ chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.349415  , 1514984400000 
         dset = this.dataset;
 
         if (dset.period) {
-          console.log("::: period work in progress:::");
-          //redraw ...
+          l.period(dset.period);
         } else if (dset.chart) {
           l.toggle(dset.chart);
         } else if (dset.draw) {
