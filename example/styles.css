@@ -82,6 +82,7 @@ nav a.active {
   position: relative;
   /*width: 80%;*/
   min-height: 450px;
+  height: 300px;
 }
 
 #svgRoot:after {
@@ -109,12 +110,16 @@ nav a.active {
 
 .lline {
   fill: red;
-  stroke: #9966ff;
+  stroke: #00796B;
   stroke-width: 2px;
+  stroke-dasharray: 5;
 }
 
 .ldot {
-  stroke: green
+  stroke: #00BCD4;
+  stroke: rgba(0, 188, 212, 0.5);
+  stroke-width: 10px;
+  fill:#388E3C;
 }
 
 /*//win candle*/

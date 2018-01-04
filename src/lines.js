@@ -5,20 +5,19 @@ var Lines = Lines || {};
 
   Lines = function(elemId) {
     if (!this.getId(elemId)) {
-      throw new Error("missing DOM Element !");
+      throw new Error("Missing SVG DOM Element !");
     } else if (!window.Snap) {
-      throw Error("missing Snap.svg libs !");
+      throw Error("Missing Snap.svg library !");
     }
 
     this.el = this.getId(elemId);
     this.snap = window.Snap("#" + elemId);
 
-    this.setup();
+    this.setupChart();
   };
 
   // Debug flag. 
-  // When is set have additional dots and debug messages
-  Lines.prototype.debug = false;
+  Lines.prototype.debug = true;
 
   // Contstant TYPESVG
   Lines.prototype.TYPESVG = {
@@ -43,22 +42,19 @@ var Lines = Lines || {};
     ema: "ema"
   };
 
-  // chart DOM elements
+  // Chart DOM elements
   // this.elms.TYPE.elemID.elem - snapSVG element
   // this.elms.TYPE.elemID.color - color for this element
   Lines.prototype.elms = {
     id: []
   };
 
-  // Live DOM elements
-  // Instead of TYPE directly store with ID
-  // 
+  // Chart Live DOM elements
   // lelms.TYPE.elemID >>> 
   //  - lelems.nav["navdot1"] = element
   //  - lelems.line["live-line-2-3"] = element
   // ID of element determine which navID belong to him
-  // action.draw when draw 
-  // action.drag when drag
+  // action: {draw: true, drag: false}
   Lines.prototype.lelms = {
     id: [],
     navid: [],
@@ -69,12 +65,11 @@ var Lines = Lines || {};
     action: {}
   };
 
-  // candle.winp store path string for win candle shadow
-  // candle.losep store path string for lose candle shadow
+  // Dataset
   // sinit > secure init did not reset after 
   Lines.prototype.dset = {
     sinit: {},
-    init: { raw: [], min: 0, max: 0, stepX: 0, stepY: 0, zeroY: 0 },
+    init: { raw: [], labels: [], min: 0, max: 0, stepX: 0, stepY: 0, zeroY: 0 },
     line: { points: [], lastX: 0, lastY: 0 },
     candle: { width: 0, winp: [], losep: [] },
     sma: { data: [], points: [], lastX: 0, lastY: 0 },
@@ -93,6 +88,7 @@ var Lines = Lines || {};
   //  - cssClass = classes for each chart type. 
   Lines.prototype.cfg = {
     animate: false,
+    zoomMove: true,
     chart: {
       type: ["line", "candle", "sma", "ema"],
       padding: 30,
@@ -129,12 +125,12 @@ var Lines = Lines || {};
       xMax: 100,
       yMax: 20,
       arrow: 50,
-      zoom: 10,
-      offset: 10,
+      zoom: 9,
+      offset: 9,
       xLegend: 100
     },
     debug: {
-      radius: 3,
+      radius: 6,
       attr: { stroke: "red" }
     },
     timeUnit: "15m",
@@ -144,7 +140,7 @@ var Lines = Lines || {};
 
   // Internal method 
   // - define chartArea which hold main chart dimensions
-  Lines.prototype.setup = function() {
+  Lines.prototype.setupChart = function() {
     var elementStyle, width, height;
 
     if (!window.getComputedStyle) {
@@ -171,23 +167,28 @@ var Lines = Lines || {};
     // check if snap exist. for testing purposes
     this.snap && this.snap.attr(this.cfg.chart.attr);
 
-    this.snap && this.chartEvents();
+    if (this.snap && this.cfg.zoomMove) {
+      this.chartEvents();
+    }
   };
 
   Lines.prototype.events = {
     wheel: false
   };
 
+  // bind global Events for whole chart
   // mouseWheel
   // mouse Drag
   // once Per interaction throught debounce
   Lines.prototype.chartEvents = function() {
     var _debounce, self = this;
 
+
     _debounce = function(cb, wait) {
       var timeout;
       return function() {
-        var action = {}, args = arguments;
+        var action = {},
+          args = arguments;
         action.draw = self.gl({ type: "action", prop: "draw" });
         action.drag = self.gl({ type: "action", prop: "drag" });
         //check draw or drag 
@@ -204,6 +205,11 @@ var Lines = Lines || {};
       };
     };
 
+    if (!this.cfg.zoomMove) {
+      this.el.removeEventListener("wheel", _debounce(this.cbEvent, 300), false);
+      return;
+    }
+
     if (!this.events.wheel) {
       this.events.wheel = true;
       this.el.addEventListener("wheel", _debounce(this.cbEvent, 300), false);
@@ -215,8 +221,26 @@ var Lines = Lines || {};
     }
   };
 
-  // for wheel -> wheelDelta >>> this.zoom
-  // for drag -> dx, dy, posx, posy >>> this.move
+  // set config parameters
+  // support deep config
+  Lines.prototype.setup = function(setupData) {
+    var prop1, prop2;
+    for (prop1 in setupData) {
+      if (typeof setupData[prop1] === "object") {
+        for (prop2 in setupData[prop1]) {
+          if (this.cfg[prop1][prop2]) {
+            this.cfg[prop1][prop2] = setupData[prop1][prop2];
+          }
+        }
+      } else if (this.cfg[prop1]) {
+        this.cfg[prop1] = setupData[prop1];
+      }
+    }
+    this.setupChart();
+  };
+
+  // for wheel -> wheelDelta >>> zoom
+  // for drag -> dx, dy, posx, posy >>> move
   Lines.prototype.cbEvent = function() {
     var param;
     if (arguments[0] && (arguments[0].wheelDelta || arguments[0].deltaY)) {
@@ -234,13 +258,27 @@ var Lines = Lines || {};
     if (!(dataArray instanceof Array)) {
       return;
     }
+    var labels, validData = [];
+    if (dataArray[0].date || dataArray[0].high) {
+      validData = this.formatData(dataArray);
+
+      labels = validData.map(item => item[4]);
+    } else {
+      validData = dataArray;
+      //remove this !!!
+      // validData = dataArray.reverse();
+      labels = validData.map(item => item[4]);
+    }
 
     //store whole array into this.dset.init.raw
-    this.s({ type: this.TYPE.init, prop: "raw" }, dataArray);
+    this.s({ type: this.TYPE.init, prop: "raw" }, validData);
+    if (labels) {
+      this.s({ type: this.TYPE.init, prop: "labels" }, labels);
+    }
 
     // get close values for our MAIN DATA array
     // OHLC - Open High Low Close
-    var data = dataArray.map(item => this.f(item[3], 5));
+    var data = validData.map(item => this.f(item[3], 5));
     this.s({ type: this.TYPE.line, prop: "data" }, data);
 
     //recover values from sinit
@@ -249,6 +287,19 @@ var Lines = Lines || {};
       this.dataInit();
       this.calculate();
     }
+  };
+
+  //[{open, high, low, close}]
+  Lines.prototype.formatData = function(dataRaw) {
+    var validData;
+
+    validData = dataRaw.map(row => [row.open,
+      row.high,
+      row.low,
+      row.close,
+      row.date
+    ]);
+    return validData;
   };
 
   // Internal method
@@ -276,6 +327,8 @@ var Lines = Lines || {};
 
       raw = this.gg("raw");
       this.s({ type: this.TYPE.sinit, prop: "allraw" }, raw);
+
+      this.s({ type: this.TYPE.sinit, prop: "labels" }, this.gg("labels"));
       offset = this.g({ type: this.TYPE.sinit, prop: "offset" }) || 0;
       slice = {
         begin: (offset > 0) ? offset : 0,
@@ -715,9 +768,10 @@ var Lines = Lines || {};
       xlabel;
 
     plen = this.gg("points").length;
-    lineAxis[0][0] = this.chartArea.endX + this.gg("stepX");
+    // lineAxis[0][0] = this.chartArea.endX + this.gg("stepX");
+    lineAxis[0][0] = this.chartArea.zeroX;
     lineAxis[0][1] = Math.floor(this.chartArea.zeroY + this.cfg.chart.padding / 2);
-    lineAxis[1] = [lineAxis[0][0], lineAxis[0][1] + 4];
+    lineAxis[1] = [lineAxis[0][0], lineAxis[0][1] + 5];
     xAxis = lineAxis[0][0] = lineAxis[1][0];
     if (this.cfg.timeUnit === "4h") {
       diff = 1;
@@ -744,7 +798,7 @@ var Lines = Lines || {};
 
         this.store({ type: this.TYPE.axis }, svg);
       }
-      xAxis += this.gg("stepX");
+      xAxis -= this.gg("stepX");
     }
     this.printPath({ type: this.TYPE.axis, path: _linePath });
   };
@@ -770,18 +824,27 @@ var Lines = Lines || {};
     }
   };
 
+  // cuttedData = raw.slice(slice.begin, slice.end);
+  Lines.prototype.dateTime = function(period) {
+    var periodInfo = {};
+    periodInfo.key = period + (this.gg("offset") || 0);
+
+    periodInfo.value = this.gg("labels")[periodInfo.key];
+    return this.formatDate(periodInfo.value);
+  };
+
   // 1. calculate whole length width/stepX
   // 2. calculate one Period depend on cfg.timeUnit
   // 3. calculate begining of chart 
   // 
   // timeUnits: ["15m", "30m", "1h", "4h", "1d", "1w"], //supported TIME UNITS
-  Lines.prototype.dateTime = function(period) {
+  Lines.prototype.dateTimeOld = function(period) {
     var periodLength, timeLine = {};
 
     periodLength = this.chartArea.width / this.gg("stepX");
     periodLength = this.f(periodLength, 0) - 1;
     //add or subtrack offset 
-    periodLength += this.g({ type: "sinit", prop: "offset" }) || 0;
+    periodLength += this.g({ type: this.TYPE.init, prop: "offset" }) || 0;
 
     timeLine.perPeriod = this.dateUnit(); // in milliseconds
     if (period === periodLength) {
@@ -1344,6 +1407,7 @@ var Lines = Lines || {};
       this.drawOrder.push("live");
       return;
     }
+    if (!this.findY(100)) return;
 
     live.labelInfo = {
       type: this.TYPESVG.text,
@@ -1379,17 +1443,17 @@ var Lines = Lines || {};
       }
     });
 
-    if (!this.lcGroup) {
-      this.lcGroup = this.snap.g(this.elms.line["svg-line"].elem);
-    }
+    // if (!this.lcGroup) {
+    //   this.lcGroup = this.snap.g(this.elms.line["svg-line"].elem);
+    // }
 
-    this.snap.drag((moveX, moveY) => {
-      dragX = moveX;
+    // this.snap.drag((moveX, moveY) => {
+    //   dragX = moveX;
 
-      self.lcGroup.attr({ transform: "t" + (dragX + self.dragX) });
-    }, () => {}, () => {
-      self.dragX += dragX;
-    });
+    //   self.lcGroup.attr({ transform: "t" + (dragX + self.dragX) });
+    // }, () => {}, () => {
+    //   self.dragX += dragX;
+    // });
   };
 
   // http://jsfiddle.net/tM4L9/7/
@@ -1417,7 +1481,7 @@ var Lines = Lines || {};
 
     this.snap.unclick();
     this.snap.click((e, clickX, clickY) => {
-      this.sl({type: "action", prop: "draw"}, true);
+      this.setEvent("draw", true);
       axis[0] = [(clickX - offset.left), (clickY - offset.top)];
       axis[1] = [(axis[0][0] + this.cfg.chart.padding), (axis[0][1] + this.cfg.chart.padding)];
 
@@ -1440,7 +1504,7 @@ var Lines = Lines || {};
           }
 
           if (liveInfo.constx) {
-            _axis[0][0] = self.chartArea.zeroX;
+            _axis[0][0] = self.chartArea.endX;
             _axis[1][0] = self.chartArea.width; // axisX2
             _axis[0][1] = _axis[1][1]; // axisY1
           } else if (liveInfo.consty) {
@@ -1448,12 +1512,11 @@ var Lines = Lines || {};
             _axis[1][1] = self.chartArea.height + self.cfg.chart.padding; // axisY
             _axis[0][0] = _axis[1][0]; // axisX
           }
-
           //axis > mouse axis, axis is with manipulation
           cb && cb({ state: "move", axis: _axis });
         });
       } else if (clicks === 2) {
-        this.sl({type: "action", prop: "draw"}, false);
+        this.setEvent("draw", false);
         this.snap.unclick();
         this.snap.unmousemove();
         cb && cb({ state: "finish", axis: axis });
@@ -1517,14 +1580,26 @@ var Lines = Lines || {};
     rotate: ""
   };
 
+  //toggle global Events
+  // - wheel
+  // - drag
+  Lines.prototype.setEvent = function(eventType = false, eventState) {
+    if (!eventType || typeof eventState !== "boolean") {
+      return;
+    } else if (["drag", "draw"].indexOf(eventType) === -1) {
+      return;
+    }
+
+    this.sl({ type: "action", prop: eventType }, eventState);
+  };
+
   // set lelms.last.elem and use for further on
   // callback function for drag navigation DOT...
   // dragData.state = [start, drag, finish]
   Lines.prototype.navDotDrag = function(dragData = {}, extraData = {}) {
-
     //explicit set new element for EACH DRAG START !!!
     if (dragData.state === "start") {
-      this.sl({type: "action", prop: "drag"}, true);
+      this.setEvent("drag", true);
       this.dragtmp.elem = this.gl({ id: dragData.elemId });
       this.dragtmp.move = this.getNavDot(dragData.elemId, "move");
       this.dragtmp.rotate = this.getNavDot(dragData.elemId, "rotate");
@@ -1563,7 +1638,7 @@ var Lines = Lines || {};
     } else if (dragData.state === "finish" && dragData.action === "move") {
       // this.mvElem(dragData.elemId);
       this.mvElem(this.dragtmp.rotate.node.id);
-      this.sl({type: "action", prop: "drag"}, false);
+      this.setEvent("drag", false);
     }
   };
 
@@ -1684,7 +1759,7 @@ var Lines = Lines || {};
     inputElem.id = this.makeId({ type: this.TYPESVG.input }, true);
     inputElem.style.cssText = inputStyle;
     inputElem.class = "tlabel";
-    inputElem.addEventListener('input', function() {
+    inputElem.addEventListener("input", function() {
       self.gl({ type: self.TYPESVG.text, prop: textId })
         .attr({ text: this.value });
     }, false);
@@ -1741,7 +1816,7 @@ var Lines = Lines || {};
     navDots.move.remove();
     navDots.rotate.remove();
     this.gl({ type: "line", prop: liveLineID }).remove();
-    //delete from live element storage
+    //delete from live element storage(lelms)
     this.dl({ type: "line", prop: liveLineID });
     this.dl({ type: "nav", prop: navDots.move.node.id });
     this.dl({ type: "nav", prop: navDots.rotate.node.id });
@@ -2051,7 +2126,7 @@ var Lines = Lines || {};
     foundY.pixel = (foundY.pixel > 0) ? Math.round(foundY.pixel) : 0;
 
     foundY.value = (this.chartArea.zeroY - foundY.pixel) / this.gg("stepY") + this.gg("min");
-    foundY.value = this.f(foundY.value, 0);
+    foundY.value = this.f(foundY.value, 5);
 
     return foundY;
   };
@@ -2409,11 +2484,14 @@ var Lines = Lines || {};
     } else if (moveType === "next") {
       offset -= this.cfg.step.offset;
     }
+    
+    console.log(">>>", this.gg("stepX"), (this.cfg.step.xMax - 35), this.cfg.step.xMin)
 
     if (this.gg("stepX") > (this.cfg.step.xMax - 35) || this.gg("stepX") < this.cfg.step.xMin) {
-      this.pr("step X reach the limit");
+      this.pr("step X reach the limit:", this.gg("stepX"));
       return;
     } else if (offset < 0) {
+      this.pr("offset can not be negative");
       return;
     }
 
@@ -2441,7 +2519,7 @@ var Lines = Lines || {};
     }
 
     if (stepX > this.cfg.step.xMax || stepX < this.cfg.step.xMin) {
-      this.pr("step X reach the limit");
+      this.pr("step X reach the limit", stepX);
       return;
     }
     this.s({ type: this.TYPE.sinit, prop: "stepX" }, stepX);
