@@ -17,7 +17,7 @@ var Lines = Lines || {};
   };
 
   // Debug flag. 
-  Lines.prototype.debug = true;
+  Lines.prototype.debug = false;
 
   // Contstant TYPESVG
   Lines.prototype.TYPESVG = {
@@ -2471,6 +2471,20 @@ var Lines = Lines || {};
     return canElem;
   };
 
+  Lines.prototype.getImg = function (imgID = false) {
+    var imgElem;
+
+    this.colorize();
+
+    imgElem = document.createElement("img");
+    imgElem.setAttribute("src", this.toBase64());
+
+    imgElem.setAttribute("width", this.chartArea.w);
+    imgElem.setAttribute("height", this.chartArea.h);
+
+    return imgElem;
+  };
+
   // move all charts 
   // with one step forward or back
   // moveType prev or next
@@ -2485,8 +2499,6 @@ var Lines = Lines || {};
       offset -= this.cfg.step.offset;
     }
     
-    console.log(">>>", this.gg("stepX"), (this.cfg.step.xMax - 35), this.cfg.step.xMin)
-
     if (this.gg("stepX") > (this.cfg.step.xMax - 35) || this.gg("stepX") < this.cfg.step.xMin) {
       this.pr("step X reach the limit:", this.gg("stepX"));
       return;

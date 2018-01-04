@@ -82,7 +82,6 @@ nav a.active {
   position: relative;
   /*width: 80%;*/
   min-height: 450px;
-  height: 300px;
 }
 
 #svgRoot:after {
