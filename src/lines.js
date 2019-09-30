@@ -1,13 +1,14 @@
-var Lines = Lines || {};
+let Lines = window.Lines || {};
 
 (function() {
   "use strict";
+
 
   Lines = function(elemId) {
     if (!this.getId(elemId)) {
       throw new Error("Missing SVG DOM Element !");
     } else if (!window.Snap) {
-      throw Error("Missing Snap.svg library !");
+      throw new Error("Missing Snap.svg library !");
     }
 
     this.el = this.getId(elemId);

@@ -10,10 +10,12 @@
   "config": {
     "svgSrc": "node_modules/snapsvg/dist/snap.svg-min.js",
     "src": "src/lines.js",
-    "dest": "dist/lines.js"
+    "dest": "dist/lines.js",
+    "timeout": 10000
   },
   "scripts": {
-    "test": "mocha test/lines.js test/draws.js test/ma.js",
+    "start": "serve ./",
+    "test": "mocha --recursive --timeout $npm_package_config_timeout --exit",
     "lint": "eslint .",
     "step0": "rm -rf dist .tmp",
     "step1": "mkdir .tmp dist",
@@ -32,16 +34,17 @@
   "author": "bbvox",
   "license": "MIT",
   "dependencies": {
-    "snapsvg": "^0.5.1"
+    "serve": "^11.2.0",
+    "snapsvg": "*"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "coveralls": "^2.13.1",
-    "eslint": "^4.6.0",
+    "chai": "^4.2.0",
+    "coveralls": "^3.0.6",
+    "eslint": "^6.5.0",
     "istanbul": "^0.4.5",
-    "jsdom": "^11.2.0",
+    "jsdom": "^15.1.1",
     "jsdom-global": "^3.0.2",
-    "mocha": "^3.5.0",
-    "sinon": "^3.2.1"
+    "mocha": "^6.2.1",
+    "sinon": "^7.5.0"
   }
 }
