@@ -4,7 +4,7 @@ if (typeof require !== "undefined") {
   var Lines = require("../index");
 
   require("jsdom-global")();
-  var noop = function () {};
+  var noop = function () { };
   global.window.Snap = noop;
 
   document.body.innerHTML = "<nav id='navBar'></nav><svg id='elementId'></svg>";
@@ -12,66 +12,68 @@ if (typeof require !== "undefined") {
   var tdata = require("./test-data");
 }
 
-describe("Lines constructor", function() {
+describe("Lines constructor", function () {
   var getId, Snap;
-  it("should throw Error w/o element", function() {
+  it("should throw Error w/o element", function () {
     getId = sinon.stub(Lines.prototype, "getId").returns(false);
 
-    expect(function() {
+    expect(function () {
       new Lines();
     }).to.throw(Error);
   });
 
-  it("should throw Error w/o Snap.svg lib", function() {
+  it("should throw Error w/o Snap.svg lib", function () {
     getId = sinon.stub(Lines.prototype, "getId").returns(true);
     Snap = sinon.stub(global.window, "Snap").returns(false);
 
-    expect(function() {
+    expect(function () {
       new Lines();
     }).to.throw(Error);
   });
 
-  it("should call getId with define elementId", function() {
+  it("should call getId with define elementId", function () {
     getId = sinon.spy(Lines.prototype, "getId");
 
     new Lines(tdata.elemID);
     expect(getId.calledWith(tdata.elemID)).to.be.true;
   });
 
-  it("should return instanceof Lines", function() {
+  it("should return instanceof Lines", function () {
     var lines = new Lines(tdata.elemID);
     expect(lines).to.be.an.instanceof(Lines);
   });
 
-  afterEach(function() {
+  afterEach(function () {
     getId && getId.restore();
     Snap && Snap.restore();
   });
 });
 
-describe("Lines cfg properties & data method", function() {
+
+describe("Lines cfg properties & data method", function () {
   var lines;
-  before(function() {
+  before(function () {
     lines = new Lines(tdata.elemID);
+    lines.reset();
   });
 
-  it("config property should be available", function() {
+  it("config property should be available", function () {
     expect(lines.cfg).to.exist;
   });
 
-  it("init Data > raw, min, max should be undefined", function() {
+  it("init Data > raw, min, max should be undefined", function () {
     var raw, min, max;
     raw = lines.gg("raw");
     min = lines.gg("min");
     max = lines.gg("max");
-
     expect(lines.dset.init).to.be.an("object");
-    expect(raw).to.be.empty;
+    // expect(raw).to.be.empty;
+    expect(raw).to.be.false;
     expect(min).to.be.false;
     expect(max).to.be.false;
   });
 
-  it("init Data > raw, min, max should be define", function() {
+  it("init Data > raw, min, max should be define", function () {
     lines.data(tdata.initData);
 
     expect(lines.dset.init.raw).to.be.an("array");
@@ -80,13 +82,13 @@ describe("Lines cfg properties & data method", function() {
   });
 });
 
-describe("Lines draw method param", function() {
+describe("Lines draw method param", function () {
   var lines, spyDraw = {};
-  before(function() {
+  before(function () {
     lines = new Lines(tdata.elemID);
   });
 
-  it("should call drawAxis when param is axis", function() {
+  it("should call drawAxis when param is axis", function () {
     lines.data(tdata.initData);
     spyDraw.axis = sinon.stub(lines, "drawAxis");
     lines.draw("axis");
@@ -94,35 +96,35 @@ describe("Lines draw method param", function() {
     expect(spyDraw.axis.calledOnce).to.be.true;
   });
 
-  it("should call drawLine when param is line", function() {
+  it("should call drawLine when param is line", function () {
     lines.data(tdata.initData);
     spyDraw.line = sinon.stub(lines, "drawLine");
     lines.draw("line");
     expect(spyDraw.line.calledOnce).to.be.true;
   });
 
-  it("should call drawCandle when param is candle", function() {
+  it("should call drawCandle when param is candle", function () {
     lines.data(tdata.initData);
     spyDraw.candle = sinon.stub(lines, "drawCandle");
     lines.draw("candle");
     expect(spyDraw.candle.calledOnce).to.be.true;
   });
 
-  it("should call drawSMA when draw's param is sma", function() {
+  it("should call drawSMA when draw's param is sma", function () {
     lines.data(tdata.initData);
     spyDraw.sma = sinon.stub(lines, "drawSMA");
     lines.draw("sma");
     expect(spyDraw.sma.calledOnce).to.be.true;
   });
 
-  it("should call drawEMA when param is ema", function() {
+  it("should call drawEMA when param is ema", function () {
     lines.data(tdata.initData);
     spyDraw.ema = sinon.stub(lines, "drawEMA");
     lines.draw("ema");
     expect(spyDraw.ema.calledOnce).to.be.true;
   });
 
-  it("should call all when param is all and animate false", function() {
+  it("should call all when param is all and animate false", function () {
     lines.data(tdata.initData);
     spyDraw.axis = sinon.stub(lines, "drawAxis");
     spyDraw.line = sinon.stub(lines, "drawLine");
@@ -138,7 +140,7 @@ describe("Lines draw method param", function() {
     expect(spyDraw.ema.calledOnce).to.be.true;
   });
 
-  it("should call drawAxis when param is all and cfg.animate true", function() {
+  it("should call drawAxis when param is all and cfg.animate true", function () {
     lines.data(tdata.initData);
     spyDraw.axis = sinon.stub(lines, "drawAxis");
 
@@ -148,7 +150,7 @@ describe("Lines draw method param", function() {
     expect(spyDraw.axis.calledOnce).to.be.true;
   });
 
-  afterEach(function() {
+  afterEach(function () {
     ["axis", "line", "candle", "sma", "ema"].forEach(val => {
       spyDraw[val] && spyDraw[val].restore();
     });

@@ -1,10 +1,9 @@
-let Lines = window.Lines || {};
+let Lines;
 
-(function() {
+(function () {
   "use strict";
 
-
-  Lines = function(elemId) {
+  Lines = function (elemId) {
     if (!this.getId(elemId)) {
       throw new Error("Missing SVG DOM Element !");
     } else if (!window.Snap) {
@@ -141,7 +140,7 @@ let Lines = window.Lines || {};
 
   // Internal method 
   // - define chartArea which hold main chart dimensions
-  Lines.prototype.setupChart = function() {
+  Lines.prototype.setupChart = function () {
     var elementStyle, width, height;
 
     if (!window.getComputedStyle) {
@@ -181,13 +180,13 @@ let Lines = window.Lines || {};
   // mouseWheel
   // mouse Drag
   // once Per interaction throught debounce
-  Lines.prototype.chartEvents = function() {
+  Lines.prototype.chartEvents = function () {
     var _debounce, self = this;
 
 
-    _debounce = function(cb, wait) {
+    _debounce = function (cb, wait) {
       var timeout;
-      return function() {
+      return function () {
         var action = {},
           args = arguments;
         action.draw = self.gl({ type: "action", prop: "draw" });
@@ -197,7 +196,7 @@ let Lines = window.Lines || {};
           return;
         }
         arguments[0].preventDefault && arguments[0].preventDefault();
-        var later = function() {
+        var later = function () {
           timeout = null;
           cb.apply(self, args);
         };
@@ -224,7 +223,7 @@ let Lines = window.Lines || {};
 
   // set config parameters
   // support deep config
-  Lines.prototype.setup = function(setupData) {
+  Lines.prototype.setup = function (setupData) {
     var prop1, prop2;
     for (prop1 in setupData) {
       if (typeof setupData[prop1] === "object") {
@@ -242,7 +241,7 @@ let Lines = window.Lines || {};
 
   // for wheel -> wheelDelta >>> zoom
   // for drag -> dx, dy, posx, posy >>> move
-  Lines.prototype.cbEvent = function() {
+  Lines.prototype.cbEvent = function () {
     var param;
     if (arguments[0] && (arguments[0].wheelDelta || arguments[0].deltaY)) {
       param = arguments[0].wheelDelta || arguments[0].deltaY;
@@ -255,7 +254,7 @@ let Lines = window.Lines || {};
 
   // Interface method
   // check dataArray, handle dataArray
-  Lines.prototype.data = function(dataArray) {
+  Lines.prototype.data = function (dataArray) {
     if (!(dataArray instanceof Array)) {
       return;
     }
@@ -291,14 +290,14 @@ let Lines = window.Lines || {};
   };
 
   //[{open, high, low, close}]
-  Lines.prototype.formatData = function(dataRaw) {
+  Lines.prototype.formatData = function (dataRaw) {
     var validData;
 
     validData = dataRaw.map(row => [row.open,
-      row.high,
-      row.low,
-      row.close,
-      row.date
+    row.high,
+    row.low,
+    row.close,
+    row.date
     ]);
     return validData;
   };
@@ -308,7 +307,7 @@ let Lines = window.Lines || {};
   // if data is more than available slots slice it
   // start again 
   // toDo create pagging
-  Lines.prototype.checkLen = function() {
+  Lines.prototype.checkLen = function () {
     var data, stepX, perPage;
 
     data = this.gg("data");
@@ -348,7 +347,7 @@ let Lines = window.Lines || {};
 
   // initialize data set
   // calculate min, max value based on input data
-  Lines.prototype.dataInit = function() {
+  Lines.prototype.dataInit = function () {
     var data, min, max;
 
     data = this.gg("data");
@@ -368,7 +367,7 @@ let Lines = window.Lines || {};
   };
 
   // calc stepY
-  Lines.prototype.periodInit = function() {
+  Lines.prototype.periodInit = function () {
     var step = {},
       amplitude;
 
@@ -380,7 +379,7 @@ let Lines = window.Lines || {};
   };
 
   //define zeroX & zeroY
-  Lines.prototype.zeroInit = function() {
+  Lines.prototype.zeroInit = function () {
     var data, zeroY;
     data = this.gg("data");
 
@@ -396,7 +395,7 @@ let Lines = window.Lines || {};
   // calculate axis points and store it into lines.points
   // pointOne = [axisX, axisY]
   // this.TYPE.points = [[x0,y0], [x1, y1].....[x88,y88]]
-  Lines.prototype.calculate = function() {
+  Lines.prototype.calculate = function () {
     var data, pointLength, pIndex = 1,
       pointOne = [];
 
@@ -426,7 +425,7 @@ let Lines = window.Lines || {};
    * @param {string} chartType - Chart type.
    * @param {string} propPostfix - String which add at the end of property.
    */
-  Lines.prototype.calcPoint = function(dataIndex, chartType = "line", propPostfix = "") {
+  Lines.prototype.calcPoint = function (dataIndex, chartType = "line", propPostfix = "") {
     var prevDataValue, dataValue, diff, params = {};
 
     params.type = chartType;
@@ -456,7 +455,7 @@ let Lines = window.Lines || {};
    *
    *  calculated point add to points/pointsLength to corresponding chartType
    */
-  Lines.prototype.plus = function(increase, chartType = "line", propPostfix) {
+  Lines.prototype.plus = function (increase, chartType = "line", propPostfix) {
     var point = [],
       change = {};
 
@@ -480,7 +479,7 @@ let Lines = window.Lines || {};
    *
    *  calculated point add to points/pointsLength to corresponding chartType
    */
-  Lines.prototype.minus = function(decrease, chartType = "line", propPostfix) {
+  Lines.prototype.minus = function (decrease, chartType = "line", propPostfix) {
     var point = [],
       change = {};
 
@@ -504,7 +503,7 @@ let Lines = window.Lines || {};
    *
    *  calculated point add to points/pointsLength to corresponding chartType
    */
-  Lines.prototype.equal = function(value, chartType = "line", propPostfix) {
+  Lines.prototype.equal = function (value, chartType = "line", propPostfix) {
     var point = {},
       change = {};
 
@@ -525,7 +524,7 @@ let Lines = window.Lines || {};
    * @param {number} addData - data to push into array.
    *
    */
-  Lines.prototype.add = function(addInfo, addData) {
+  Lines.prototype.add = function (addInfo, addData) {
     var points;
     points = this.g(addInfo) || [];
     points.push(addData);
@@ -540,7 +539,7 @@ let Lines = window.Lines || {};
     | | |  __/ | | | (_| |  __/ |    | | | | | |  __/ |_| | | | (_) | (_| \__ \
     |_|  \___|_| |_|\__,_|\___|_|    |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
   */
-  Lines.prototype.draw = function(type = "all", chartLength) {
+  Lines.prototype.draw = function (type = "all", chartLength) {
     switch (type) {
       case this.TYPE.axis:
         this.drawAxis();
@@ -581,7 +580,7 @@ let Lines = window.Lines || {};
    *
    * @return {object} svgObject
    */
-  Lines.prototype.drawSVG = function(svgInfo = {}) {
+  Lines.prototype.drawSVG = function (svgInfo = {}) {
     var svgData = {};
     switch (svgInfo.type) {
       case this.TYPESVG.rect:
@@ -637,13 +636,13 @@ let Lines = window.Lines || {};
    * @param {object} elementInfo - {type: this.TYPE}.
    *
    */
-  Lines.prototype.checkId = function(elementInfo) {
+  Lines.prototype.checkId = function (elementInfo) {
     var elemID;
     elemID = this.makeId(elementInfo);
     return (this.elms.id.indexOf(elemID) !== -1);
   };
 
-  Lines.prototype.redraw = function(idArray) {
+  Lines.prototype.redraw = function (idArray) {
     var chart, key, fnName;
 
     idArray = idArray || this.elms.id;
@@ -654,7 +653,7 @@ let Lines = window.Lines || {};
     }
   };
 
-  Lines.prototype.getLabel = function(elemID) {
+  Lines.prototype.getLabel = function (elemID) {
     var label = elemID.split("-");
 
     label.shift(); //remove "svg"
@@ -667,7 +666,7 @@ let Lines = window.Lines || {};
   //dset.sma.length
   //dset.ema
   //toDo review this...
-  Lines.prototype.drawLegend = function() {
+  Lines.prototype.drawLegend = function () {
     var yAxis, smaID, emaID;
     yAxis = this.chartArea.zeroY - 20;
     for (smaID in this.elms.sma) {
@@ -692,7 +691,7 @@ let Lines = window.Lines || {};
   };
 
   // rowObj {y, label, color}
-  Lines.prototype.prLegend = function(rowObj) {
+  Lines.prototype.prLegend = function (rowObj) {
     var svg = {},
       cube = {};
     cube.x = this.chartArea.w - this.cfg.step.xLegend;
@@ -726,7 +725,7 @@ let Lines = window.Lines || {};
   };
 
   //draw empty Grid behind chart
-  Lines.prototype.drawAxis = function() {
+  Lines.prototype.drawAxis = function () {
     var lineAxis = [],
       yAxis, _linePath = "",
       gridStep, lk = 0;
@@ -759,10 +758,10 @@ let Lines = window.Lines || {};
     this.drawLabelsY();
   };
 
-  Lines.prototype.drawLabelsX = function() {
+  Lines.prototype.drawLabelsX = function () {
     var xAxis, lineAxis = [
-        []
-      ],
+      []
+    ],
       plen, _linePath = "",
       svg, lk = 0,
       diff = 0,
@@ -804,7 +803,7 @@ let Lines = window.Lines || {};
     this.printPath({ type: this.TYPE.axis, path: _linePath });
   };
 
-  Lines.prototype.drawLabelsY = function() {
+  Lines.prototype.drawLabelsY = function () {
     var svg, txtStep, label, step, point;
 
     label = this.gg("min");
@@ -826,7 +825,7 @@ let Lines = window.Lines || {};
   };
 
   // cuttedData = raw.slice(slice.begin, slice.end);
-  Lines.prototype.dateTime = function(period) {
+  Lines.prototype.dateTime = function (period) {
     var periodInfo = {};
     periodInfo.key = period + (this.gg("offset") || 0);
 
@@ -839,7 +838,7 @@ let Lines = window.Lines || {};
   // 3. calculate begining of chart 
   // 
   // timeUnits: ["15m", "30m", "1h", "4h", "1d", "1w"], //supported TIME UNITS
-  Lines.prototype.dateTimeOld = function(period) {
+  Lines.prototype.dateTimeOld = function (period) {
     var periodLength, timeLine = {};
 
     periodLength = this.chartArea.width / this.gg("stepX");
@@ -863,7 +862,7 @@ let Lines = window.Lines || {};
     return this.formatDate(timeLine.thisPeriod);
   };
 
-  Lines.prototype.formatDate = function(timeStamp) {
+  Lines.prototype.formatDate = function (timeStamp) {
     var base, dateFormat, months;
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     base = new Date(timeStamp);
@@ -908,7 +907,7 @@ let Lines = window.Lines || {};
   };
 
   // return one period unit(milisecconds) for current period
-  Lines.prototype.dateUnit = function() {
+  Lines.prototype.dateUnit = function () {
     var oneMin, unit;
 
     oneMin = 60000; //60
@@ -944,7 +943,7 @@ let Lines = window.Lines || {};
   //in minute
   //start date
   //start hour
-  Lines.prototype.labelX = function(step) {
+  Lines.prototype.labelX = function (step) {
     var label, res = "";
     label = 840; //14 why 14 ???
     switch (this.cfg.timeUnit) {
@@ -983,7 +982,7 @@ let Lines = window.Lines || {};
 
   //////////////////////////////////// DRAW FUNCTIONS >>>
   // add snap.path to store
-  Lines.prototype.drawLine = function() {
+  Lines.prototype.drawLine = function () {
     var points, plen, pkey = 0,
       _linePath = "",
       lineAxis = [];
@@ -1009,7 +1008,7 @@ let Lines = window.Lines || {};
   };
 
   //Material 400 
-  Lines.prototype.getHex = function() {
+  Lines.prototype.getHex = function () {
     var colors = ["#ef5350", "#ec407a", "#ab47bc", "#7e57c2", "#5c6bc0", "#42a5f5", "#26a69a", "#66bb6a", "#9ccc65"];
     colors = colors.concat(["#c62828", "#ad1457", "#6a1b9a", "#4527a0", "#1565c0", "#2e7d32", "#558b2f"]);
 
@@ -1018,7 +1017,7 @@ let Lines = window.Lines || {};
 
   // animate or not
   // https://codepen.io/JRGould/pen/dkHhw
-  Lines.prototype.printPath = function(lineProp) {
+  Lines.prototype.printPath = function (lineProp) {
     if (this.cfg.animate) {
       this.animatePath(lineProp, () => {
         if (this.drawOrder[0]) {
@@ -1032,7 +1031,7 @@ let Lines = window.Lines || {};
   };
 
   // only sma & ema charts can be draw more than once
-  Lines.prototype.exist = function(chartType) {
+  Lines.prototype.exist = function (chartType) {
     if ([this.TYPE.sma, this.TYPE.ema].indexOf(chartType) === -1) {
       return false;
     }
@@ -1040,7 +1039,7 @@ let Lines = window.Lines || {};
     return !!this.elms[chartType];
   };
 
-  Lines.prototype.directPath = function(lineProp) {
+  Lines.prototype.directPath = function (lineProp) {
     var svg, svgAttr = {},
       elemID, color, storedColor = {};
 
@@ -1077,7 +1076,7 @@ let Lines = window.Lines || {};
   // toDo - remove animation as it is now
   // replace it with draw White chart and animate after that
   // imidiatly set all chart properties
-  Lines.prototype.animatePath = function(lineProp, cbNext) {
+  Lines.prototype.animatePath = function (lineProp, cbNext) {
     var svg, lineLen, svgAttr = {};
 
     svgAttr.class = lineProp.class || this.cfg.cssClass[lineProp.type];
@@ -1091,27 +1090,27 @@ let Lines = window.Lines || {};
         strokeWidth: lineProp.width || 1
       });
     },
-    800, //duration
-    mina.backOut,
-    () => {
-      if (this.exist(lineProp.type)) {
-        var color = this.getHex();
-        svg.attr({ style: "stroke: " + color });
-        this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
-        this.drawLegend();
-      }
-      //store single or group
-      if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
-        this.store({ type: lineProp.type, length: lineProp.length }, svg);
-      } else {
-        this.store({ type: lineProp.type, length: lineProp.length, single: true }, svg);
-      }
-      cbNext && cbNext();
-    });
+      800, //duration
+      mina.backOut,
+      () => {
+        if (this.exist(lineProp.type)) {
+          var color = this.getHex();
+          svg.attr({ style: "stroke: " + color });
+          this.store({ type: lineProp.type, length: lineProp.length, prop: "color" }, color);
+          this.drawLegend();
+        }
+        //store single or group
+        if ([this.TYPE.axis, this.TYPE.candle].indexOf(lineProp.type) !== -1) {
+          this.store({ type: lineProp.type, length: lineProp.length }, svg);
+        } else {
+          this.store({ type: lineProp.type, length: lineProp.length, single: true }, svg);
+        }
+        cbNext && cbNext();
+      });
     /* beautify preserve:end */
   };
 
-  Lines.prototype.getPath = function(lineAxis) {
+  Lines.prototype.getPath = function (lineAxis) {
     if (lineAxis.length !== 2) {
       return;
     }
@@ -1125,7 +1124,7 @@ let Lines = window.Lines || {};
   // 1. drawCandle
   // 2. candle
   // 3. candleShadow
-  Lines.prototype.drawCandle = function() {
+  Lines.prototype.drawCandle = function () {
     var width, raw, rkey;
 
     if (this.checkId({ type: this.TYPE.candle })) {
@@ -1151,7 +1150,7 @@ let Lines = window.Lines || {};
     }
   };
 
-  Lines.prototype.candle = function(candleData, period) {
+  Lines.prototype.candle = function (candleData, period) {
     var axis = [],
       candle = {};
 
@@ -1190,7 +1189,7 @@ let Lines = window.Lines || {};
    * @param {type} candle {data:{open, high, low, close}, width, height, x, y}
    * @param {type} color string
    */
-  Lines.prototype.candleShadow = function(candle, period) {
+  Lines.prototype.candleShadow = function (candle, period) {
     var axisX, lineTop, lineBot, _linePath = "";
     /* beautify preserve:start */
     lineTop = lineBot = [[], []];
@@ -1226,7 +1225,7 @@ let Lines = window.Lines || {};
 
   // a0+a1+ ....a9 / 10 = sma9
   // a1+a2+ ....a10 / 10 = sma10
-  Lines.prototype.calcSMA = function(smaLength) {
+  Lines.prototype.calcSMA = function (smaLength) {
     var data, dLen, len, total = 0,
       dKey = 0;
 
@@ -1261,7 +1260,7 @@ let Lines = window.Lines || {};
   };
 
   //define lastX & lastY for default SMA
-  Lines.prototype.initSMA = function(smaLength) {
+  Lines.prototype.initSMA = function (smaLength) {
     var data, key = 1,
       len, lastAxis = [];
 
@@ -1287,7 +1286,7 @@ let Lines = window.Lines || {};
     }
   };
 
-  Lines.prototype.drawSMA = function(smaLength) {
+  Lines.prototype.drawSMA = function (smaLength) {
     var points, plen, key = 0,
       lineAxis = [],
       _linePath = "";
@@ -1329,7 +1328,7 @@ let Lines = window.Lines || {};
   // EMA(today) = Price(today) * K + EMA(yesterday) * (1-K)
   // EMAtoday = Ptoday * k + EMAyest * k2
   // K = 2 / (length + 1)
-  Lines.prototype.calcEMA = function(emaLength) {
+  Lines.prototype.calcEMA = function (emaLength) {
     var emaK, emaK2, ema = { price: 0, today: 0, yest: 0 };
     var data, key = 1,
       len;
@@ -1362,7 +1361,7 @@ let Lines = window.Lines || {};
   };
 
   //Exponential Mobing Average
-  Lines.prototype.drawEMA = function(emaLength) {
+  Lines.prototype.drawEMA = function (emaLength) {
     var points, plen, key = 0,
       lineAxis = [],
       _linePath = "";
@@ -1398,7 +1397,7 @@ let Lines = window.Lines || {};
   Lines.prototype.dragX = 0;
 
   //turn on live dot which follow user mouse 
-  Lines.prototype.live = function() {
+  Lines.prototype.live = function () {
     var live = {},
       self = this,
       dot, label, left, dragX;
@@ -1470,7 +1469,7 @@ let Lines = window.Lines || {};
   // cb({state: finish}) second click
   // reduse complexity into liveLine
   // - one from mousemove and one mouseclick
-  Lines.prototype.liveMove = function(liveInfo = {}, cb) {
+  Lines.prototype.liveMove = function (liveInfo = {}, cb) {
     var self = this,
       clicks = 0,
       offset = {},
@@ -1491,7 +1490,7 @@ let Lines = window.Lines || {};
 
       if (clicks === 1) {
         this.snap.unmousemove(); //bind once
-        this.snap.mousemove(function(e, dx, dy) {
+        this.snap.mousemove(function (e, dx, dy) {
           if (((dx % 5) && (dy % 5)) || (axis[1][0] > self.chartArea.width)) {
             return;
           }
@@ -1527,7 +1526,7 @@ let Lines = window.Lines || {};
 
   // delete from id or navid
   // delete from live element object(lelms)
-  Lines.prototype.dl = function(deleteInfo = {}) {
+  Lines.prototype.dl = function (deleteInfo = {}) {
     var delIndex;
     if (deleteInfo.type === "nav" && this.lelms.navid.indexOf(deleteInfo.prop) !== -1) {
       delIndex = this.lelms.navid.indexOf(deleteInfo.prop);
@@ -1550,7 +1549,7 @@ let Lines = window.Lines || {};
 
   // this.lgs("navs").length;
   // get live
-  Lines.prototype.gl = function(getInfo = {}) {
+  Lines.prototype.gl = function (getInfo = {}) {
     if (getInfo.id) {
       var elemInfo = this.splitId(getInfo.id, true);
       return this.lelms[elemInfo.type][getInfo.id];
@@ -1562,7 +1561,7 @@ let Lines = window.Lines || {};
   };
 
   // set live
-  Lines.prototype.sl = function(setInfo = {}, setData) {
+  Lines.prototype.sl = function (setInfo = {}, setData) {
     this.lelms[setInfo.type] || (this.lelms[setInfo.type] = {});
     //push elemID into navid OR id
     if (setInfo.type === "nav") {
@@ -1584,7 +1583,7 @@ let Lines = window.Lines || {};
   //toggle global Events
   // - wheel
   // - drag
-  Lines.prototype.setEvent = function(eventType = false, eventState) {
+  Lines.prototype.setEvent = function (eventType = false, eventState) {
     if (!eventType || typeof eventState !== "boolean") {
       return;
     } else if (["drag", "draw"].indexOf(eventType) === -1) {
@@ -1597,7 +1596,7 @@ let Lines = window.Lines || {};
   // set lelms.last.elem and use for further on
   // callback function for drag navigation DOT...
   // dragData.state = [start, drag, finish]
-  Lines.prototype.navDotDrag = function(dragData = {}, extraData = {}) {
+  Lines.prototype.navDotDrag = function (dragData = {}, extraData = {}) {
     //explicit set new element for EACH DRAG START !!!
     if (dragData.state === "start") {
       this.setEvent("drag", true);
@@ -1647,7 +1646,7 @@ let Lines = window.Lines || {};
   // quite heavy method !!! BE CAREFUL
   // liveMove !!!
   // navDotDrag !!!
-  Lines.prototype.liveLine = function(extra = {}) {
+  Lines.prototype.liveLine = function (extra = {}) {
     var axis, elemID, navidLength, liveLine = {};
     //restore last live element for multiple lines ...
     this.lelms.last = 0;
@@ -1703,7 +1702,7 @@ let Lines = window.Lines || {};
   //add input type=text
   // toDo create it with contenteditable and 
   // svg.text > tspan multi lines
-  Lines.prototype.liveText = function(moveData) {
+  Lines.prototype.liveText = function (moveData) {
     var txtSvg = {};
 
     txtSvg.rectId = this.makeId({ type: "rect" }, true);
@@ -1745,7 +1744,7 @@ let Lines = window.Lines || {};
   };
 
   // handle click on text
-  Lines.prototype.liveTextClick = function(axis, textAreaId) {
+  Lines.prototype.liveTextClick = function (axis, textAreaId) {
     var self = this,
       textId, inputStyle, delInput;
 
@@ -1760,7 +1759,7 @@ let Lines = window.Lines || {};
     inputElem.id = this.makeId({ type: this.TYPESVG.input }, true);
     inputElem.style.cssText = inputStyle;
     inputElem.class = "tlabel";
-    inputElem.addEventListener("input", function() {
+    inputElem.addEventListener("input", function () {
       self.gl({ type: self.TYPESVG.text, prop: textId })
         .attr({ text: this.value });
     }, false);
@@ -1772,17 +1771,17 @@ let Lines = window.Lines || {};
 
     this.el.parentElement.appendChild(inputElem);
     inputElem.focus();
-    setTimeout(function() {
+    setTimeout(function () {
       self.el.addEventListener("click", delInput);
     }, 0);
 
-    delInput = function() {
+    delInput = function () {
       document.getElementById(inputElem.id).remove();
       self.el.removeEventListener("click", delInput, false);
     };
   };
 
-  Lines.prototype.moveElem = function(elem, axis) {
+  Lines.prototype.moveElem = function (elem, axis) {
     elem.attr({
       x: axis[0],
       y: axis[1]
@@ -1790,7 +1789,7 @@ let Lines = window.Lines || {};
   };
 
   // Toggle hidden class for line's navDots
-  Lines.prototype.liveLineClick = function(liveLineID) {
+  Lines.prototype.liveLineClick = function (liveLineID) {
     var navDots;
     navDots = this.getNavDot(liveLineID); // return move & rotate
     navDots.classMove = navDots.move ? navDots.move.attr("class").split(" ") : [];
@@ -1811,7 +1810,7 @@ let Lines = window.Lines || {};
   };
 
   // REMOVE liveLineID and related navDots
-  Lines.prototype.liveLineDblclick = function(liveLineID) {
+  Lines.prototype.liveLineDblclick = function (liveLineID) {
     var navDots;
     navDots = this.getNavDot(liveLineID);
     navDots.move.remove();
@@ -1825,7 +1824,7 @@ let Lines = window.Lines || {};
 
   // return arrow for liveElemID
   // return tube bot & top
-  Lines.prototype.getByType = function(liveElemID, typeElem = "arrow") {
+  Lines.prototype.getByType = function (liveElemID, typeElem = "arrow") {
     var elemInfo, liveElem = {};
     elemInfo = this.splitId(liveElemID);
     if (typeElem === "arrow") {
@@ -1843,7 +1842,7 @@ let Lines = window.Lines || {};
   };
 
   //draw arrow ONLY from lineAxis[0]
-  Lines.prototype.liveArrow = function(lineAxis) {
+  Lines.prototype.liveArrow = function (lineAxis) {
     var points = [],
       size, angle = 0,
       apath = "",
@@ -1873,7 +1872,7 @@ let Lines = window.Lines || {};
     }
   };
 
-  Lines.prototype.liveTube = function(lineAxis = []) {
+  Lines.prototype.liveTube = function (lineAxis = []) {
     var liveElemID, pts = [],
       tlines = {};
 
@@ -1941,7 +1940,7 @@ let Lines = window.Lines || {};
    *  SECOND navDot - ROTATE
    *  toDo - add RESIZE navDot or use some of exist ones
    */
-  Lines.prototype.navDot = function(navData = {}, cb) {
+  Lines.prototype.navDot = function (navData = {}, cb) {
     var navDot = {},
       navRotate, initAngle, chart = {},
       self = this;
@@ -2014,7 +2013,7 @@ let Lines = window.Lines || {};
    *  SECOND move Transform from group to new Element
    *  THIRD last element destroy group
    */
-  Lines.prototype.mvElem = function(elemID) {
+  Lines.prototype.mvElem = function (elemID) {
     var elem, groupElem, groupParentElem;
 
     elem = this.getId(elemID);
@@ -2043,7 +2042,7 @@ let Lines = window.Lines || {};
    *
    * @return {object} axis - all: {move & rotate}, move: {moveX & moveY}
    */
-  Lines.prototype.getAxis = function(liveElemID, navType = "all") {
+  Lines.prototype.getAxis = function (liveElemID, navType = "all") {
     var dotsElements, navdot = {},
       axis = {};
 
@@ -2065,7 +2064,7 @@ let Lines = window.Lines || {};
   };
 
   //angle between first & second navDots
-  Lines.prototype.navsAngle = function(liveElemID) {
+  Lines.prototype.navsAngle = function (liveElemID) {
     var axis, angle;
     axis = this.getAxis(liveElemID);
     angle = Snap.angle(axis.move.x, axis.move.y, axis.rotate.x, axis.rotate.y);
@@ -2075,7 +2074,7 @@ let Lines = window.Lines || {};
 
   //get NavDot for liveElementID
   // type = move or rotate or all
-  Lines.prototype.getNavDot = function(liveElemID, navType = "all") {
+  Lines.prototype.getNavDot = function (liveElemID, navType = "all") {
     var navdot = {},
       resultNavDot = {};
 
@@ -2104,7 +2103,7 @@ let Lines = window.Lines || {};
   // return {pixel, value}
   // 1-----period0--------2----------period1---------3
   //toDO : optimize function remove all this from here ...
-  Lines.prototype.findY = function(x) {
+  Lines.prototype.findY = function (x) {
     var points, period, foundY = { pixel: 0, value: 0 },
       point1, point2, slope, b;
 
@@ -2132,11 +2131,11 @@ let Lines = window.Lines || {};
     return foundY;
   };
 
-  Lines.prototype.pr = function(consoleText) {
+  Lines.prototype.pr = function (consoleText) {
     this.debug && console.log(consoleText);
   };
 
-  Lines.prototype.drawDebug = function(pointAxis) {
+  Lines.prototype.drawDebug = function (pointAxis) {
     var debug = {};
     if (this.debug && pointAxis) {
       debug.info = {
@@ -2155,7 +2154,7 @@ let Lines = window.Lines || {};
   // typeObj = {type:, length:, color: }
 
   //dataObj = {type: type, sigle: true, length: length}
-  Lines.prototype.store = function(storeInfo, storeData) {
+  Lines.prototype.store = function (storeInfo, storeData) {
     var elemID, prop;
     elemID = this.makeId(storeInfo);
     prop = storeInfo.prop || "elem";
@@ -2180,7 +2179,7 @@ let Lines = window.Lines || {};
 
   // element GET
   // elemInfo = {type: TYPE, id: ID}
-  Lines.prototype.eg = function(elemInfo = {}) {
+  Lines.prototype.eg = function (elemInfo = {}) {
     var prop;
     if (!this.elms[elemInfo.type]) {
       return 0;
@@ -2191,7 +2190,7 @@ let Lines = window.Lines || {};
   };
 
   // getByProp valid only for init and line TYPE
-  Lines.prototype.gg = function(simpleType) {
+  Lines.prototype.gg = function (simpleType) {
     return this.g({ type: this.TYPE.init, prop: simpleType }) || this.g({ type: this.TYPE.line, prop: simpleType }) || false;
   };
 
@@ -2199,7 +2198,7 @@ let Lines = window.Lines || {};
   // getInfo.type: init || lines || candles || sma || ema -> 
   // default type is init
   // getInfo.prop: different .... 
-  Lines.prototype.g = function(getInfo = {}) {
+  Lines.prototype.g = function (getInfo = {}) {
     var type;
     type = getInfo.type || "init";
     if (!this.dset[type]) {
@@ -2214,7 +2213,7 @@ let Lines = window.Lines || {};
   // storeInfo.type = same as g
   // storeInfo.prop = 
   // setData = data for store
-  Lines.prototype.s = function(setInfo = {}, setData) {
+  Lines.prototype.s = function (setInfo = {}, setData) {
     if (!setInfo.type || !setInfo.prop) {
       return 1;
     } else if (!this.dset[setInfo.type]) {
@@ -2232,7 +2231,7 @@ let Lines = window.Lines || {};
 
   //Restore init properties
   // retrieve
-  Lines.prototype.restore = function() {
+  Lines.prototype.restore = function () {
     var initProp;
     for (initProp in this.dset[this.TYPE.sinit]) {
       this.s({ type: this.TYPE.init, prop: initProp }, this.dset[this.TYPE.sinit][initProp]);
@@ -2240,7 +2239,7 @@ let Lines = window.Lines || {};
   };
 
   //change value of property and return new value
-  Lines.prototype.action = function(actionInfo, changeObj) {
+  Lines.prototype.action = function (actionInfo, changeObj) {
     if (!actionInfo.type || !actionInfo.prop || !changeObj.action || typeof changeObj.value === "undefined") {
       return 0;
     } else if (!this.dset[actionInfo.type]) {
@@ -2257,7 +2256,7 @@ let Lines = window.Lines || {};
   };
 
   //format
-  Lines.prototype.f = function(_number, fixDigit) {
+  Lines.prototype.f = function (_number, fixDigit) {
     var _fix = (fixDigit || fixDigit === 0) ? fixDigit : 5;
     var _num = parseFloat(_number);
     return Math.abs(_num.toFixed(_fix));
@@ -2268,7 +2267,7 @@ let Lines = window.Lines || {};
   // svg-sma-20 for chart element > chart type SMA with length 20 periods
   // lline-2-3 > live line with navDot 2 & 3
   // !!!  if nav1 did not provide automatic take navigation Dots length
-  Lines.prototype.makeId = function(elemInfo, liveElementFlag = false) {
+  Lines.prototype.makeId = function (elemInfo, liveElementFlag = false) {
     var elemID;
 
     if (elemInfo.id) {
@@ -2295,7 +2294,7 @@ let Lines = window.Lines || {};
 
   // svg-sma-20 => {type: SMA, length: 20}
   // live-line-2-3 => {type: line, navdot: [2, 3]}
-  Lines.prototype.splitId = function(elemID, liveElement = false) {
+  Lines.prototype.splitId = function (elemID, liveElement = false) {
     var idArray, idData = {};
 
     idArray = elemID.split("-");
@@ -2316,14 +2315,14 @@ let Lines = window.Lines || {};
     return idData;
   };
 
-  Lines.prototype.getId = function(elemID, snap = false) {
+  Lines.prototype.getId = function (elemID, snap = false) {
     var elem;
     elem = snap ? this.snap.select("#" + elemID) : document.getElementById(elemID);
     return elem || 0;
   };
 
   // Show/Hide chartType
-  Lines.prototype.toggle = function(chartType) {
+  Lines.prototype.toggle = function (chartType) {
     var elemID, elem;
 
     if (chartType === "all") {
@@ -2350,7 +2349,7 @@ let Lines = window.Lines || {};
 
   // remove chart DOM elements
   // chartType = this.TYPE
-  Lines.prototype.remove = function(chartType = "all") {
+  Lines.prototype.remove = function (chartType = "all") {
     for (var tk in this.elms) {
       for (var ek in this.elms[tk]) {
         if (tk !== "id" && (tk === chartType || chartType === "all")) {
@@ -2360,7 +2359,7 @@ let Lines = window.Lines || {};
     }
   };
 
-  Lines.prototype.random = function() {
+  Lines.prototype.random = function () {
     return Math.floor(Math.random() * 50);
   };
 
@@ -2369,7 +2368,7 @@ let Lines = window.Lines || {};
   // reset dataSet(dset), remain only secureInit(sinit)
   // reset elements(elms)
   // if savePoints flag is set then save points
-  Lines.prototype.reset = function(savePoints = false) {
+  Lines.prototype.reset = function (savePoints = false) {
     !savePoints && this.s({ type: this.TYPE.line, prop: "points" }, []);
 
     this.remove("all");
@@ -2394,7 +2393,7 @@ let Lines = window.Lines || {};
   };
 
   //set elements attributes...
-  Lines.prototype.colorize = function() {
+  Lines.prototype.colorize = function () {
     for (var eKey in this.elms.id) {
       this.setAttr(this.elms.id[eKey]);
     }
@@ -2407,7 +2406,7 @@ let Lines = window.Lines || {};
 
   // set DOM elements attributes with values from external style
   // this need to be done before print as CANVAS
-  Lines.prototype.colorCandle = function(candleType = 0) {
+  Lines.prototype.colorCandle = function (candleType = 0) {
     var celems, cclass = ["lcandle", "wcandle"],
       cstyle;
 
@@ -2422,7 +2421,7 @@ let Lines = window.Lines || {};
     }
   };
 
-  Lines.prototype.setAttr = function(elemID) {
+  Lines.prototype.setAttr = function (elemID) {
     var elem, elemProp;
     elem = this.getId(elemID);
     elemProp = this.getStyle(elemID);
@@ -2431,7 +2430,7 @@ let Lines = window.Lines || {};
     elemProp.stroke && elem.setAttribute("stroke", elemProp.stroke);
   };
 
-  Lines.prototype.toBase64 = function() {
+  Lines.prototype.toBase64 = function () {
     var _xml;
 
     _xml = new XMLSerializer().serializeToString(this.el);
@@ -2441,7 +2440,7 @@ let Lines = window.Lines || {};
   };
 
   // return fill & stroke computet styles
-  Lines.prototype.getStyle = function(elemId) {
+  Lines.prototype.getStyle = function (elemId) {
     var elem, style;
     elem = this.getId(elemId);
     if (elem) {
@@ -2452,7 +2451,7 @@ let Lines = window.Lines || {};
   };
 
   // return dom Element with ID canvasID
-  Lines.prototype.getCanvas = function(canvasID = false) {
+  Lines.prototype.getCanvas = function (canvasID = false) {
     var canElem, canCtx, img;
 
     this.colorize();
@@ -2464,7 +2463,7 @@ let Lines = window.Lines || {};
     canElem.height = this.chartArea.h;
 
     img = new Image();
-    img.onload = function() {
+    img.onload = function () {
       canCtx.drawImage(img, 0, 0);
     };
     img.src = this.toBase64();
@@ -2489,7 +2488,7 @@ let Lines = window.Lines || {};
   // move all charts 
   // with one step forward or back
   // moveType prev or next
-  Lines.prototype.move = function(moveType = "prev") {
+  Lines.prototype.move = function (moveType = "prev") {
     var offset, ids;
 
     // var allRaw = this.g({ type: this.TYPE.sinit, prop: "allraw" }) || this.gg("raw");
@@ -2499,7 +2498,7 @@ let Lines = window.Lines || {};
     } else if (moveType === "next") {
       offset -= this.cfg.step.offset;
     }
-    
+
     if (this.gg("stepX") > (this.cfg.step.xMax - 35) || this.gg("stepX") < this.cfg.step.xMin) {
       this.pr("step X reach the limit:", this.gg("stepX"));
       return;
@@ -2526,7 +2525,7 @@ let Lines = window.Lines || {};
     }
 
     this.cfg.timeUnit = periodType;
-    
+
     // var oldData = this.gg("raw");
     var oldData = this.gg("allraw");
 
@@ -2540,7 +2539,7 @@ let Lines = window.Lines || {};
   // change stepX value...
   // did not need to recalculate everething from begining
   // only change stepX and redraw ...
-  Lines.prototype.zoom = function(type = "in") {
+  Lines.prototype.zoom = function (type = "in") {
     var stepX, ids;
 
     stepX = this.gg("stepX");

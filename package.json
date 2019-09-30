@@ -16,12 +16,13 @@
   "scripts": {
     "start": "serve ./",
     "test": "mocha --recursive --timeout $npm_package_config_timeout --exit",
+    "test:cover": "istanbul cover _mocha test/*.js",
+    "build": "npm run build1 && npm run build2 && npm run build3",
+    "build1": "rm -rf dist .tmp",
+    "build2": "mkdir .tmp dist",
+    "build3": "cat $npm_package_config_svgSrc $npm_package_config_src > $npm_package_config_dest",
     "lint": "eslint .",
-    "step0": "rm -rf dist .tmp",
-    "step1": "mkdir .tmp dist",
-    "step2": "cat $npm_package_config_svgSrc $npm_package_config_src > $npm_package_config_dest",
-    "build": "npm run step0 && npm run step1 && npm run step2",
-    "cover": "istanbul cover _mocha test/lines.js test/draws.js test/ma.js",
+    "cover": "istanbul cover _mocha test/*.js",
     "lcov": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "keywords": [

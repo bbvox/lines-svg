@@ -1,16 +1,20 @@
 language: node_js
 
 node_js:
-  - "node"
-  - "8.1.3"
+  - "stable"
+  - "10.16.3"
+
+cache:
+  directories:
+    - "node_modules"
 
 install:
   - npm install
-  - if [ "$TRAVIS_NODE_VERSION" = "node" ]; then npm install --only=dev; fi;
+  - if [ "$TRAVIS_NODE_VERSION" = "stable" ]; then npm install --only=dev; fi;
 
 script:
   - npm test
-  - if [ "$TRAVIS_NODE_VERSION" = "node" ]; then npm run cover; fi;
+  - if [ "$TRAVIS_NODE_VERSION" = "stable" ]; then npm run test:cover; fi;
 
 after_success:
-  - if [ "$TRAVIS_NODE_VERSION" = "node" ]; then cat ./coverage/lcov.info | ./node_modules/.bin/coveralls; fi
+  - if [ "$TRAVIS_NODE_VERSION" = "stable" ]; then cat ./coverage/lcov.info | ./node_modules/.bin/coveralls; fi;
