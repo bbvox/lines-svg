@@ -4,7 +4,7 @@ if (typeof require !== "undefined") {
   var Lines = require("../index");
 
   require("jsdom-global")();
-  var noop = function() {};
+  var noop = function () { };
   global.window.Snap = noop;
 
   document.body.innerHTML = "<nav id='navBar'></nav><svg id='elementId'></svg>";
@@ -13,9 +13,9 @@ if (typeof require !== "undefined") {
 }
 
 //SMA & EMA
-describe("Lines check SMA / EMA", function() {
+describe("Lines check SMA / EMA", function () {
   var lines, spyDraw = {};
-  before(function() {
+  before(function () {
     lines = new Lines(tdata.elemID);
     lines.data(tdata.initData);
 
@@ -25,10 +25,10 @@ describe("Lines check SMA / EMA", function() {
     lines.snap.circle = noop;
   });
 
-  it("drawSMA should call printPath with params", function() {
+  it("drawSMA should call printPath with params", function () {
     spyDraw.path = sinon.stub(lines.snap, "path").returns({ attr: noop });
     spyDraw.store = sinon.stub(lines, "store");
-    spyDraw.debug = sinon.stub(lines, "debugDot");
+    spyDraw.debug = sinon.stub(lines, "drawDebug");
     spyDraw.circle = sinon.stub(lines.snap, "circle").returns({ attr: noop });
     spyDraw.prpath = sinon.stub(lines, "printPath");
 
@@ -38,10 +38,10 @@ describe("Lines check SMA / EMA", function() {
     expect(spyDraw.prpath.calledOnce).to.be.true;
   });
 
-  it("drawEMA should call printPath with params", function() {
+  it("drawEMA should call printPath with params", function () {
     spyDraw.path = sinon.stub(lines.snap, "path").returns({ attr: noop });
     spyDraw.store = sinon.stub(lines, "store");
-    spyDraw.debug = sinon.stub(lines, "debugDot");
+    spyDraw.debug = sinon.stub(lines, "drawDebug");
     spyDraw.circle = sinon.stub(lines.snap, "circle").returns({ attr: noop });
     spyDraw.prpath = sinon.stub(lines, "printPath");
 
@@ -51,7 +51,7 @@ describe("Lines check SMA / EMA", function() {
     expect(spyDraw.prpath.calledOnce).to.be.true;
   });
 
-  afterEach(function() {
+  afterEach(function () {
     ["store", "debug", "animate", "path", "prpath", "circle"].forEach(val => {
       spyDraw[val] && spyDraw[val].restore();
     });

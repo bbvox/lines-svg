@@ -57,3 +57,7 @@ Interface and function signature are :
 3. Instance.draw(type) method, expect/support: all, line, candle, sma, ema type of charts. Default value is all.
 
 4. Library support also end user draw of lines, arrows, tunels.
+
+### todo
+
+1. Transfer library to typescript & use the option to modulize it. Export some of the properties to different file. 

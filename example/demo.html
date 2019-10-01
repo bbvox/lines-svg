@@ -78,9 +78,7 @@ https://github.com/gabelerner/canvg
       var _cb, oReq, _url;
       _cb = cb || reqListener;
       oReq = new XMLHttpRequest();
-      // _url = "./rates1500.json";
       _url = "./rates3.json";
-      // _url = "./poloniex.json";
 
       oReq.addEventListener("load", _cb);
       oReq.open("GET", _url);
@@ -93,11 +91,12 @@ https://github.com/gabelerner/canvg
       var ratesJson = JSON.parse(this.responseText);
 
       window.l = new Lines("svgBox");
-      var chartData = [];
-// https://poloniex.com/public?command=returnChartData&currencyPair=BTC_BTS&start=1513593360&end=1515033360&period=14400
- var fxl = new Lines("svgBox");
-     
-     chartData.push([ 1.333305  , 1.333545  , 1.333305  , 1.331435  , 1515032100000 ]);
+      // https://poloniex.com/public?command=returnChartData&currencyPair=BTC_BTS&start=1513593360&end=1515033360&period=14400
+      var fxl = new Lines("svgBox");
+      
+var chartData = [];
+
+chartData.push([ 1.333305  , 1.333545  , 1.333305  , 1.331435  , 1515032100000 ]);
 chartData.push([  1.33324 , 1.333415  , 1.33313 , 1.332265  , 1515031200000 ]);
 chartData.push([  1.333085  , 1.3334  , 1.333085  , 1.33324 , 1515030300000 ]);
 chartData.push([  1.33267 , 1.333395  , 1.33267 , 1.334135  , 1515029400000 ]);
@@ -151,50 +150,6 @@ chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1514987100000 
 chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.347415  , 1514986200000 ]);
 chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.348415  , 1514985300000 ]);
 chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.349415  , 1514984400000 ]);
-
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
-      // chartData.push([1.332415,1.332415,1.332415,1.332415]);
 
 
       l.setup({chart: {paddings: 20}, debug: {radius: 5}});
