@@ -1,0 +1,8 @@
+9776
+
+kill -9 9776
+
+> lines-svg@0.3.0 start C:\projects\temp\lines\lines-svg
+> serve ./
+
+INFO: Accepting connections at http://localhost:5000
