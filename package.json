@@ -1,6 +1,6 @@
 {
   "name": "lines-svg",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "description": "LinesSvg is a financial chart library based on snapsvg",
   "main": "index.js",
   "repository": {
@@ -23,7 +23,12 @@
     "build3": "cat $npm_package_config_svgSrc $npm_package_config_src > $npm_package_config_dest",
     "lint": "eslint .",
     "cover": "istanbul cover _mocha test/*.js",
-    "lcov": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+    "lcov": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "build:up": "rollup -f iife -i lib/index.js -o dist/build.js",
+    "build:watch": "rollup -f iife -i lib/index.js -o dist/build.js -w",
+    "build2:up": "rollup -f iife -i tindex.js -o b.js",
+    "build2:watch": "rollup -f iife -i tsc/index.js -o tsc/b.js -w",
+    "bld3": "rollup -f iife --globals jquery:jQuery,lodash:_ -i src/app.js -o build/app.js -m build/app.js.map"
   },
   "keywords": [
     "svg",
@@ -35,7 +40,6 @@
   "author": "bbvox",
   "license": "MIT",
   "dependencies": {
-    "serve": "^11.2.0",
     "snapsvg": "*"
   },
   "devDependencies": {
@@ -46,6 +50,8 @@
     "jsdom": "^15.1.1",
     "jsdom-global": "^3.0.2",
     "mocha": "^6.2.1",
-    "sinon": "^7.5.0"
+    "sinon": "^7.5.0",
+    "rollup": "^1.23.1",
+    "serve": "^11.2.0"
   }
 }
