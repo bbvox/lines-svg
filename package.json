@@ -16,6 +16,8 @@
   "scripts": {
     "start": "serve ./",
     "build:watch": "rollup -f iife -i lib/index.js -o dist/build.js -w",
+    "test1:lib": "mocha test_lib/index.test.js --recursive --timeout 10000 --exit",
+    "test1:cover": "nyc --reporter=html ./node_modules/mocha/bin/mocha test_lib/index.test.js --recursive --timeout 10000 --exit",
     "test": "mocha --recursive --timeout $npm_package_config_timeout --exit",
     "test1": "mocha test/index.test.js --recursive --timeout $npm_package_config_timeout --exit",
     "test:cover": "istanbul cover _mocha test/*.js",
@@ -51,8 +53,9 @@
     "jsdom": "^15.1.1",
     "jsdom-global": "^3.0.2",
     "mocha": "^6.2.1",
-    "sinon": "^7.5.0",
+    "nyc": "^14.1.1",
     "rollup": "^1.23.1",
-    "serve": "^11.2.0"
+    "serve": "^11.2.0",
+    "sinon": "^7.5.0"
   }
 }
