@@ -15,7 +15,9 @@
   },
   "scripts": {
     "start": "serve ./",
+    "build:watch": "rollup -f iife -i lib/index.js -o dist/build.js -w",
     "test": "mocha --recursive --timeout $npm_package_config_timeout --exit",
+    "test1": "mocha test/index.test.js --recursive --timeout $npm_package_config_timeout --exit",
     "test:cover": "istanbul cover _mocha test/*.js",
     "build": "npm run build1 && npm run build2 && npm run build3",
     "build1": "rm -rf dist .tmp",
@@ -25,7 +27,6 @@
     "cover": "istanbul cover _mocha test/*.js",
     "lcov": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "build:up": "rollup -f iife -i lib/index.js -o dist/build.js",
-    "build:watch": "rollup -f iife -i lib/index.js -o dist/build.js -w",
     "build2:up": "rollup -f iife -i tindex.js -o b.js",
     "build2:watch": "rollup -f iife -i tsc/index.js -o tsc/b.js -w",
     "bld3": "rollup -f iife --globals jquery:jQuery,lodash:_ -i src/app.js -o build/app.js -m build/app.js.map"

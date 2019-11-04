@@ -61,3 +61,8 @@ Interface and function signature are :
 ### todo
 
 1. Transfer library to typescript & use the option to modulize it. Export some of the properties to different file. 
+```
+npm run build:watch
+npm start
+IP : 5000 / example/build.html
+```
