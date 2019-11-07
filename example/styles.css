@@ -141,6 +141,7 @@ nav a.active {
 
 .staxis {
   stroke-dasharray: 5, 10;
+  stroke: #ddd;
 }
 
 /*  "#36a2eb", "#ff9f40", "#ffcd56", "#4bc0c0", "#9966ff", "#5BC0DE"*/
