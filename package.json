@@ -15,9 +15,10 @@
   },
   "scripts": {
     "start": "serve ./",
+    "lib:build": "rollup -c",
     "build:watch": "rollup -f iife -i lib/index.js -o dist/build.js -w",
-    "test1:lib": "mocha test_lib/index.test.js --recursive --timeout 10000 --exit",
-    "test1:cover": "nyc --reporter=html ./node_modules/mocha/bin/mocha test_lib/index.test.js --recursive --timeout 10000 --exit",
+    "test1:lib": "mocha test_lib/store.test.js --timeout 10000 --exit",
+    "test1:cover": "nyc --reporter=html ./node_modules/mocha/bin/mocha test_lib/store.test.js --recursive --timeout 10000 --exit",
     "test": "mocha --recursive --timeout $npm_package_config_timeout --exit",
     "test1": "mocha test/index.test.js --recursive --timeout $npm_package_config_timeout --exit",
     "test:cover": "istanbul cover _mocha test/*.js",
@@ -43,7 +44,8 @@
   "author": "bbvox",
   "license": "MIT",
   "dependencies": {
-    "snapsvg": "*"
+    "snapsvg": "*",
+    "webpack": "^4.41.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
