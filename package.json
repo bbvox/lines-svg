@@ -32,7 +32,8 @@
     "build:up": "rollup -f iife -i lib/index.js -o dist/build.js",
     "build2:up": "rollup -f iife -i tindex.js -o b.js",
     "build2:watch": "rollup -f iife -i tsc/index.js -o tsc/b.js -w",
-    "bld3": "rollup -f iife --globals jquery:jQuery,lodash:_ -i src/app.js -o build/app.js -m build/app.js.map"
+    "bld3": "rollup -f iife --globals jquery:jQuery,lodash:_ -i src/app.js -o build/app.js -m build/app.js.map",
+    "webpack": "webpack --mode=development"
   },
   "keywords": [
     "svg",
@@ -44,10 +45,12 @@
   "author": "bbvox",
   "license": "MIT",
   "dependencies": {
-    "snapsvg": "*",
-    "webpack": "^4.41.2"
+    "snapsvg": "*"
   },
   "devDependencies": {
+    "@babel/core": "^7.7.2",
+    "@babel/preset-env": "^7.7.1",
+    "babel-loader": "^8.0.6",
     "chai": "^4.2.0",
     "coveralls": "^3.0.6",
     "eslint": "^6.5.0",
@@ -58,6 +61,8 @@
     "nyc": "^14.1.1",
     "rollup": "^1.23.1",
     "serve": "^11.2.0",
-    "sinon": "^7.5.0"
+    "sinon": "^7.5.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
   }
 }
