@@ -14,8 +14,8 @@ https://github.com/gabelerner/canvg
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.5.1/snap.svg.js"></script>
   <!-- <script src="../node_modules/snapsvg/dist/snap.svg.js"></script> -->
-  <script src="../dist/build.js"></script>
   <link rel="stylesheet" href="styles.css" />
+  <script src="../dist/build.js"></script>
 </head>
 
 <body>
@@ -47,10 +47,10 @@ https://github.com/gabelerner/canvg
         </li>
         <li>
           <a data-timeline="prev" class="opts timeline">
-            <<<</a>
-              &nbsp;/&nbsp;
-              <a data-timeline="next" class="opts timeline">>>></a></li>
-        <li><a data-timeline="zoomin" class="opts timeline">IN</a>&nbsp;/&nbsp;<a data-timeline="zoomout" class="opts timeline">OUT</a></li>
+            <<<</a> &nbsp;/&nbsp; <a data-timeline="next" class="opts timeline">>>>
+          </a></li>
+        <li><a data-timeline="zoomin" class="opts timeline">IN</a>&nbsp;/&nbsp;<a data-timeline="zoomout"
+            class="opts timeline">OUT</a></li>
         <li><a data-snapshot="save" class="opts save">Snapshot</a></li>
       </ul>
     </nav>
@@ -62,259 +62,33 @@ https://github.com/gabelerner/canvg
       </nav>
     </div>
   </div>
-    <p> Live Draw MANUAL: <br>
-      <ol>
-        <li>You can draw line to indicate some important level of support or resistance</li>
-        <li>On hover you will see our navigation Dots.</li>
-        <li>On line click you will enable the navigation Dots.( Green - MOVE, Brown - ROTATE)</li>
-        <li>Double click on line remove it and related dots.</li>
-      </ol>
-    </p>
+  <p> Live Draw MANUAL: <br>
+    <ol>
+      <li>You can draw line to indicate some important level of support or resistance</li>
+      <li>On hover you will see our navigation Dots.</li>
+      <li>On line click you will enable the navigation Dots.( Green - MOVE, Brown - ROTATE)</li>
+      <li>Double click on line remove it and related dots.</li>
+    </ol>
+  </p>
 
   <script>
-  (function() {
-    console.log("build HTML : ", Lines);
-
-    
-    return;
-    function request(urlCnt, cb) {
-      var _cb, oReq, _url;
-      _cb = cb || reqListener;
-      oReq = new XMLHttpRequest();
-      _url = "./rates3.json";
-
-      oReq.addEventListener("load", _cb);
-      oReq.open("GET", _url);
-      oReq.send();
-    }
- 
-    request();
-
-    function reqListener() {
-      var ratesJson = JSON.parse(this.responseText);
-
+    (function () {
       window.l = new Lines("svgBox");
-      // https://poloniex.com/public?command=returnChartData&currencyPair=BTC_BTS&start=1513593360&end=1515033360&period=14400
-      var fxl = new Lines("svgBox");
+
+      var chartData = [];
+
+      chartData.push([1.333305, 1.333545, 1.333305, 1.331435, 1515032100000]);
+      chartData.push([1.33324, 1.333415, 1.33313, 1.332265, 1515031200000]);
+      chartData.push([1.333085, 1.3334, 1.333085, 1.33324, 1515030300000]);
+      chartData.push([1.33267, 1.333395, 1.33267, 1.334135, 1515029400000]);
+      chartData.push([1.33285, 1.33285, 1.33251, 1.33557, 1515028500000]);
+
+      l.data(chartData);
       
-var chartData = [];
-
-chartData.push([ 1.333305  , 1.333545  , 1.333305  , 1.331435  , 1515032100000 ]);
-chartData.push([  1.33324 , 1.333415  , 1.33313 , 1.332265  , 1515031200000 ]);
-chartData.push([  1.333085  , 1.3334  , 1.333085  , 1.33324 , 1515030300000 ]);
-chartData.push([  1.33267 , 1.333395  , 1.33267 , 1.334135  , 1515029400000 ]);
-chartData.push([  1.33285 , 1.33285 , 1.33251 , 1.33557 , 1515028500000 ]);
-chartData.push([  1.332675  , 1.33302 , 1.332675  , 1.33685 , 1515027600000 ]);
-chartData.push([  1.332585  , 1.33291 , 1.332445  , 1.332675  , 1515026700000 ]);
-chartData.push([  1.332095  , 1.33277 , 1.33199 , 1.332595  , 1515025800000 ]);
-chartData.push([  1.331805  , 1.33211 , 1.331805  , 1.332095  , 1515024900000 ]);
-chartData.push([  1.3316  , 1.331855  , 1.331085  , 1.331855  , 1515024000000 ]);
-chartData.push([  1.331635  , 1.331705  , 1.33145 , 1.3316  , 1515023100000 ]);
-chartData.push([  1.33169 , 1.33175 , 1.331615  , 1.331635  , 1515022200000 ]);
-chartData.push([  1.332195  , 1.332195  , 1.331655  , 1.33169 , 1515021300000 ]);
-chartData.push([  1.332055  , 1.33216 , 1.331925  , 1.332075  , 1515020400000 ]);
-chartData.push([  1.332035  , 1.332035  , 1.331535  , 1.331955  , 1515019500000 ]);
-chartData.push([  1.33201 , 1.332055  , 1.331615  , 1.332035  , 1515018600000 ]);
-chartData.push([  1.33177 , 1.331865  , 1.331695  , 1.331765  , 1515017700000 ]);
-chartData.push([  1.33196 , 1.332025  , 1.33177 , 1.33177 , 1515016800000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.331665  , 1.332125  , 1515015900000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515015000000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515014100000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515013200000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515012300000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515011400000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515010500000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515009600000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515008700000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515007800000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515006900000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515006000000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515005100000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515004200000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515003300000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.334415  , 1515002400000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.335415  , 1515001500000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.336415  , 1515000600000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.337415  , 1514999700000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.338415  , 1514998800000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.339415  , 1514997900000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1514997000000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1514996100000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1514995200000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1514994300000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1514993400000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.342415  , 1514992500000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.341415  , 1514991600000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.342415  , 1514990700000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.343415  , 1514989800000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.344415  , 1514988900000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.345415  , 1514988000000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1514987100000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.347415  , 1514986200000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.348415  , 1514985300000 ]);
-chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.349415  , 1514984400000 ]);
-
-
-      l.setup({chart: {paddings: 20}, debug: {radius: 5}});
-
-      l.data(ratesJson); // always second after that drawEMPTY
-      // l.data(chartData); // always second after that drawEMPTY
-
       l.draw("axis");
       l.draw("line");
-      // l.live();
       l.draw("candle");
-      l.draw("sma");
-      // l.liveLine({text: 1});
-      /*
-      l.drawSMA(20); //sma 20
-      */
-
-      // // l.live();
-      // l.drawSMA(50); //sma 20
-      // l.drawSMA(100); //sma 19
-      // l.liveLine();
-      // l.draw("ema");
-      // l.drawEMA(20); //ema 20
-      // l.drawLegend(); //ema 20
-      return;
-      l.draw("sma"); // sma 5
-      // l.draw("ema");
-      l.liveLine({ tube: 1 });
-      l.drawSMA(50); // sma 50
-    }
-  
-
-
-    var data = [
-      [28.7, 31.05, 28.45, 30.04],
-      [30.04, 26.13, 28.3, 24.63],
-      [30.04, 33.13, 28.3, 20.63],
-      [30.04, 30.13, 28.3, 35.63],
-      [30.04, 30.13, 28.3, 29.63],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.04, 30.13, 28.3, 29.63],
-      [29.89, 29.89, 29.89, 129.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [30.13, 30.13, 30.13, 60.13],
-      [28.7, 31.05, 28.45, 30.04],
-      [30.04, 26.13, 28.3, 24.63],
-      [30.04, 33.13, 28.3, 20.63],
-      [30.04, 30.13, 28.3, 35.63],
-      [30.04, 30.13, 28.3, 29.63],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.04, 30.13, 28.3, 29.63],
-      [29.89, 29.89, 29.89, 129.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [30.13, 30.13, 30.13, 60.13],
-      [28.7, 31.05, 28.45, 30.04],
-      [30.04, 26.13, 28.3, 24.63],
-      [30.04, 33.13, 28.3, 20.63],
-      [30.04, 30.13, 28.3, 35.63],
-      [30.04, 30.13, 28.3, 29.63],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.04, 30.13, 28.3, 29.63],
-      [29.89, 29.89, 29.89, 129.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [30.13, 30.13, 30.13, 60.13],
-      [30.04, 26.13, 28.3, 24.63],
-      [30.04, 33.13, 28.3, 20.63],
-      [30.04, 30.13, 28.3, 35.63],
-      [30.04, 30.13, 28.3, 29.63],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.13, 30.13, 30.13, 30.13],
-      [30.04, 30.13, 28.3, 29.63],
-      [29.89, 29.89, 29.89, 129.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [29.89, 29.89, 29.89, 29.89],
-      [30.13, 30.13, 30.13, 60.13]
-    ];
-
-
-
-    ///////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////
-
-    var buttons = document.getElementsByClassName("opts");
-    var key = 0,
-      len = buttons.length;
-
-    for (; key < len; key++) {
-      buttons[key].addEventListener("click", function(ev) {
-        var dset;
-        delActive(this.classList[1]);
-        this.classList.add("active");
-        dset = this.dataset;
-
-        if (dset.period) {
-          l.period(dset.period);
-        } else if (dset.chart) {
-          l.toggle(dset.chart);
-        } else if (dset.draw) {
-          switch(dset.draw) {
-            case "line":
-              l.liveLine()
-              break;
-            case "text":
-              l.liveLine({ text: 1 })
-              break;
-            case "arrow":
-              l.liveLine({ arrow: 1 })
-              break;
-            case "tube":
-              l.liveLine({ tube: 1 })
-              break;
-            case "constx":
-              l.liveLine({ constx: 1 })
-              break;
-            case "consty":
-              l.liveLine({ consty: 1 })
-              break;
-            case "text":
-              l.liveLine({ text: 1 })
-              break;
-          }
-        } else if (dset.timeline) {
-          if (dset.timeline === "zoomin" || dset.timeline === "zoomout") {
-            dset.timeline === "zoomin" && l.zoom("in");
-            dset.timeline === "zoomout" && l.zoom("out");
-          } else {
-            dset.timeline === "next" && l.move("next");
-            dset.timeline === "prev" && l.move("prev");
-          }
-        } else if (dset.snapshot) {
-          canElem = l.getCanvas();
-          document.body.appendChild(canElem);
-
-          var imgElem = l.getImg();
-          document.body.appendChild(imgElem);
-        }
-      })
-    }
-
-    //remove active class from group with .className
-    function delActive(className) {
-      var elems = document.querySelectorAll("." + className);
-      [].forEach.call(elems, function(el) {
-        el.classList.remove("active");
-      });
-    }
-  })();
+    })();
   </script>
 </body>
 
