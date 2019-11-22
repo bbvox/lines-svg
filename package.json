@@ -33,7 +33,8 @@
     "build2:up": "rollup -f iife -i tindex.js -o b.js",
     "build2:watch": "rollup -f iife -i tsc/index.js -o tsc/b.js -w",
     "bld3": "rollup -f iife --globals jquery:jQuery,lodash:_ -i src/app.js -o build/app.js -m build/app.js.map",
-    "webpack": "webpack --mode=development"
+    "webpack": "webpack",
+    "webpack:test": "TESTBUILD=true webpack && mocha test-dist/main.js --require source-map-support/register && rm -rf test-dist"
   },
   "keywords": [
     "svg",
