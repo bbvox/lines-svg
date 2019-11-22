@@ -1,7 +1,8 @@
 // const path = require('path');
 let glob = require("glob");
 
-let entry = __dirname + "/webpack/index.js";
+// let entry = __dirname + "/webpack/index.js";
+let entry = __dirname + "/lib/index.js";
 let outputPath = __dirname + "/dist/";
 let devtool = "";
 if (process.env.TESTBUILD) {
