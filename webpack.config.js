@@ -4,16 +4,22 @@ let glob = require("glob");
 // let entry = __dirname + "/webpack/index.js";
 let entry = __dirname + "/lib/index.js";
 let outputPath = __dirname + "/dist/";
+let filename = "build.js";
 let devtool = "";
-if (process.env.TESTBUILD) {
-  entry = glob.sync(__dirname + "/webpack_test/*.test.js");
-  outputPath = __dirname + "/test-dist/";
-  devtool = "source-map";
+if (process.env.TEST) {
+  // entry = glob.sync(__dirname + "/test/*.test.js");
+  entry = {
+    calc: __dirname + "/test/calc.test.js",
+    store: __dirname + "/test/store.test.js"
+  };
+  filename = "[name].test.js";
+  outputPath = __dirname + "/dist_test/";
+  // devtool = "inline-source-map";
 }
 
 
 module.exports = {
-  mode: "production",
+  // mode: "production",
   // entry: './webpack/index.js',
   // devtool: 'inline-source-map',
   entry,
@@ -21,6 +27,7 @@ module.exports = {
   output: {
     // filename: 'build.js',
     // path: __dirname + 'webpack'
+    filename,
     path: outputPath
   },
   // target: "web",
