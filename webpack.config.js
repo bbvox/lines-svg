@@ -7,14 +7,16 @@ let outputPath = __dirname + "/dist/";
 let filename = "build.js";
 let devtool = "";
 if (process.env.TEST) {
-  // entry = glob.sync(__dirname + "/test/*.test.js");
-  entry = {
-    calc: __dirname + "/test/calc.test.js",
-    store: __dirname + "/test/store.test.js"
-  };
-  filename = "[name].test.js";
+  entry = glob.sync(__dirname + "/test/*.test.js");
+  // entry = {
+  //   calc: __dirname + "/test/calc.test.js",
+  //   store: __dirname + "/test/store.test.js"
+  // };
+  // filename = "[name].test.js";
+  filename = "testBundle.js";
   outputPath = __dirname + "/dist_test/";
   // devtool = "inline-source-map";
+  devtool = "source-map";
 }
 
 
