@@ -4,7 +4,7 @@ module.exports = {
     filename: 'tstBundle.js',
     libraryTarget: 'umd'
   },
-  target: 'node',
+  // target: 'node',
   module: {
     rules: [
       {

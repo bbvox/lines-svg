@@ -1,5 +1,5 @@
-import { expect } from "chai";
-import store from "../lib/store";
+const expect = require("chai").expect;
+const store = require("./store");
 
 describe("test one", function () {
   it("Check whole test suit", function () {
