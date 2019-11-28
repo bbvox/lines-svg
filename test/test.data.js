@@ -3,8 +3,8 @@ module.exports = {
     input: 1.2345678,
     expected: 1.23457,
     expected2: 1,
-    inputTimestamp: 1574897266392,
-    expectedDate: '1:27'
+    inputTimestamp: 1575000000000,
+    expectedTime: { hour: 6, hourUtc: 4, min: 0 }
   },
   store: {
     input: [

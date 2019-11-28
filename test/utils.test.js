@@ -17,6 +17,14 @@ describe("Check utils functions", () => {
 
   it("utils.fDate - Get Hour and minutes for period 15m", () => {
     const dateHourMin = utils.fDate(testData.inputTimestamp);
-    expect(dateHourMin).to.equal(testData.expectedDate);
+    const timeOffset = new Date().getTimezoneOffset()
+    let expectedTime;
+    // UTC -2
+    if (timeOffset === -120) {
+      expectedTime = testData.expectedTime.hour + ":" + testData.expectedTime.min;
+    } else {
+      expectedTime = testData.expectedTime.hourUtc + ":" + testData.expectedTime.min;
+    }
+    expect(dateHourMin).to.equal(expectedTime);
   });
 });

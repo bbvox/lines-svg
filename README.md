@@ -15,7 +15,7 @@ Currently script/library support these types of charts:
 
 ## LIBRARY DEMO
 
-[linesSVG charts Demo](https://bbvox.github.io/lines-svg/example/demo.html)
+[linesSVG charts Demo](https://bbvox.github.io/lines-svg/example/)
 
 ## Installation
 
