@@ -17,4 +17,4 @@ script:
   - if [ "$TRAVIS_NODE_VERSION" = "stable" ]; then npm run test:cover; fi;
 
 after_success:
-  - if [ "$TRAVIS_NODE_VERSION" = "stable" ]; then cat ./coverage/lcov.info | ./node_modules/.bin/coveralls; fi;
+  - if [ "$TRAVIS_NODE_VERSION" = "stable" ]; then npm run coveralls; fi;
