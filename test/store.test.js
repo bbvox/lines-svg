@@ -32,4 +32,12 @@ describe("Check store functions", () => {
     const setterData = store.get('test');
     expect(setterData).to.equal(testData.setter);
   });
+
+  // input DATA: [{ open, high, low, close, date }, ...]
+  it("store.dataFormatter - Input data with object/keys, check formatter", () => {
+    store.save(testData.inputUnformatted);
+
+    const formattedData = store.get("raw");
+    expect(formattedData).to.deep.equal(testData.expectedFormatted);
+  });
 });
