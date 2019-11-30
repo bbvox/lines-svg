@@ -55,5 +55,43 @@ module.exports = {
       label: 1,
       labelDiff: 0.111
     }
+  },
+  chart: {
+    noop: () => { },
+    html: "<svg id='svgId'></svg>",
+    elemId: "svgId",
+    computedStyle: {
+      width: 100,
+      height: 200
+    },
+    expectedSvgText: {
+      argumentsLabelX: [
+        { xAxis: 30, yAxis: 185, label: '4:0' },
+        { xAxis: 38, yAxis: 185, label: '4:15' },
+        { xAxis: 46, yAxis: 185, label: '3:45' },
+        { xAxis: 54, yAxis: 185, label: '3:45' },
+        { xAxis: 62, yAxis: 185, label: '3:45' }
+      ],
+      argumentsLabelXUTC: [
+        { xAxis: 30, yAxis: 185, label: '2:0' },
+        { xAxis: 38, yAxis: 185, label: '2:15' },
+        { xAxis: 46, yAxis: 185, label: '1:45' },
+        { xAxis: 54, yAxis: 185, label: '1:45' },
+        { xAxis: 62, yAxis: 185, label: '1:45' }
+      ],
+      argumentsLabelY: [
+        { xAxis: 30, yAxis: 170, label: 1 },
+        { xAxis: 30, yAxis: 130, label: 1.111 },
+        { xAxis: 30, yAxis: 90, label: 1.222 },
+        { xAxis: 30, yAxis: 50, label: 1.333 },
+        { xAxis: 30, yAxis: 10, label: 1.444 }
+      ]
+    },
+    expectedDebugArguments: [
+      [30, 86],
+      [38, 142],
+      [46, 30],
+      [54, 392]
+    ]
   }
 }

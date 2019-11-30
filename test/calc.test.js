@@ -60,5 +60,7 @@ describe("Check Calc - calculate class", function () {
     Object.keys(stubs).forEach(stubKey => {
       stubs[stubKey] && stubs[stubKey].restore();
     });
+
+    store.reset();
   });
 });
