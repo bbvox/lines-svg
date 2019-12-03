@@ -21,8 +21,8 @@ describe("Check store functions", () => {
   });
 
   it("store.push - Init and push into array", () => {
-    store.push('test', testData.inputPush[0]);
-    store.push('test', testData.inputPush[1]);
+    store.push('line.test', testData.inputPush[0]);
+    store.push('line.test', testData.inputPush[1]);
     const { test } = store.mget(["test"]);
     expect(test).to.deep.equal(testData.expectedPush);
   });
