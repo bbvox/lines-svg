@@ -46,8 +46,8 @@ module.exports = {
       [50, 310],
       [170, 470],
       [290, 150],
-      [410, 1121],
-      [530, 1521]
+      [410, 150],
+      [530, 550]
     ],
     expectedYAxis: {
       xAxis: 50,
@@ -81,17 +81,17 @@ module.exports = {
       ],
       argumentsLabelY: [
         { xAxis: 30, yAxis: 170, label: 1 },
-        { xAxis: 30, yAxis: 130, label: 1.111 },
-        { xAxis: 30, yAxis: 90, label: 1.222 },
-        { xAxis: 30, yAxis: 50, label: 1.333 },
-        { xAxis: 30, yAxis: 10, label: 1.444 }
+        { xAxis: 30, yAxis: 142, label: 1.111 },
+        { xAxis: 30, yAxis: 114, label: 1.222 },
+        { xAxis: 30, yAxis: 86, label: 1.333 },
+        { xAxis: 30, yAxis: 58, label: 1.444 }
       ]
     },
     expectedDebugArguments: [
       [30, 86],
       [38, 142],
       [46, 30],
-      [54, 392]
+      [54, 30]
     ]
   }
 }

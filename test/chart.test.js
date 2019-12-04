@@ -60,7 +60,7 @@ describe("Check Chart class", function () {
     chart.drawLabelsX();
 
     const svgTextArguments = getArguments(0, 4);
-    
+
     const timeOffset = new Date().getTimezoneOffset()
     if (timeOffset === -120) {
       expect(svgTextArguments).to.deep.equal(testData.expectedSvgText.argumentsLabelX);
