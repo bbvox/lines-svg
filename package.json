@@ -38,20 +38,20 @@
     "snapsvg": "*"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.2",
-    "@babel/preset-env": "^7.7.1",
-    "babel-loader": "^8.0.6",
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "babel-loader": "^8.1.0",
     "babel-preset-env": "^1.7.0",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.6",
-    "eslint": "^6.5.0",
-    "jsdom": "^15.1.1",
+    "coveralls": "^3.0.11",
+    "eslint": "^6.8.0",
+    "jsdom": "^15.2.1",
     "jsdom-global": "^3.0.2",
-    "mocha": "^6.2.1",
+    "mocha": "^6.2.3",
     "nyc": "^14.1.1",
-    "serve": "^11.2.0",
+    "serve": "^11.3.0",
     "sinon": "^7.5.0",
-    "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.10"
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
   }
 }
