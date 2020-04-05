@@ -1,8 +1,8 @@
 {
   "name": "lines-svg",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "LinesSvg is a financial chart library based on snapsvg",
-  "main": "index.js",
+  "main": "dist/main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/bbvox/lines-svg.git"
@@ -22,7 +22,8 @@
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "test:cover-html": "nyc --reporter=html npm test",
     "lint": "eslint .",
-    "serve": "serve ./"
+    "serve": "serve ./",
+    "prepare": "npm run build:prod"
   },
   "keywords": [
     "svg",
