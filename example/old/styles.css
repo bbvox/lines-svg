@@ -1,0 +1,235 @@
+body {
+  margin: 10px;
+  padding: 0;
+}
+
+body *:not(ul, li) {
+  margin: 0;
+  padding: 0;
+}
+
+.flexbox {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-flow: row wrap;
+  justify-content: space-around;
+  clear: both;
+}
+
+.flexbox nav {
+  width: 120px;
+  padding: 10px;
+  background: #f5f5f5;
+}
+
+.flexbox > div {
+  border: 1px dotted tomato;
+  padding: 5px;
+  min-width: 600px;
+  min-height: 100px;
+  color: white;
+  text-align: center;
+  -webkit-flex: 1;
+  flex: 1;
+}
+
+svg {
+  width: 100%;
+  height: calc(100% - 20px);
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+svg text {
+  font-size: 12px;
+  color: #666;
+  line-height: 14px;
+  font-family: Verdana, sans-serif;
+}
+
+.hidd {
+  display: none;
+  -webkit-transition: width 2s;  Safari 
+  transition: width 2s;
+}
+
+
+nav ul {
+  margin: 15px 10px;
+  padding: 0;
+}
+
+nav li {
+  list-style: none;
+  margin: 0.2rem;
+  padding: 0;
+}
+
+nav li.title {
+  text-decoration: underline;
+}
+
+nav a.active {
+  font-weight: bold;
+}
+
+#svgRoot {
+  position: relative;
+  /*width: 80%;*/
+  min-height: 450px;
+}
+
+#svgRoot:after {
+  clear: both;
+}
+
+#svgZoom {
+  position: absolute;
+  bottom: 2%;
+  right: 2%;
+  padding: 10px;
+  display: none;
+  background: whitesmoke;
+}
+
+/* ----------------- CHART SVG CLASSES -------------------*/
+.tlabel {
+  fill: #666;
+  stroke-width: 0.1px;
+}
+
+.llabel {
+  stroke: red;
+}
+
+.lline {
+  fill: red;
+  stroke: #00796B;
+  stroke-width: 2px;
+  stroke-dasharray: 5;
+}
+
+.ldot {
+  stroke: #00BCD4;
+  stroke: rgba(0, 188, 212, 0.5);
+  stroke-width: 10px;
+  fill:#388E3C;
+}
+
+/*//win candle*/
+.wcandle {
+  stroke: blue;
+  fill: blue;
+  fill-opacity: 0.7;
+}
+
+/*lose candle*/
+.lcandle {
+  stroke: red;
+  fill: red;
+  fill-opacity: 0.7;
+}
+
+.ddot {
+  stroke: red;
+}
+
+.staxis {
+  stroke-dasharray: 5, 10;
+  stroke: #ddd;
+}
+
+/*  "#36a2eb", "#ff9f40", "#ffcd56", "#4bc0c0", "#9966ff", "#5BC0DE"*/
+.stline {
+  stroke: #36a2eb;
+  stroke-width: 2px;
+}
+
+.stsma {
+  stroke: #ff9f40;
+}
+
+.stema {
+  stroke: #9966ff;
+}
+
+.rootSvg {
+
+}
+
+.stnavdot {
+  /*fill: #fff;*/
+  /*fill: transparent;*/
+  stroke: #2795EE;
+  stroke-width: 4px;
+  cursor: pointer;
+  /*display: none;*/
+}
+
+.hidden {
+  display: none;
+}
+
+.movedot {
+  fill: #4caf50;
+  stroke: #4caf50;
+}
+
+.rotatedot {
+  fill: #5D4037;
+  stroke: #5D4037;
+  /*display: none;*/
+}
+
+.lline:hover {
+  stroke-width: 5px;
+}
+
+.lline:hover ~ .movedot.hidden {
+  fill: transparent;
+  display: block;
+}
+
+.lline:hover ~ .rotatedot.hidden {
+  fill: transparent;
+  display: block;
+}
+
+
+.movedot:hover {
+  fill: #8bc34a;
+  stroke: #8bc34a;
+}
+
+
+.rotatedot:hover {
+  fill: #795548;
+  stroke: #795548;
+}
+
+
+.nav-dialog {
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  width: 200px;
+  height: 40px;
+  padding: 5px;
+  background: rgba(0,0,0,0.04);
+  /*display: none;*/
+}
+
+
+/*#svgRoot:hover #svgZoom {
+  display: block;
+
+  COLORS :::;
+      var a = s.rect(0, 0, 50, 50, 0, 0).attr({'fill':'#E82941'}),
+        b = s.rect(20, 20, 50, 50, 0, 0).attr({'fill':'#FF6E00'}),
+        c = s.rect(40, 40, 50, 50, 0, 0).attr({'fill':'#00C049'});
+}*/
