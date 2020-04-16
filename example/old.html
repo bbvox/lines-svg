@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+
+https://github.com/gabelerner/canvg
+-->
+<html>
+
+<head>
+  <title>Lines svg intro</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.5.1/snap.svg.js"></script>
+  <!-- <script src="../node_modules/snapsvg/dist/snap.svg.js"></script> -->
+  <link rel="stylesheet" href="styles.css" />
+  <!-- <script src="../dist/build.js"></script> -->
+  <script src="../old_src/lines.js"></script>
+</head>
+
+<body>
+  <div class="flexbox">
+    <nav id="navBar">
+      <ul>
+        <li class="title"> PERIOD : </li>
+        <li><a data-period="15m" class="opts period active">15m</a></li>
+        <li><a data-period="30m" class="opts period">30m</a></li>
+        <li><a data-period="1h" class="opts period">1h</a></li>
+        <li><a data-period="4h" class="opts period">4h</a></li>
+        <li><a data-period="1d" class="opts period">1d</a></li>
+        <li><a data-period="1w" class="opts period">1w</a></li>
+        <li class="title">DRAW :</li>
+        <li><a data-draw="text" class="opts draw"> text </a></li>
+        <li><a data-draw="line" class="opts draw"> line </a></li>
+        <li><a data-draw="arrow" class="opts draw"> arrow </a></li>
+        <li><a data-draw="tube" class="opts draw"> tube </a></li>
+        <li><a data-draw="constx" class="opts draw" title="horizontal line"> constX </a></li>
+        <li><a data-draw="consty" class="opts draw" title="vertical line"> constY </a></li>
+        <li class="title"> TYPE : </li>
+        <li><a data-chart="line" class="opts chart">line</a></li>
+        <li><a data-chart="candle" class="opts chart">candle</a></li>
+        <li><a data-chart="sma" class="opts chart">sma</a></li>
+        <li><a data-chart="ema" class="opts chart">ema</a></li>
+        <li><a data-chart="all" class="opts chart active">all</a></li>
+        <li>
+          <hr>
+        </li>
+        <li>
+          <a data-timeline="prev" class="opts timeline">
+            <<<</a> &nbsp;/&nbsp; <a data-timeline="next" class="opts timeline">>>>
+          </a></li>
+        <li><a data-timeline="zoomin" class="opts timeline">IN</a>&nbsp;/&nbsp;<a data-timeline="zoomout"
+            class="opts timeline">OUT</a></li>
+        <li><a data-snapshot="save" class="opts save">Snapshot</a></li>
+      </ul>
+    </nav>
+    <div id="svgRoot">
+      <svg id="svgBox"></svg>
+      <nav id="svgZoom">
+        <a href onclick="svg.zoom(event)">IN</a>
+        <a href onclick="svg.zoom(event, true)">OUT</a>
+      </nav>
+    </div>
+  </div>
+  <p> Live Draw MANUAL: <br>
+    <ol>
+      <li>You can draw line to indicate some important level of support or resistance</li>
+      <li>On hover you will see our navigation Dots.</li>
+      <li>On line click you will enable the navigation Dots.( Green - MOVE, Brown - ROTATE)</li>
+      <li>Double click on line remove it and related dots.</li>
+    </ol>
+  </p>
+
+  <script>
+    (function () {
+      window.l = new Lines("svgBox");
+
+      var chartData = [];
+
+      chartData.push([1.333395, 1.333395, 1.333305, 1.3, 1515032100000]);
+      chartData.push([1.3, 1.5, 1.2, 1.333085, 1515031200000]);
+      chartData.push([1.333085, 1.3334, 1.33124, 1.33124, 1515030300000]);
+      chartData.push([1.33124, 1.38, 1.315, 1.35, 1515029400000]);
+      chartData.push([1.35, 1.34, 1.32, 1.33557, 1515028500000]);
+
+      // chartData.push([1, 3, 1, 2, 1515032100000]);
+      // chartData.push([2, 3.4, 1.6, 3, 1515032100000]);
+      // chartData.push([3, 3, 3.4, 3, 1515032100000]);
+      // chartData.push([3, 4, 1, 2, 1515032100000]);
+      // chartData.push([2, 5, 3, 4, 1515032100000]);
+      // chartData.push([4, 6, 4, 5, 1515032100000]);
+      // chartData.push([5, 6, 4, 5, 1515032100000]);
+      // chartData.push([5, 6, 4, 6, 1515032100000]);
+
+      l.data(chartData);
+
+      l.draw("axis");
+      l.draw("line");
+      l.draw("candle");
+    })();
+  </script>
+</body>
+
+</html>
