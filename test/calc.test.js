@@ -42,6 +42,13 @@ describe("Check Calc - calculate class", function () {
     expect(stubs.init.calledOnce).to.be.true;
     expect(stubs.initSteps.calledOnce).to.be.true;
   });
+  
+  it("Calc.dataToPoints - check result from line data", () => {
+    const lineData = store.get("data");
+    const points = calc.dataToPoints(lineData);
+
+    expect(points).to.deep.equal(testData.expectedPoints);
+  });
 
   it("Calc.main - check calculated AXIS points !", () => {
     calc.main();
@@ -54,6 +61,7 @@ describe("Check Calc - calculate class", function () {
     const yAxis = calc.yAxis();
     expect(yAxis).to.deep.equal(testData.expectedYAxis);
   });
+
 
   after(() => {
     //restore calc methods

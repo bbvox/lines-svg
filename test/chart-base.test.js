@@ -1,6 +1,6 @@
 const expect = require("chai").expect;
 const sinon = require("sinon");
-const Chart = require("../lib/chart");
+const ChartBase = require("../lib/chart-base");
 const Calc = require("../lib/calc");
 const store = require("../lib/store");
 
@@ -11,7 +11,7 @@ require("jsdom-global")();
 global.window.Snap = testData.noop;
 document.body.innerHTML = testData.html;
 
-describe("Check Chart class", function () {
+describe("Check ChartBase class", function () {
   let chart,
     calc,
     stubs = {};
@@ -43,7 +43,7 @@ describe("Check Chart class", function () {
       .returns(testData.computedStyle);
 
     calc = new Calc();
-    chart = new Chart(testData.elemId, calc);
+    chart = new ChartBase(testData.elemId, calc);
   });
 
   it("Chart.init - constructor > init > getComputedStyle called once", () => {
