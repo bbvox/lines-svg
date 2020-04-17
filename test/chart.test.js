@@ -4,7 +4,7 @@ const Chart = require("../lib/chart");
 const Calc = require("../lib/calc");
 const store = require("../lib/store");
 
-const { chart: testData, store: storeData, timeOffset } = require("./test.data");
+const { chart: testData, store: storeData } = require("./test.data");
 
 require("jsdom-global")();
 
@@ -12,7 +12,9 @@ global.window.Snap = testData.noop;
 document.body.innerHTML = testData.html;
 
 describe("Check Chart class", function () {
-  let chart, calc, stubs = {};
+  let chart,
+    calc,
+    stubs = {};
 
   //prepare store & calc points & mock svgText
   const prepareToDraw = () => {
@@ -21,7 +23,7 @@ describe("Check Chart class", function () {
     calc.main();
 
     stubs.svgText = sinon.stub(chart, "svgText");
-  }
+  };
 
   const getArguments = (start, end, stubName = "svgText") => {
     let idx = start;
@@ -32,11 +34,12 @@ describe("Check Chart class", function () {
       idx++;
     }
     return args;
-  }
+  };
 
   before(() => {
     // mock computedStyle
-    stubs.windowStyle = sinon.stub(global.window, "getComputedStyle")
+    stubs.windowStyle = sinon
+      .stub(global.window, "getComputedStyle")
       .returns(testData.computedStyle);
 
     calc = new Calc();
@@ -54,19 +57,14 @@ describe("Check Chart class", function () {
     expect(h).to.equal(testData.computedStyle.height);
   });
 
-
   it("Chart.drawLabelsX - check svgText arguments", () => {
     prepareToDraw();
     chart.drawLabelsX();
 
     const svgTextArguments = getArguments(0, 4);
-
-    const timeOffset = new Date().getTimezoneOffset()
-    if (timeOffset === timeOffset) {
-      expect(svgTextArguments).to.deep.equal(testData.expectedSvgText.argumentsLabelX);
-    } else {
-      expect(svgTextArguments).to.deep.equal(testData.expectedSvgText.argumentsLabelXUTC);
-    }
+    expect(svgTextArguments).to.deep.equal(
+      testData.expectedSvgText.argumentsLabelX
+    );
   });
 
   it("Chart.drawLabelsY - check svgText arguments", () => {
@@ -74,7 +72,9 @@ describe("Check Chart class", function () {
     chart.drawLabelsY();
 
     const svgTextArguments = getArguments(5, 9);
-    expect(svgTextArguments).to.deep.equal(testData.expectedSvgText.argumentsLabelY);
+    expect(svgTextArguments).to.deep.equal(
+      testData.expectedSvgText.argumentsLabelY
+    );
   });
 
   it("Chart.drawLine - check svgText arguments", () => {
@@ -88,7 +88,7 @@ describe("Check Chart class", function () {
 
   after(() => {
     //restore calc methods
-    Object.keys(stubs).forEach(stubKey => {
+    Object.keys(stubs).forEach((stubKey) => {
       stubs[stubKey] && stubs[stubKey].restore();
     });
   });

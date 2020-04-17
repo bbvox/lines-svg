@@ -1,11 +1,10 @@
 module.exports = {
-  timeOffset: -180,
   utils: {
     input: 1.2345678,
     expected: 1.23457,
     expected2: 1,
     inputTimestamp: 1575000000000,
-    expectedTime: { hour: 6, hourUtc: 4, min: 0 }
+    expectedTime: { hour: 6, min: 0 }
   },
   store: {
     input: [
@@ -72,13 +71,6 @@ module.exports = {
         { xAxis: 46, yAxis: 185, label: '3:45' },
         { xAxis: 54, yAxis: 185, label: '3:45' },
         { xAxis: 62, yAxis: 185, label: '3:45' }
-      ],
-      argumentsLabelXUTC: [
-        { xAxis: 30, yAxis: 185, label: '2:0' },
-        { xAxis: 38, yAxis: 185, label: '2:15' },
-        { xAxis: 46, yAxis: 185, label: '1:45' },
-        { xAxis: 54, yAxis: 185, label: '1:45' },
-        { xAxis: 62, yAxis: 185, label: '1:45' }
       ],
       argumentsLabelY: [
         { xAxis: 30, yAxis: 170, label: 1 },
