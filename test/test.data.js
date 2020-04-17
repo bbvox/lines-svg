@@ -1,4 +1,5 @@
 module.exports = {
+  timeOffset: -180,
   utils: {
     input: 1.2345678,
     expected: 1.23457,

@@ -4,7 +4,7 @@ const Chart = require("../lib/chart");
 const Calc = require("../lib/calc");
 const store = require("../lib/store");
 
-const { chart: testData, store: storeData } = require("./test.data");
+const { chart: testData, store: storeData, timeOffset } = require("./test.data");
 
 require("jsdom-global")();
 
@@ -62,7 +62,7 @@ describe("Check Chart class", function () {
     const svgTextArguments = getArguments(0, 4);
 
     const timeOffset = new Date().getTimezoneOffset()
-    if (timeOffset === -120) {
+    if (timeOffset === timeOffset) {
       expect(svgTextArguments).to.deep.equal(testData.expectedSvgText.argumentsLabelX);
     } else {
       expect(svgTextArguments).to.deep.equal(testData.expectedSvgText.argumentsLabelXUTC);

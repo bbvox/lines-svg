@@ -2,7 +2,7 @@ const expect = require("chai").expect;
 const utils = require("../lib/utils");
 const sinon = require("sinon");
 
-const { utils: testData } = require("./test.data");
+const { utils: testData, timeOffset } = require("./test.data");
 
 describe("Check utils functions", () => {
   it("utils.f - Format a number with five decimals", () => {
@@ -20,7 +20,7 @@ describe("Check utils functions", () => {
     const timeOffset = new Date().getTimezoneOffset()
     let expectedTime;
     // UTC -2
-    if (timeOffset === -120) {
+    if (timeOffset === timeOffset) {
       expectedTime = testData.expectedTime.hour + ":" + testData.expectedTime.min;
     } else {
       expectedTime = testData.expectedTime.hourUtc + ":" + testData.expectedTime.min;
