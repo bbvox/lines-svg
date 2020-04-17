@@ -8,6 +8,9 @@ cache:
   directories:
     - "node_modules"
 
+before_script:
+  - export TZ=Europe/Sofia
+
 install:
   - npm install
   - if [ "$TRAVIS_NODE_VERSION" = "stable" ]; then npm install --only=dev; fi;
