@@ -53,7 +53,7 @@ describe("Check Calc - calculate class", function () {
   it("Calc.main - check calculated AXIS points !", () => {
     calc.main();
 
-    const points = store.get("points");
+    const points = store.get("points", "line");
     expect(points).to.deep.equal(testData.expectedPoints);
   });
 
