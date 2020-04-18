@@ -23,13 +23,13 @@ https://github.com/gabelerner/canvg
   <div class="flexbox">
     <nav id="navBar">
       <ul>
-        <li class="title"> PERIOD : </li>
+        <!-- <li class="title"> PERIOD : </li>
         <li><a data-period="15m" class="opts period active">15m</a></li>
         <li><a data-period="30m" class="opts period">30m</a></li>
         <li><a data-period="1h" class="opts period">1h</a></li>
         <li><a data-period="4h" class="opts period">4h</a></li>
         <li><a data-period="1d" class="opts period">1d</a></li>
-        <li><a data-period="1w" class="opts period">1w</a></li>
+        <li><a data-period="1w" class="opts period">1w</a></li> -->
         <li class="title">DRAW :</li>
         <li><a data-draw="text" class="opts draw"> text </a></li>
         <li><a data-draw="line" class="opts draw"> line </a></li>
@@ -37,11 +37,13 @@ https://github.com/gabelerner/canvg
         <li><a data-draw="tube" class="opts draw"> tube </a></li>
         <li><a data-draw="constx" class="opts draw" title="horizontal line"> constX </a></li>
         <li><a data-draw="consty" class="opts draw" title="vertical line"> constY </a></li>
+        <li><a data-chart="line" class="opts chart" onClick="lsvg.liveLine()">liveLINE</a></li>
+        <li><a data-chart="line" class="opts chart" onClick="lsvg.cursor()">cursor</a></li>
         <li class="title"> TYPE : </li>
-        <li><a data-chart="line" class="opts chart">line</a></li>
-        <li><a data-chart="candle" class="opts chart">candle</a></li>
-        <li><a data-chart="sma" class="opts chart">sma</a></li>
-        <li><a data-chart="ema" class="opts chart">ema</a></li>
+        <li><a data-chart="line" class="opts chart" onClick="lsvg.toggle('line')">line</a></li>
+        <li><a data-chart="candle" class="opts chart" onClick="lsvg.toggle('candle')">candle</a></li>
+        <li><a data-chart="sma" class="opts chart" onClick="lsvg.toggle('sma')">sma</a></li>
+        <li><a data-chart="ema" class="opts chart" onClick="lsvg.toggle('ema')">ema</a></li>
         <li><a data-chart="all" class="opts chart active">all</a></li>
         <li>
           <hr>
@@ -52,7 +54,7 @@ https://github.com/gabelerner/canvg
           </a></li>
         <li><a data-timeline="zoomin" class="opts timeline">IN</a>&nbsp;/&nbsp;<a data-timeline="zoomout"
             class="opts timeline">OUT</a></li>
-        <li><a data-snapshot="save" class="opts save">Snapshot</a></li>
+        <li><a data-snapshot="save" class="opts save" onClick="lsvg.getImage()">Snapshot</a></li>
       </ul>
     </nav>
     <div id="svgRoot">
@@ -96,11 +98,26 @@ https://github.com/gabelerner/canvg
 
       l.data(chartData);
 
-      l.draw("axis");
-      l.draw("line");
-      l.draw("candle");
-      l.draw("sma");
-      l.draw("ema");
+      l.draw();
+      // l.draw("line");
+      // l.draw("candle");
+      // l.draw("sma");
+      // l.draw("ema");
+      window.lsvg = {
+        getImage: () => {
+          var imgElem = l.getImage();
+          document.body.appendChild(imgElem);
+        },
+        toggle: (chartType) => {
+          l.toggle(chartType);
+        },
+        cursor: () => {
+          l.cursor();
+        },
+        liveLine: () => {
+          l.drawer();
+        }
+      }
     })();
   </script>
 </body>
