@@ -2111,6 +2111,7 @@ let Lines;
 
     // period = (x - this.chartArea.zeroX) / this.gg("stepX");
     period = (this.chartArea.zeroX - x) / this.gg("stepX");
+    console.log("period : ", period)
     period = parseInt(period); // do not change with this.f !!!
 
     if (!points || !points[period] || !points[(period + 1)])
