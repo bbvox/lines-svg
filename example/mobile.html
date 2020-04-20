@@ -1,0 +1,92 @@
+<html>
+  <head>
+    <title>Lines svg intro</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+
+  <body>
+    <svg height="300" width="300" id="svgBox">
+      <circle
+        cx="50"
+        cy="50"
+        r="40"
+        stroke="black"
+        stroke-width="3"
+        fill="red"
+        id="circle"
+      />
+
+      <!-- <svg width="400" height="110">
+        <rect width="300" height="100" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb(0,0,0)" />
+      </svg> -->
+
+      <line
+        x1="0"
+        y1="0"
+        x2="200"
+        y2="200"
+        style="stroke: rgb(255, 0, 0); stroke-width: 2;"
+      />
+    </svg>
+
+    <script>
+      (function () {
+        console.log("attach event: touchstart / touchmove / touchend");
+        // html element with id become global variable 
+        // <svg id="svgBox">
+
+        svgBox.addEventListener("touchstart", (e) => {
+          console.log("start ...");
+          const { pageX, pageY } = e.targetTouches[0];
+          // create Element for namespace of SVG
+          var newElement = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line"
+          ); //Create a path in SVG's namespace
+          newElement.setAttribute("x1", pageX); //Set path's data
+          newElement.setAttribute("x2", pageX); //Set path's data
+          newElement.setAttribute("y1", pageY); //Set path's data
+          newElement.setAttribute("y2", pageY); //Set path's data
+          newElement.setAttribute("id", "newLine"); //Set path's data
+          newElement.style.stroke = "#000"; //Set stroke colour
+          newElement.style.strokeWidth = "5px"; //Set stroke width
+          svgBox.appendChild(newElement);
+        });
+
+        svgBox.addEventListener("touchmove", (e) => {
+          const { pageX, pageY } = e.targetTouches[0];
+          const newLine = document.getElementById("newLine");
+          
+          console.log("move to SVG ...", newLine);
+          newLine.setAttribute("x2", pageX);
+          newLine.setAttribute("y2", pageY); //Set path's data
+        });
+        svgBox.addEventListener("touchend", (e) => {
+          console.log("end ...");
+        });
+
+        circle.addEventListener("touchmove", function (e) {
+          // grab the location of touch
+          const { pageX, pageY } = e.targetTouches[0];
+          console.log("move : ", pageX, pageY);
+
+          circle.setAttribute("cx", pageX);
+          circle.setAttribute("cy", pageY);
+
+          // assign box new coordinates based on the touch.
+
+          // box.style.left = touchLocation.pageX + "px";
+          // box.style.top = touchLocation.pageY + "px";
+        });
+
+        circle.addEventListener("touchend", function (e) {
+          console.log(" finish ...");
+          // current box position.
+          // var x = parseInt(box.style.left);
+          // var y = parseInt(box.style.top);
+        });
+      })();
+    </script>
+  </body>
+</html>
