@@ -43,7 +43,7 @@ describe("Check ChartBase class", function () {
       .returns(testData.computedStyle);
 
     calc = new Calc();
-    chart = new ChartBase(testData.elemId, calc);
+    chart = new ChartBase(testData.elemId);
   });
 
   it("Chart.init - constructor > init > getComputedStyle called once", () => {

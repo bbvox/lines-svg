@@ -87,7 +87,7 @@ let Lines;
   //  - - candleFill is ratio candle width is 0.4 part from x step
   //  - cssClass = classes for each chart type. 
   Lines.prototype.cfg = {
-    animate: false,
+    animate: true,
     zoomMove: true,
     chart: {
       type: ["line", "candle", "sma", "ema"],
