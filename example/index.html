@@ -35,6 +35,7 @@ https://github.com/gabelerner/canvg
         <li><a data-draw="line" class="opts draw"> line </a></li>
         <li><a data-draw="arrow" class="opts draw"> arrow </a></li>
         <li><a data-draw="tube" class="opts draw"> tube </a></li>
+        <li><a data-chart="line" class="opts chart" onClick="lsvg.next()">NEXT</a></li>
         <li><a data-chart="line" class="opts chart" onClick="lsvg.redraw()">REDRAW</a></li>
         <li><a data-chart="line" class="opts chart" onClick="lsvg.liveLine(true)">liveHOR</a></li>
         <li><a data-chart="line" class="opts chart" onClick="lsvg.liveLine()">liveLINE</a></li>
@@ -144,6 +145,9 @@ chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515014100000 
         },
         redraw: () => {
           l.redraw();
+        },
+        next: () => {
+          l.next(chartData.slice(10))
         }
       }
     })();
