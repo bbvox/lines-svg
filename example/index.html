@@ -131,7 +131,12 @@ chartData.push([  1.332415  , 1.332415  , 1.332415  , 1.332415  , 1515014100000 
       // l.draw("ema");
       window.lsvg = {
         getImage: () => {
-          var imgElem = l.getImage();
+          var imgData = l.getImage();
+          const imgElem = document.createElement("img");
+
+          imgElem.setAttribute("src", imgData.src);
+          imgElem.setAttribute("width", imgData.width);
+          imgElem.setAttribute("height", imgData.height);
           document.body.appendChild(imgElem);
         },
         toggle: (chartType) => {
