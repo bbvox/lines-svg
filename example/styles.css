@@ -98,13 +98,16 @@ nav a.active {
 }
 
 /* ----------------- CHART SVG CLASSES -------------------*/
-.liveNav {
-  display: none;
+.lnav {
+ stroke: black;
+ stroke-width: 2;
+ fill: white;
+  cursor: pointer;
 }
 
-.liveLine:hover ~.liveNav {
+/* .liveLine:hover ~.liveNav {
   display: block;
-}
+} */
 
 .tlabel {
   fill: #666;
@@ -194,11 +197,11 @@ nav a.active {
   /*display: none;*/
 }
 
-.lline:hover {
+/* .lline:hover {
   stroke-width: 5px;
-}
+} */
 
-.lline:hover ~ .movedot.hidden {
+/* .lline:hover ~ .movedot.hidden {
   fill: transparent;
   display: block;
 }
@@ -206,19 +209,19 @@ nav a.active {
 .lline:hover ~ .rotatedot.hidden {
   fill: transparent;
   display: block;
-}
+} */
 
 
-.movedot:hover {
+/* .movedot:hover {
   fill: #8bc34a;
   stroke: #8bc34a;
-}
+} */
 
 
-.rotatedot:hover {
+/* .rotatedot:hover {
   fill: #795548;
   stroke: #795548;
-}
+} */
 
 
 .nav-dialog {
