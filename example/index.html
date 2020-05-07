@@ -43,6 +43,7 @@ https://github.com/gabelerner/canvg
         <li><a data-chart="line" class="opts chart" onClick="lsvg.liveText()">liveTEXT</a></li>
         <li><a data-chart="line" class="opts chart" onClick="lsvg.liveCircle()">CIRCLE</a></li>
         <li><a data-chart="line" class="opts chart" onClick="lsvg.cursor()">cursor</a></li>
+        <li><a data-chart="line" class="opts chart" onClick="lsvg.pointer()">POINTER</a></li>
         <li class="title"> TYPE : </li>
         <li><a data-chart="line" class="opts chart" onClick="lsvg.toggle('line')">line</a></li>
         <li><a data-chart="candle" class="opts chart" onClick="lsvg.toggle('candle')">candle</a></li>
@@ -225,6 +226,9 @@ https://github.com/gabelerner/canvg
         },
         liveCircle: () => {
           l.live("circle");
+        },
+        pointer: () => {
+          l.pointer();
         },
         redraw: () => {
           l.redraw();
