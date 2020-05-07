@@ -25,6 +25,8 @@ describe("Check ChartBase class", function () {
     stubs.svgText = sinon.stub(chart, "svgText");
   };
 
+  // get firstArguments from Stubs - 
+  // return array
   const getArguments = (start, end, stubName = "svgText") => {
     let idx = start;
     let args = [];
