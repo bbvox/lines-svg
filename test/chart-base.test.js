@@ -32,7 +32,8 @@ describe("Check ChartBase class", function () {
     let args = [];
     while (idx <= end) {
       // push first svgText argument
-      args.push(stubs[stubName].getCall(idx).args[0]);
+      const stubArg = stubs[stubName].getCall(idx);
+      args.push(stubArg ? stubArg.args[0] : null);
       idx++;
     }
     return args;

@@ -16,7 +16,7 @@ describe("Check utils functions", () => {
   });
 
   it("utils.fDate - Get Hour and minutes for period 15m", () => {
-    const dateHourMin = utils.fDate(testData.inputTimestamp);
+    const dateHourMin = utils.fDate(testData.inputTimestamp, "15m");
     let expectedTime;
     // UTC -2
     expectedTime = testData.expectedTime.hour + ":" + testData.expectedTime.min;
