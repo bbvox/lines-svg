@@ -62,6 +62,25 @@ describe("Check Calc - calculate class", function () {
     expect(yAxis).to.deep.equal(testData.expectedYAxis);
   });
 
+  // findYpixel
+  it("Calc.findYpixel - check find pixel", () => {
+    calc.init();
+    calc.initSteps();
+
+    const foundPixel = calc.findYpixel(testData.findY.inputPixel);
+    expect(foundPixel).to.equal(testData.findY.expectedPixel);
+
+    const foundPixel2 = calc.findYpixel(testData.findY.inputPixel2);
+    expect(foundPixel2).to.equal(testData.findY.expectedPixel2);
+  });
+
+  it("Calc.findY - check findY value/pixel", () => {
+    calc.init();
+    calc.initSteps();
+
+    const foundY = calc.findY(testData.findY.inputPixel);
+    expect(foundY).to.deep.equal(testData.findY.expectedFoundY);
+  });
 
   after(() => {
     //restore calc methods

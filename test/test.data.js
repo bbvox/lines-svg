@@ -40,7 +40,7 @@ module.exports = {
       height: 400,
       zeroX: 50,
       zeroY: 550,
-      ordinateX: 25
+      ordinateX: 25,
     },
   },
   calc: {
@@ -63,7 +63,14 @@ module.exports = {
     expectedYAxis: {
       point: [25, 550],
       label: 1,
-      labelDiff: 0.111,
+      stepYValue: 0.111,
+    },
+    findY: {
+      inputPixel: 199,
+      expectedPixel: 442,
+      inputPixel2: 340,
+      expectedPixel2: 150,
+      expectedFoundY: { pixel: 442, value: 1.14979 },
     },
   },
   chart: {
