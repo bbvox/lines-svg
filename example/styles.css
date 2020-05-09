@@ -109,6 +109,15 @@ nav a.active {
   display: block;
 } */
 
+.ltxt {
+  width: -webkit-fill-available;
+  height: -webkit-fill-available;
+  padding: 0.3rem;  
+  float: left;
+  border: 1px dashed #80808080;
+  border-top: 10px dotted #80808080;
+}
+
 .tlabel {
   fill: #666;
   stroke-width: 0.1px;
