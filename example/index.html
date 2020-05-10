@@ -35,6 +35,11 @@ https://github.com/gabelerner/canvg
           <li><a data-draw="arrow" class="opts draw"> arrow </a></li>
           <li><a data-draw="tube" class="opts draw"> tube </a></li>
           <li>
+            <a data-chart="line" class="opts chart" onClick="lsvg.prev()"
+              >PREV</a
+            >
+          </li>
+          <li>
             <a data-chart="line" class="opts chart" onClick="lsvg.next()"
               >NEXT</a
             >
@@ -272,7 +277,7 @@ https://github.com/gabelerner/canvg
         // l.draw("line");
         // l.draw("candle");
         // l.draw("sma");
-        // l.draw("ema");
+        cnt = 0;
         window.lsvg = {
           getImage: () => {
             var imgData = l.getImage();
@@ -307,8 +312,15 @@ https://github.com/gabelerner/canvg
           redraw: () => {
             l.redraw();
           },
+          prev: () => {
+            --cnt;
+            const start = cnt * 10;
+            l.next(chartData.slice(start, start + 10));
+          },
           next: () => {
-            l.next(chartData.slice(10));
+            ++cnt;
+            const start = cnt * 10;
+            l.next(chartData.slice(start, start + 10));
           },
         };
       })();
