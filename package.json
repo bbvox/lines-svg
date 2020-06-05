@@ -1,6 +1,6 @@
 {
   "name": "lines-svg",
-  "version": "0.4.11",
+  "version": "0.4.15",
   "description": "LinesSvg is a financial chart library. Support formats are lineal, candlestick, sma & ema charts.",
   "main": "dist/main.js",
   "repository": {
@@ -24,7 +24,8 @@
     "lint": "eslint .",
     "serve": "serve ./",
     "prepare": "npm run build:prod",
-    "publish": "npm publish"
+    "publish": "npm publish",
+    "bump": "npm version patch"
   },
   "keywords": [
     "svg",
