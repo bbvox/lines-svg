@@ -24,8 +24,8 @@
     "lint": "eslint .",
     "serve": "serve ./",
     "prepare": "npm run build:prod",
-    "publish": "npm publish",
-    "bump": "npm version patch"
+    "npm:bump": "npm version patch",
+    "npm:publish": "npm publish"
   },
   "keywords": [
     "svg",
