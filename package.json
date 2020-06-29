@@ -1,6 +1,6 @@
 {
   "name": "lines-svg",
-  "version": "0.4.17",
+  "version": "0.4.18",
   "description": "LinesSvg is a financial chart library. Support formats are lineal, candlestick, sma & ema charts.",
   "main": "dist/main.js",
   "repository": {
