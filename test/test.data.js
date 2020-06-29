@@ -83,11 +83,11 @@ module.exports = {
     },
     expectedSvgText: {
       argumentsLabelX: [
-        { point: [60, 185], label: "Jan'4", groupFlag: true },
-        { point: [68, 185], label: "Jan'4", groupFlag: true },
-        { point: [76, 185], label: "Jan'4", groupFlag: true },
-        { point: [84, 185], label: "Jan'4", groupFlag: true },
-        { point: [92, 185], label: "Jan'4", groupFlag: true },
+        { point: [60, 185], label: "4:0", groupFlag: true },
+        { point: [68, 185], label: "4:15", groupFlag: true },
+        { point: [76, 185], label: "3:45", groupFlag: true },
+        { point: [84, 185], label: "3:45", groupFlag: true },
+        { point: [92, 185], label: "3:45", groupFlag: true },
       ],
       argumentsLabelY: [
         { point: [15, 170], label: 1 },
