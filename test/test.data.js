@@ -38,7 +38,7 @@ module.exports = {
     inputArea: {
       width: 600,
       height: 400,
-      zeroX: 50,
+      zeroX: 500,
       zeroY: 550,
       ordinateX: 25,
     },
@@ -50,15 +50,15 @@ module.exports = {
     expectedSteps: {
       stepX: 120,
       stepY: 721,
-      zeroX: 100,
+      zeroX: 500,
       zeroY: 310,
     },
     expectedPoints: [
-      [100, 310],
-      [220, 470],
-      [340, 150],
-      [460, 150],
-      [580, 550],
+      [500, 310],
+      [380, 470],
+      [260, 150],
+      [140, 150],
+      [20, 550],
     ],
     expectedYAxis: {
       point: [25, 550],
@@ -67,10 +67,10 @@ module.exports = {
     },
     findY: {
       inputPixel: 199,
-      expectedPixel: 442,
+      expectedPixel: 150,
       inputPixel2: 340,
-      expectedPixel2: 150,
-      expectedFoundY: { pixel: 442, value: 1.14979 },
+      expectedPixel2: 363,
+      expectedFoundY: { pixel: 150, value: 1.55479 },
     },
   },
   chart: {
@@ -83,11 +83,11 @@ module.exports = {
     },
     expectedSvgText: {
       argumentsLabelX: [
-        { point: [60, 185], label: "4:0", groupFlag: true },
-        { point: [68, 185], label: "4:15", groupFlag: true },
-        { point: [76, 185], label: "3:45", groupFlag: true },
-        { point: [84, 185], label: "3:45", groupFlag: true },
-        { point: [92, 185], label: "3:45", groupFlag: true },
+        { point: [40, 185], label: "4:0", groupFlag: true },
+        { point: [32, 185], label: "4:15", groupFlag: true },
+        { point: [24, 185], label: "3:45", groupFlag: true },
+        { point: [16, 185], label: "3:45", groupFlag: true },
+        { point: [8, 185], label: "3:45", groupFlag: true },
       ],
       argumentsLabelY: [
         { point: [15, 170], label: 1 },
@@ -98,10 +98,10 @@ module.exports = {
       ],
     },
     expectedDebugArguments: [
-      [60, 86],
-      [68, 142],
-      [76, 30],
-      [84, 30],
+      [40, 86],
+      [32, 142],
+      [24, 30],
+      [16, 30],
     ],
   },
 };
