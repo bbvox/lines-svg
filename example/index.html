@@ -178,6 +178,7 @@ https://github.com/gabelerner/canvg
       </li>
       <li>Double click on line remove it and related dots.</li>
     </ol>
+    <canvas id="c"></canvas>
 
     <script>
       (function () {
@@ -334,12 +335,27 @@ https://github.com/gabelerner/canvg
         window.lsvg = {
           getImage: () => {
             var imgData = l.getImage();
-            const imgElem = document.createElement("img");
 
-            imgElem.setAttribute("src", imgData.src);
-            imgElem.setAttribute("width", imgData.width);
-            imgElem.setAttribute("height", imgData.height);
-            document.body.appendChild(imgElem);
+            // http://bl.ocks.org/biovisualize/8187844
+            /* PNG */
+            var canvas = document.getElementById("c");
+            canvas.width = imgData.width;
+            canvas.height = imgData.height;
+            var ctx = canvas.getContext("2d");
+            
+            var image = new Image();
+            image.onload = function () {
+              ctx.drawImage(image, 0, 0);
+            };
+            image.src = imgData.src;
+            /* END PNG */
+
+            // const imgElem = document.createElement("img");
+
+            // imgElem.setAttribute("src", imgData.src);
+            // imgElem.setAttribute("width", imgData.width);
+            // imgElem.setAttribute("height", imgData.height);
+            // document.body.appendChild(imgElem);
           },
           toggle: (chartType) => {
             l.toggle(chartType);
