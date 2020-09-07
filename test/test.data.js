@@ -83,11 +83,11 @@ module.exports = {
     },
     expectedSvgText: {
       argumentsLabelX: [
-        { point: [40, 185], label: "4:0", groupFlag: true },
-        { point: [32, 185], label: "4:15", groupFlag: true },
-        { point: [24, 185], label: "3:45", groupFlag: true },
-        { point: [16, 185], label: "3:45", groupFlag: true },
-        { point: [8, 185], label: "3:45", groupFlag: true },
+        { point: [70, 185], label: "4:0", groupFlag: true },
+        { point: [62, 185], label: "4:15", groupFlag: true },
+        { point: [54, 185], label: "3:45", groupFlag: true },
+        { point: [46, 185], label: "3:45", groupFlag: true },
+        { point: [38, 185], label: "3:45", groupFlag: true },
       ],
       argumentsLabelY: [
         { point: [15, 170], label: 1 },
@@ -98,10 +98,10 @@ module.exports = {
       ],
     },
     expectedDebugArguments: [
-      [40, 86],
-      [32, 142],
-      [24, 30],
-      [16, 30],
+      [70, 86],
+      [62, 142],
+      [54, 30],
+      [46, 30],
     ],
   },
 };
