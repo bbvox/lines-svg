@@ -48,7 +48,7 @@
     "coveralls": "^3.0.11",
     "eslint": "^6.8.0",
     "imports-loader": "^0.8.0",
-    "jsdom": "^15.2.1",
+    "jsdom": "^16.5.0",
     "jsdom-global": "^3.0.2",
     "mocha": "^6.2.3",
     "nyc": "^14.1.1",
